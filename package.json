@@ -1,0 +1,20 @@
+{
+  "name": "electron",
+  "version": "1.0.0",
+  "description": "electron proof of concept",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "package-win": "node build.js"
+  },
+  "devDependencies": {
+    "electron": "^29.1.5",
+    "electron-packager": "^17.1.2",
+    "electron-winstaller": "^5.3.0"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.2",
+    "electron-squirrel-startup": "^1.0.0"
+  }
+}
