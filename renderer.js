@@ -5,9 +5,24 @@
  * `contextIsolation` is turned on. Use the contextBridge API in `preload.js`
  * to expose Node.js functionality from the main process.
  */
-document.getElementById('helloButton').addEventListener('click', () => {
-  console.log('Hello button clicked');
-  fetch('http://localhost:5000')
-    .then(response => response.json())
-    .then(data => alert(data.message));
+
+document.getElementById('readExcelBtn').addEventListener('click', () => {
+  window.api.selectFile();
+});
+
+window.api.onFileSelected((path) => {
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file_path: path})
+  };
+  
+  fetch('http://localhost:5000/excel/read_excel', requestOptions)
+    .then(response => response.text())
+    .then(data => {
+      console.log(data);
+      document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
+    });
+
+  document.getElementById('file_path').innerText = path
 });

@@ -1,5 +1,5 @@
 // index.ts
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog} = require('electron')
 const path = require('path');
 const url = require('url');
 const child_process = require('child_process');
@@ -8,12 +8,18 @@ const { exec } = require('child_process');
 const log = require('electron-log');
 
 let mainWindow;
+let pythonServer;
+
+const isDevelopment = process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath);
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true
     },
   });
 
@@ -25,14 +31,14 @@ function createWindow() {
     })
   );
 
+  if (isDevelopment) {
+    mainWindow.webContents.openDevTools();
+  }
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
-
-const isDevelopment = process.defaultApp || /node_modules[\\/]electron[\\/]/.test(process.execPath);
-
-let pythonServer;
 
 app.on('ready', () => {
 
@@ -75,15 +81,18 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', () => {
-  app.quit()
-  exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
-  if (err) {
-    console.log(err)
-    return;
+  if (!isDevelopment) {
+    exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
+      if (err) {
+        console.log(err)
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+      console.log(`stderr: ${stderr}`);
+      });
+  } else {
+    pythonServer.kill()
   }
-  console.log(`stdout: ${stdout}`);
-  console.log(`stderr: ${stderr}`);
-  });
   app.quit()
 });
 
@@ -91,4 +100,16 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
- })
+ });
+
+
+ipcMain.on('open-file-dialog', (event) => {
+  dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }],
+  }).then((file) => {
+    if (!file.canceled) {
+      event.reply('selected-file', file.filePaths[0]);
+    }
+  });
+});
