@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "electron-log": "^5.1.2",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^8.2.0"
   }
 }

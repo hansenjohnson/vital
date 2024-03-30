@@ -11,18 +11,20 @@ document.getElementById('readExcelBtn').addEventListener('click', () => {
 });
 
 window.api.onFileSelected((path) => {
+  loadFile(path)
+  document.getElementById('file_path').innerText = path
+});
+
+function loadFile(path) {
   const requestOptions = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ file_path: path})
   };
-  
   fetch('http://localhost:5000/excel/read_excel', requestOptions)
-    .then(response => response.text())
-    .then(data => {
-      console.log(data);
-      document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
-    });
-
-  document.getElementById('file_path').innerText = path
-});
+  .then(response => response.text())
+  .then(data => {
+    console.log(data);
+    document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
+  });
+}
