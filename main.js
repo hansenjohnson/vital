@@ -4,9 +4,7 @@ const path = require('path');
 const url = require('url');
 const child_process = require('child_process');
 const { exec } = require('child_process');
-const Store = require('electron-store');
 
-const store = new Store();
 const log = require('electron-log');
 
 let mainWindow;
@@ -37,11 +35,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
   }
 
-  let filePath = store.get('filePath');
-
-  if (filePath) {
-    mainWindow.webContents.send('selected-file', filePath);
-  }
+  
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -118,7 +112,6 @@ ipcMain.on('open-file-dialog', (event) => {
   }).then((file) => {
     if (!file.canceled) {
       event.reply('selected-file', file.filePaths[0]);
-      store.set('filePath', file.filePaths[0]);
     }
   });
 });

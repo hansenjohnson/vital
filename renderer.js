@@ -11,20 +11,37 @@ document.getElementById('readExcelBtn').addEventListener('click', () => {
 });
 
 window.api.onFileSelected((path) => {
-  loadFile(path)
+  saveFilePath(path)
+  loadFile()
   document.getElementById('file_path').innerText = path
 });
 
-function loadFile(path) {
-  const requestOptions = {
+
+saveFilePath = (path) => {
+  const data = {
+    file_path: path
+  }
+  payload = {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ file_path: path})
-  };
-  fetch('http://localhost:5000/excel/read_excel', requestOptions)
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }
+  console.log(payload)
+  fetch('http://localhost:5000/excel/excel_file_path', payload)
   .then(response => response.text())
   .then(data => {
-    console.log(data);
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
   });
 }
+
+loadFile = () =>{
+  fetch('http://localhost:5000/excel/read_excel_file')
+  .then(response => response.text())
+  .then(data => {
+    document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
+  });
+}
+
+loadFile()
