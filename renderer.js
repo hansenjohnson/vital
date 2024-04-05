@@ -10,16 +10,18 @@ document.getElementById('readExcelBtn').addEventListener('click', () => {
   window.api.selectFile();
 });
 
-window.api.onFileSelected((path) => {
-  saveFilePath(path)
+window.api.onFileSelected((path, sheet_name) => {
+  console.log(path, sheet_name)
+  saveFilePath(path, sheet_name)
   loadFile()
   document.getElementById('file_path').innerText = path
 });
 
 
-saveFilePath = (path) => {
+saveFilePath = (file_path, sheet_name) => {
   const data = {
-    file_path: path
+    file_path: file_path,
+    sheet_name: sheet_name
   }
   payload = {
     method: 'POST',
@@ -29,7 +31,7 @@ saveFilePath = (path) => {
     body: JSON.stringify(data)
   }
   console.log(payload)
-  fetch('http://localhost:5000/excel/excel_file_path', payload)
+  fetch('http://localhost:5000/association/association-file', payload)
   .then(response => response.text())
   .then(data => {
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
@@ -37,7 +39,7 @@ saveFilePath = (path) => {
 }
 
 loadFile = () =>{
-  fetch('http://localhost:5000/excel/read_excel_file')
+  fetch('http://localhost:5000/association/association-file')
   .then(response => response.text())
   .then(data => {
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);

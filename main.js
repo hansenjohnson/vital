@@ -111,7 +111,7 @@ ipcMain.on('open-file-dialog', (event) => {
     filters: [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }],
   }).then((file) => {
     if (!file.canceled) {
-      event.reply('selected-file', file.filePaths[0]);
+      event.reply('selected-file', file.filePaths[0], 'TblVideo');
     }
   });
 });

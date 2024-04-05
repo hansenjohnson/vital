@@ -1,8 +1,8 @@
 from flask import Flask, jsonify
-from blueprints.excel.excel import bp as excel_bp
+from blueprints.associations.association import bp as association_bp
 
 app = Flask(__name__)
-app.register_blueprint(excel_bp, url_prefix='/excel')
+app.register_blueprint(association_bp, url_prefix='/association')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

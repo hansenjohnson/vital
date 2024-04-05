@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld(
   'api', {
     selectFile: () => ipcRenderer.send('open-file-dialog'),
     onFileSelected: (callback) => {
-      ipcRenderer.on('selected-file', (event, path) => callback(path));
+      ipcRenderer.on('selected-file', (event, path, worksheet_name) => callback(path, worksheet_name));
     }
   }
 );
