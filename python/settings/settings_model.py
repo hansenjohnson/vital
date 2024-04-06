@@ -1,5 +1,6 @@
 from sqlitedict import SqliteDict
 
+
 class SettingsModel:
     def __init__(self):
         self.db = SqliteDict('./settings.sqlite', autocommit=True)

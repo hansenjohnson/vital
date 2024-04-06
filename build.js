@@ -1,4 +1,3 @@
-const createWindowsInstaller = require('electron-winstaller').createWindowsInstaller
 const path = require('path')
 const packager = require('electron-packager');
 const os = require('os');

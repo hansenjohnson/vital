@@ -58,6 +58,8 @@ spec/fixtures/logo.png
 bin
 build
 server.spec
-*.sqlite
+*.sqlite*
+*.db
+
 
 __pycache__

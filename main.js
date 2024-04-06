@@ -5,8 +5,6 @@ const url = require('url');
 const child_process = require('child_process');
 const { exec } = require('child_process');
 
-const log = require('electron-log');
-
 let mainWindow;
 let pythonServer;
 
@@ -45,7 +43,7 @@ function createWindow() {
 app.on('ready', () => {
 
   if (isDevelopment) {
-    pythonServer = child_process.spawn('python', ['server/server.py'])
+    pythonServer = child_process.spawn('python', ['python/server.py'])
 
     pythonServer.stdout.on('data', (data) => {
       console.log(`Python stdout: ${data}`);
@@ -60,7 +58,7 @@ app.on('ready', () => {
     });
   } else {
     let backend;
-    backend = path.join(process.cwd(), 'resources/app/bin/server.exe')
+    backend = path.join(process.cwd(), 'resources/app/bin/python.exe')
     var execfile = child_process.execFile;
     execfile(
       backend,
@@ -83,8 +81,13 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', () => {
+  app.quit()
+});
+
+
+app.on('before-quit', () => { 
   if (!isDevelopment) {
-    exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
+    exec('taskkill /f /t /im python.exe', (err, stdout, stderr) => {
       if (err) {
         console.log(err)
         return;
@@ -93,9 +96,10 @@ app.on('window-all-closed', () => {
       console.log(`stderr: ${stderr}`);
       });
   } else {
-    pythonServer.kill()
+    console.log('Killing Python python')
+    pythonServer.kill('SIGINT');
+    pythonServer.kill('SIGKILL');
   }
-  app.quit()
 });
 
 app.on('activate', () => {
@@ -111,7 +115,8 @@ ipcMain.on('open-file-dialog', (event) => {
     filters: [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }],
   }).then((file) => {
     if (!file.canceled) {
-      event.reply('selected-file', file.filePaths[0], 'TblVideo');
+      // worksheet will need to input from the client
+      event.reply('selected-file', file.filePaths[0], 'Association');
     }
   });
 });
