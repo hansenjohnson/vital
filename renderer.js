@@ -40,7 +40,7 @@ saveFilePath = (file_path, sheet_name) => {
 
 loadFile = () =>{
   fetch('http://localhost:5000/association/association-file')
-  .then(response => response.text())
+  .then(response => response.json())
   .then(data => {
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
   });

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-import pandas as pd
+import sys
 
 from model.sql import SQL
 from settings.settings_service import SettingsService
@@ -24,6 +24,10 @@ def write_association_file():
 
         settings_service.set_association_file_path(file_path)
         settings_service.set_association_sheet_name(sheet_name)
+
+        print(file_path + ' ' + sheet_name, file=sys.stderr)
+        print(settings_service.get_association_file_path() + ' ' + settings_service.get_association_sheet_name(), file=sys.stderr)
+
 
         sql.load_sql()
 

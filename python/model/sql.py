@@ -1,4 +1,5 @@
-import sqlite3
+import sys
+import json
 import pandas as pd
 from sqlalchemy import create_engine, text, insert, table, inspect
 from settings.settings_service import SettingsService
@@ -36,6 +37,7 @@ class SQL:
                         SightingId INTEGER,
                         StartTime TEXT,
                         EndTime TEXT,
+                        Annotation JSON,
                         CreatedBy TEXT,
                         CreatedDate TEXT
                      )
@@ -69,9 +71,10 @@ class SQL:
 
     def create_association(self, payload):
         try:
+            payload['Annotation'] = json.dumps(payload['Annotation'])
             with self.engine.connect() as connection:
-                query = text("INSERT INTO association (SightingId, StartTime, EndTime, CreatedBy, CreatedDate) "
-                             "VALUES (:SightingId, :StartTime, :EndTime, :CreatedBy, :CreatedDate)")
+                query = text("INSERT INTO association (SightingId, StartTime, EndTime, Annotation, CreatedBy, CreatedDate) "
+                             "VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :CreatedBy, :CreatedDate)")
                 connection.execute(query, payload)
                 connection.commit()
 
@@ -87,7 +90,7 @@ class SQL:
                 sql_query = text(f"SELECT * FROM {table_name}")
                 results = connection.execute(sql_query)
                 self.df = pd.DataFrame(results.fetchall())
-                self.df.to_excel(file_path, sheet_name, index=False)
+                self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
         except Exception as e:
             print(f"Failed to flush SQL to excel: {e}")
             raise
