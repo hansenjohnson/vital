@@ -3,7 +3,7 @@ from sqlitedict import SqliteDict
 
 class SettingsModel:
     def __init__(self):
-        self.db = SqliteDict('./settings.sqlite', autocommit=True)
+        self.db = SqliteDict('./settings_controller.sqlite', autocommit=True)
 
     def get_setting(self, key):
         return self.db.get(key)

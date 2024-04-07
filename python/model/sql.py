@@ -1,7 +1,7 @@
 import sys
 import json
 import pandas as pd
-from sqlalchemy import create_engine, text, insert, table, inspect
+from sqlalchemy import create_engine, text
 from settings.settings_service import SettingsService
 
 
@@ -18,34 +18,33 @@ class SQL:
         self.engine = create_engine('sqlite:///video_catalog.db')
         self.settings = SettingsService()
 
-        file_path = self.settings.get_association_file_path()
-        sheet_name = self.settings.get_association_sheet_name()
-
-        if file_path is not None and sheet_name is not None:
-            self.load_sql()
+        self.load_sql()
 
     def load_sql(self):
-        self.df = pd.read_excel(self.settings.get_association_file_path(),
-                                self.settings.get_association_sheet_name(),
-                                index_col='CatalogVideoId')
+        try:
+            with self.engine.connect() as connection:
+                connection.execute(text("DROP TABLE IF EXISTS association"))
+                connection.execute(text("""
+                         CREATE TABLE association (
+                            CatalogVideoId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            SightingId INTEGER,
+                            StartTime TEXT,
+                            EndTime TEXT,
+                            Annotation JSON,
+                            CreatedBy TEXT,
+                            CreatedDate TEXT
+                         )
+                     """))
+                self.df = pd.read_excel(self.settings.get_association_file_path(),
+                                        self.settings.get_association_sheet_name(),
+                                        index_col='CatalogVideoId')
+                self.df.to_sql('association', self.engine, if_exists='append')
+                connection.commit()
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            self.settings.clear_file_settings()
 
-        with self.engine.connect() as connection:
-            connection.execute(text("DROP TABLE IF EXISTS association"))
-            connection.execute(text("""
-                     CREATE TABLE association (
-                        CatalogVideoId INTEGER PRIMARY KEY AUTOINCREMENT,
-                        SightingId INTEGER,
-                        StartTime TEXT,
-                        EndTime TEXT,
-                        Annotation JSON,
-                        CreatedBy TEXT,
-                        CreatedDate TEXT
-                     )
-                 """))
-
-            self.df.to_sql('association', self.engine, if_exists='append')
-
-    def get_association_table(self):
+    def get_all_associations(self):
         rows = []
         try:
             with self.engine.connect() as connection:
@@ -54,7 +53,7 @@ class SQL:
                     rows.append(row._asdict())
                 return rows
         except Exception as e:
-            print(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query: {e}")
         return None
 
     def get_association_by_id(self, catalog_video_id):
@@ -66,7 +65,7 @@ class SQL:
                     rows.append(row._asdict())
                 return rows
         except Exception as e:
-            print(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query: {e}")
         return None
 
     def create_association(self, payload):
@@ -81,7 +80,18 @@ class SQL:
                 self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
 
         except Exception as e:
-            print(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            raise
+
+    def delete_association_by_id(self, catalog_video_id):
+        try:
+            with self.engine.connect() as connection:
+                connection.execute(text(f"DELETE FROM association WHERE CatalogVideoId = {catalog_video_id}"))
+                connection.commit()
+
+                self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query: {e}")
             raise
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
@@ -92,5 +102,5 @@ class SQL:
                 self.df = pd.DataFrame(results.fetchall())
                 self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
         except Exception as e:
-            print(f"Failed to flush SQL to excel: {e}")
+            sys.stderr.write(f"Failed to flush SQL to excel: {e}")
             raise

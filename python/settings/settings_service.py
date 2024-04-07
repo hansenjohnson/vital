@@ -21,3 +21,7 @@ class SettingsService:
 
     def set_association_sheet_name(self, sheet_name):
         self.model.set_setting('association_sheet_name', sheet_name)
+
+    def clear_file_settings(self):
+        self.model.set_setting('association_file_path', None)
+        self.model.set_setting('association_sheet_name', None)

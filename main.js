@@ -12,8 +12,8 @@ const isDevelopment = process.defaultApp || /node_modules[\\/]electron[\\/]/.tes
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1600,
+    height: 1000,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js'),
