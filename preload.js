@@ -6,13 +6,13 @@
  *
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
-window.addEventListener('DOMContentLoaded', () => {
-  const replaceText = (selector, text) => {
-    const element = document.getElementById(selector)
-    if (element) element.innerText = text
-  }
+const { contextBridge, ipcRenderer } = require('electron');
 
-  for (const type of ['chrome', 'node', 'electron']) {
-    replaceText(`${type}-version`, process.versions[type])
+contextBridge.exposeInMainWorld(
+  'api', {
+    selectFile: () => ipcRenderer.send('open-file-dialog'),
+    onFileSelected: (callback) => {
+      ipcRenderer.on('selected-file', (event, path, worksheet_name) => callback(path, worksheet_name));
+    }
   }
-})
+);

@@ -5,9 +5,45 @@
  * `contextIsolation` is turned on. Use the contextBridge API in `preload.js`
  * to expose Node.js functionality from the main process.
  */
-document.getElementById('helloButton').addEventListener('click', () => {
-  console.log('Hello button clicked');
-  fetch('http://localhost:5000')
-    .then(response => response.json())
-    .then(data => alert(data.message));
+
+document.getElementById('readExcelBtn').addEventListener('click', () => {
+  window.api.selectFile();
 });
+
+window.api.onFileSelected((path, sheet_name) => {
+  console.log(path, sheet_name)
+  saveFilePath(path, sheet_name)
+  loadFile()
+  document.getElementById('file_path').innerText = path
+});
+
+
+saveFilePath = (file_path, sheet_name) => {
+  const data = {
+    FilePath: file_path,
+    SheetName: sheet_name
+  }
+  payload = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }
+
+  fetch('http://localhost:5000/settings/associations-file', payload)
+  .then(response => response.text())
+  .then(data => {
+    document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
+  });
+}
+
+loadFile = () =>{
+  fetch('http://localhost:5000/associations/')
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
+  });
+}
+
+loadFile()
