@@ -70,7 +70,11 @@ class SQL:
     def create_association(self, payload):
         try:
             payload['Annotation'] = json.dumps(payload['Annotation'])
-            query = "INSERT INTO association (SightingId, StartTime, EndTime, Annotation, CreatedBy, CreatedDate) VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :CreatedBy, :CreatedDate)"
+            query = """
+                INSERT INTO association
+                (SightingId, StartTime, EndTime, Annotation, VideFilePath, ThumbnailFilePath, CreatedBy, CreatedDate)
+                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :VideFilePath, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
+            """
             self.cursor.execute(query, payload)
             self.conn.commit()
 
