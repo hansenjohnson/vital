@@ -12,8 +12,8 @@ sql = SQL()
 @bp.route('/associations-file', methods=['POST'])
 def write_association_file():
     try:
-        file_path = request.json['file_path']
-        sheet_name = request.json['sheet_name']
+        file_path = request.json['FilePath']
+        sheet_name = request.json['SheetName']
 
         settings_service.set_association_file_path(file_path)
         settings_service.set_association_sheet_name(sheet_name)

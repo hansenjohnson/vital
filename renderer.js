@@ -20,8 +20,8 @@ window.api.onFileSelected((path, sheet_name) => {
 
 saveFilePath = (file_path, sheet_name) => {
   const data = {
-    file_path: file_path,
-    sheet_name: sheet_name
+    FilePath: file_path,
+    SheetName: sheet_name
   }
   payload = {
     method: 'POST',
