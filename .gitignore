@@ -19,7 +19,6 @@
 /dist/
 node_modules/
 SHASUMS256.txt
-**/package-lock.json
 compile_commands.json
 .envrc
 
@@ -57,6 +56,7 @@ spec/fixtures/logo.png
 
 bin
 build
+out
 server.spec
 *.sqlite*
 *.db
