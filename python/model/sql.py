@@ -58,17 +58,16 @@ class SQL:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
         return None
 
-    def get_association_by_id(self, catalog_video_id):
+    def get_association_by_id(self, association_id):
         rows = []
         try:
             with self.engine.connect() as connection:
-                result = connection.execute(text(f'SELECT * FROM association WHERE AssociationId = {catalog_video_id}'))
+                result = connection.execute(text(f'SELECT * FROM association WHERE AssociationId = {association_id}'))
                 for row in result:
                     rows.append(row._asdict())
-                return rows
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
-        return None
+        return rows
 
     def create_association(self, payload):
         try:

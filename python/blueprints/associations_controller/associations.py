@@ -18,9 +18,9 @@ def get_all_associations():
 
 
 @bp.route('/<int:association_id>', methods=['GET'])
-def get_association(catalog_video_id):
+def get_association(association_id):
     try:
-        return jsonify(sql.get_association_by_id(catalog_video_id)), 200
+        return jsonify(sql.get_association_by_id(association_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -30,7 +30,7 @@ def create_association():
     payload = request.json
     try:
         response = sql.create_association(payload)
-        return jsonify({"AssociationId": response['AssociationId']}), 200
+        return jsonify({"AssociationId": response), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
