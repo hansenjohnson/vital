@@ -2,7 +2,7 @@
   "name": "video-catalog-suite",
   "version": "1.0.0",
   "description": "ingest and annotate images and videos of animals",
-  "main": "./out/main/index.js",
+  "main": "./out/main/main.js",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
