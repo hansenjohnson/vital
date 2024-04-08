@@ -4,7 +4,7 @@ import sys
 from model.sql import SQL
 from settings.settings_service import SettingsService
 
-bp = Blueprint('association', __name__)
+bp = Blueprint('associations', __name__)
 settings_service = SettingsService()
 sql = SQL()
 
@@ -17,7 +17,7 @@ def get_all_associations():
         return jsonify({"error": str(e)}), 400
 
 
-@bp.route('/<int:catalog_video_id>', methods=['GET'])
+@bp.route('/<int:association_id>', methods=['GET'])
 def get_association(catalog_video_id):
     try:
         return jsonify(sql.get_association_by_id(catalog_video_id)), 200
@@ -29,8 +29,8 @@ def get_association(catalog_video_id):
 def create_association():
     payload = request.json
     try:
-        sql.create_association(payload)
-        return jsonify({"message": "Association created successfully"}), 200
+        response = sql.create_association(payload)
+        return jsonify({"AssociationId": response['AssociationId']}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 

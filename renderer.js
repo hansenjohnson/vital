@@ -31,7 +31,7 @@ saveFilePath = (file_path, sheet_name) => {
     body: JSON.stringify(data)
   }
 
-  fetch('http://localhost:5000/settings/association-file', payload)
+  fetch('http://localhost:5000/settings/associations-file', payload)
   .then(response => response.text())
   .then(data => {
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);
@@ -39,7 +39,7 @@ saveFilePath = (file_path, sheet_name) => {
 }
 
 loadFile = () =>{
-  fetch('http://localhost:5000/association/')
+  fetch('http://localhost:5000/associations/')
   .then(response => response.json())
   .then(data => {
     document.getElementById('excel_data').innerText = JSON.stringify(data, undefined, 2);

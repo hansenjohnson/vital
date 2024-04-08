@@ -9,7 +9,7 @@ settings_service = SettingsService()
 sql = SQL()
 
 
-@bp.route('/association-file', methods=['POST'])
+@bp.route('/associations-file', methods=['POST'])
 def write_association_file():
     try:
         file_path = request.json['file_path']

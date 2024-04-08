@@ -26,18 +26,20 @@ class SQL:
                 connection.execute(text("DROP TABLE IF EXISTS association"))
                 connection.execute(text("""
                          CREATE TABLE association (
-                            CatalogVideoId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            AssociationId INTEGER PRIMARY KEY AUTOINCREMENT,
                             SightingId INTEGER,
                             StartTime TEXT,
                             EndTime TEXT,
                             Annotation JSON,
+                            VideFilePath TEXT,
+                            ThumbnailFilePath TEXT,
                             CreatedBy TEXT,
                             CreatedDate TEXT
                          )
                      """))
                 self.df = pd.read_excel(self.settings.get_association_file_path(),
                                         self.settings.get_association_sheet_name(),
-                                        index_col='CatalogVideoId')
+                                        index_col='AssociationId')
                 self.df.to_sql('association', self.engine, if_exists='append')
                 connection.commit()
         except Exception as e:
@@ -60,7 +62,7 @@ class SQL:
         rows = []
         try:
             with self.engine.connect() as connection:
-                result = connection.execute(text(f'SELECT * FROM association WHERE CatalogVideoId = {catalog_video_id}'))
+                result = connection.execute(text(f'SELECT * FROM association WHERE AssociationId = {catalog_video_id}'))
                 for row in result:
                     rows.append(row._asdict())
                 return rows
@@ -86,7 +88,7 @@ class SQL:
     def delete_association_by_id(self, catalog_video_id):
         try:
             with self.engine.connect() as connection:
-                connection.execute(text(f"DELETE FROM association WHERE CatalogVideoId = {catalog_video_id}"))
+                connection.execute(text(f"DELETE FROM association WHERE AssociationId = {catalog_video_id}"))
                 connection.commit()
 
                 self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())

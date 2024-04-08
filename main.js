@@ -58,7 +58,7 @@ app.on('ready', () => {
     });
   } else {
     let backend;
-    backend = path.join(process.cwd(), 'resources/app/bin/python.exe')
+    backend = path.join(process.cwd(), 'resources/app/bin/server.exe')
     var execfile = child_process.execFile;
     execfile(
       backend,
