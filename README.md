@@ -11,7 +11,7 @@ There is an Javascript frontend, running within an Electron container, and a pyt
 - Install python >= `3.12` 
 - Install nodejs >= `20.11`
 - `git clone` this repository
-- Download [video_data_blank](https://docs.google.com/spreadsheets/d/1-H_4MKgTKCH0FXSmXvH-JL7M8vyCJkocljIGnYStL3s/edit?usp=sharing) as an `.xlsx` file and place within the 
+- Download [video_data_blank](https://docs.google.com/spreadsheets/d/1-H_4MKgTKCH0FXSmXvH-JL7M8vyCJkocljIGnYStL3s/edit?usp=sharing) as an `.xlsx` file and place within the `.\test-files\` folder
 
 **Running**
 - `npm install`
