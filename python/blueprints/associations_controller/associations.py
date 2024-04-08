@@ -35,10 +35,10 @@ def create_association():
         return jsonify({"error": str(e)}), 400
 
 
-@bp.route('/<int:catalog_video_id>', methods=['DELETE'])
-def delete_association_by_id(catalog_video_id):
+@bp.route('/<int:association_id>', methods=['DELETE'])
+def delete_association_by_id(association_id):
     try:
-        sql.delete_association_by_id(catalog_video_id)
+        sql.delete_association_by_id(association_id)
         return jsonify({"message": "Association deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

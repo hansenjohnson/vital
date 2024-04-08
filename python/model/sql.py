@@ -81,9 +81,9 @@ class SQL:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
             raise
 
-    def delete_association_by_id(self, catalog_video_id):
+    def delete_association_by_id(self, association_id):
         try:
-            self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {catalog_video_id}")
+            self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
             self.conn.commit()
 
             self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
