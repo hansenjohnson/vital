@@ -6,10 +6,12 @@ module.exports = {
     '@electron-toolkit',
     '@electron-toolkit/eslint-config-prettier'
   ],
-  "prettier/prettier": [
-    "error",
-    {
-      "endOfLine": "crlf"
-    }
-  ]
+  rules: {
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'crlf'
+      }
+    ]
+  }
 }
