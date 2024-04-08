@@ -87,7 +87,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => { 
   if (!isDevelopment) {
-    exec('taskkill /f /t /im python.exe', (err, stdout, stderr) => {
+    exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
       if (err) {
         console.log(err)
         return;
