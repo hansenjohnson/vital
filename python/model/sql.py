@@ -32,7 +32,7 @@ class SQL:
                             StartTime TEXT,
                             EndTime TEXT,
                             Annotation JSON,
-                            VideFilePath TEXT,
+                            VideoFilePath TEXT,
                             ThumbnailFilePath TEXT,
                             CreatedBy TEXT,
                             CreatedDate TEXT
@@ -72,8 +72,8 @@ class SQL:
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO association
-                (SightingId, StartTime, EndTime, Annotation, VideFilePath, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :VideFilePath, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
+                (SightingId, StartTime, EndTime, Annotation, VideoFilePath, ThumbnailFilePath, CreatedBy, CreatedDate)
+                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :VideoFilePath, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
             """
             self.cursor.execute(query, payload)
             self.conn.commit()
