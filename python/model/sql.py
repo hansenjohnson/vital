@@ -1,7 +1,8 @@
 import sys
 import json
 import pandas as pd
-from sqlalchemy import create_engine, text
+import sqlite3
+
 from settings.settings_service import SettingsService
 
 
@@ -15,16 +16,16 @@ class SQL:
 
     def __init__(self):
         self.df = pd.DataFrame()
-        self.engine = create_engine('sqlite:///video_catalog.db')
+        self.conn = sqlite3.connect('video_catalog.db', check_same_thread=False)
+        self.cursor = self.conn.cursor()
         self.settings = SettingsService()
 
         self.load_sql()
 
     def load_sql(self):
         try:
-            with self.engine.connect() as connection:
-                connection.execute(text("DROP TABLE IF EXISTS association"))
-                connection.execute(text("""
+            self.cursor.execute("DROP TABLE IF EXISTS association")
+            self.cursor.execute("""
                          CREATE TABLE association (
                             AssociationId INTEGER PRIMARY KEY AUTOINCREMENT,
                             SightingId INTEGER,
@@ -36,12 +37,12 @@ class SQL:
                             CreatedBy TEXT,
                             CreatedDate TEXT
                          )
-                     """))
-                self.df = pd.read_excel(self.settings.get_association_file_path(),
-                                        self.settings.get_association_sheet_name(),
-                                        index_col='AssociationId')
-                self.df.to_sql('association', self.engine, if_exists='append')
-                connection.commit()
+                     """)
+            self.df = pd.read_excel(self.settings.get_association_file_path(),
+                                    self.settings.get_association_sheet_name(),
+                                    index_col='AssociationId')
+            self.df.to_sql('association', self.conn, if_exists='append')
+            self.conn.commit()
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
             self.settings.clear_file_settings()
@@ -49,11 +50,9 @@ class SQL:
     def get_all_associations(self):
         rows = []
         try:
-            with self.engine.connect() as connection:
-                result = connection.execute(text(f'SELECT * FROM association'))
-                for row in result:
-                    rows.append(row._asdict())
-                return rows
+            result = self.cursor.execute('SELECT * FROM association')
+            rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
+            return rows
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
         return None
@@ -61,24 +60,22 @@ class SQL:
     def get_association_by_id(self, association_id):
         rows = []
         try:
-            with self.engine.connect() as connection:
-                result = connection.execute(text(f'SELECT * FROM association WHERE AssociationId = {association_id}'))
-                for row in result:
-                    rows.append(row._asdict())
+            result = self.cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
+            rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
+            return rows
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
-        return rows
+        return None
 
     def create_association(self, payload):
         try:
             payload['Annotation'] = json.dumps(payload['Annotation'])
-            with self.engine.connect() as connection:
-                query = text("INSERT INTO association (SightingId, StartTime, EndTime, Annotation, CreatedBy, CreatedDate) "
-                             "VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :CreatedBy, :CreatedDate)")
-                connection.execute(query, payload)
-                connection.commit()
+            query = "INSERT INTO association (SightingId, StartTime, EndTime, Annotation, CreatedBy, CreatedDate) VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :CreatedBy, :CreatedDate)"
+            self.cursor.execute(query, payload)
+            self.conn.commit()
 
-                self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+            self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+            return self.cursor.lastrowid
 
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
@@ -86,22 +83,18 @@ class SQL:
 
     def delete_association_by_id(self, catalog_video_id):
         try:
-            with self.engine.connect() as connection:
-                connection.execute(text(f"DELETE FROM association WHERE AssociationId = {catalog_video_id}"))
-                connection.commit()
+            self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {catalog_video_id}")
+            self.conn.commit()
 
-                self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+            self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query: {e}")
             raise
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
         try:
-            with self.engine.connect() as connection:
-                sql_query = text(f"SELECT * FROM {table_name}")
-                results = connection.execute(sql_query)
-                self.df = pd.DataFrame(results.fetchall())
-                self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
+            self.df = pd.read_sql_query(f"SELECT * FROM {table_name}", self.conn)
+            self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
         except Exception as e:
             sys.stderr.write(f"Failed to flush SQL to excel: {e}")
             raise

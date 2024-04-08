@@ -29,8 +29,8 @@ def get_association(association_id):
 def create_association():
     payload = request.json
     try:
-        response = sql.create_association(payload)
-        return jsonify({"AssociationId": response), 200
+        association_id = sql.create_association(payload)
+        return jsonify({"AssociationId": association_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
