@@ -1,7 +1,8 @@
 {
   "name": "video-catalog-suite",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "ingest and annotate images and videos of animals",
+  "author": "Ben Zenker and Matt Crawford",
   "main": "./out/main/main.js",
   "scripts": {
     "format": "prettier --write .",
@@ -9,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron-vite dev",
     "prebuild": "electron-vite build",
-    "build:win": "node build.js"
+    "build:win": "npm run prebuild && electron-builder --win"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",

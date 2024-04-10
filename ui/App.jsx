@@ -2,7 +2,7 @@ import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
 
 function App() {
-  const ipcHandle = () => window.electron.ipcRenderer.send('ping')
+  const selectFile = () => window.api.selectFile()
 
   return (
     <>
@@ -21,8 +21,8 @@ function App() {
           </a>
         </div>
         <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
+          <a target="_blank" rel="noreferrer" onClick={selectFile}>
+            Action 2
           </a>
         </div>
       </div>
