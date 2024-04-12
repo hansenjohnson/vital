@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import path from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { launchPythonServer, killPythonServer } from './children'
+import { launchPythonServer, killPythonServer } from './childProcesses'
 
 let pythonServer
 
