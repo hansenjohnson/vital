@@ -1,0 +1,13 @@
+appId: com.new-england-aquarium.video-catalog-suite
+productName: Video Catalog Suite
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!electron/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+win:
+  executableName: video-catalog-suite
+npmRebuild: false
