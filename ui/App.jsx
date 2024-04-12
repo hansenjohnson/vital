@@ -11,7 +11,7 @@ const ROUTES = {
 }
 
 const App = () => {
-  const [route, setRoute] = useState(ROUTES.ASSOCIATIONS_CREATE)
+  const [route, setRoute] = useState(ROUTES.TOOLS)
 
   const selectFile = () => window.api.selectFile()
 
