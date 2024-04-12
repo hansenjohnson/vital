@@ -14,8 +14,8 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       sandbox: false,
-      contextIsolation: true
-    }
+      contextIsolation: true,
+    },
   })
 
   mainWindow.on('ready-to-show', () => {
