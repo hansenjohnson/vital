@@ -28,6 +28,8 @@ const theme = createTheme({
       name: 'tertiary',
     }),
   },
+
+  spacing: 12,
 })
 
 export default theme

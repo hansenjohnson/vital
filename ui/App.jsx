@@ -1,14 +1,10 @@
 import { useState, useMemo } from 'react'
+import Box from '@mui/material/Box'
 
 import Tools from './Containers/Tools'
 import AssociationsView from './Containers/AssociationsView'
 import AssociationsCreate from './Containers/AssociationsCreate'
-
-const ROUTES = {
-  TOOLS: 'tools',
-  ASSOCIATIONS_VIEW: 'aa-view',
-  ASSOCIATIONS_CREATE: 'aa-create',
-}
+import ROUTES from './routes'
 
 const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
@@ -29,9 +25,9 @@ const App = () => {
   }, [route])
 
   return (
-    <>
-      <ActiveRoute />
-    </>
+    <Box sx={{ height: '100vh' }}>
+      <ActiveRoute setRoute={setRoute} />
+    </Box>
   )
 }
 
