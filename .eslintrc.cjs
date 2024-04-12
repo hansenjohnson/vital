@@ -13,5 +13,6 @@ module.exports = {
         endOfLine: 'crlf',
       },
     ],
+    'no-unused-vars': 'warn',
   },
 }
