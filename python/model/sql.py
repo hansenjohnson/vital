@@ -4,6 +4,7 @@ import pandas as pd
 import sqlite3
 
 from settings.settings_service import SettingsService
+from settings.settings_enum import SettingsEnum
 
 
 class SQL:
@@ -38,33 +39,31 @@ class SQL:
                             CreatedDate TEXT
                          )
                      """)
-            self.df = pd.read_excel(self.settings.get_association_file_path(),
-                                    self.settings.get_association_sheet_name(),
+            self.df = pd.read_excel(self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value),
+                                    self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value),
                                     index_col='AssociationId')
             self.df.to_sql('association', self.conn, if_exists='append')
             self.conn.commit()
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to load sql: {e}")
             self.settings.clear_file_settings()
 
     def get_all_associations(self):
-        rows = []
         try:
             result = self.cursor.execute('SELECT * FROM association')
             rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
             return rows
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query get_all_associations: {e}")
         return None
 
     def get_association_by_id(self, association_id):
-        rows = []
         try:
             result = self.cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
             rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
             return rows
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query get_association_by_id: {e}")
         return None
 
     def create_association(self, payload):
@@ -78,11 +77,12 @@ class SQL:
             self.cursor.execute(query, payload)
             self.conn.commit()
 
-            self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+            self.flush_to_excel('association', self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value), 
+                                self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value))
             return self.cursor.lastrowid
 
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query: {e}")
+            sys.stderr.write(f"Failed to execute SQL query create_associations: {e}")
             raise
 
     def delete_association_by_id(self, association_id):
@@ -90,10 +90,11 @@ class SQL:
             self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
             self.conn.commit()
 
-            self.flush_to_excel('association', self.settings.get_association_file_path(), self.settings.get_association_sheet_name())
+            self.flush_to_excel('association', self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value), 
+                                self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value))
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query: {e}")
-            raise
+            sys.stderr.write(f"Failed to execute SQL query delete_association_by_id: {e}")
+            raise e
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
         try:
@@ -101,4 +102,4 @@ class SQL:
             self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
         except Exception as e:
             sys.stderr.write(f"Failed to flush SQL to excel: {e}")
-            raise
+            raise e
