@@ -9,17 +9,16 @@ settings_service = SettingsService()
 sql = SQL()
 
 
-@bp.route('/associations-file', methods=['POST'])
-def write_association_file():
+@bp.route('/', methods=['POST'])
+def create_or_update_settings():
     try:
-        file_path = request.json['FilePath']
-        sheet_name = request.json['SheetName']
+        settings_data = request.json
 
-        settings_service.set_association_file_path(file_path)
-        settings_service.set_association_sheet_name(sheet_name)
+        for key, value in settings_data.items():
+            settings_service.set_setting(key, value)
 
         sql.load_sql()
 
-        return jsonify({"message": "File path saved successfully"}), 200
+        return jsonify({"message": "Setting saved Successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"Setting save failed ": str(e)}), 400
