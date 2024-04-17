@@ -6,6 +6,11 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
 
+    background: {
+      default: '#1E1E1E',
+      paper: '#1E1E1E',
+    },
+
     primary: {
       dark: '#16A7B3',
       main: '#51CCD3',
@@ -30,6 +35,10 @@ const theme = createTheme({
   },
 
   spacing: 12,
+
+  typography: {
+    fontFamily: "'Ubuntu', sans-serif",
+  },
 })
 
 export default theme

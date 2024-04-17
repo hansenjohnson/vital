@@ -9,14 +9,14 @@ const MainActionButton = ({ note, action, onClick, noteFirst = false, color = 'p
   const noteComponent = (
     <Box
       sx={{
-        width: '100px',
-        padding: 0.5,
-        fontSize: '14px',
-        lineHeight: '20px',
+        width: '130px',
+        fontSize: '20px',
+        lineHeight: 1,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        textAlign: 'center',
+        alignItems: 'center',
+        textAlign: noteFirst ? 'left' : 'right',
         color: theme.palette[color].light,
       }}
     >
@@ -27,10 +27,10 @@ const MainActionButton = ({ note, action, onClick, noteFirst = false, color = 'p
   return (
     <Box
       sx={() => ({
-        width: '400px',
-        height: '96px',
+        width: '574px',
+        height: '140px',
         border: `4px solid ${bgColor}`,
-        borderRadius: 4,
+        borderRadius: theme.spacing(2),
         display: 'flex',
         boxShadow: theme.shadows[6],
       })}
@@ -42,14 +42,15 @@ const MainActionButton = ({ note, action, onClick, noteFirst = false, color = 'p
           flex: 1,
           backgroundColor: bgColor,
           color: theme.palette[color].light,
-          borderRadius: 2.5,
-          padding: 0.5,
+          borderRadius: `calc(${theme.spacing(2)} - 4px)`,
+          boxShadow: `0 0 0 4px ${bgColor}`,
           alignItems: 'center',
           justifyContent: 'center',
           textAlign: 'center',
-          fontSize: '24px',
-          lineHeight: '30px',
+          fontSize: '40px',
+          lineHeight: '40px',
           fontWeight: 700,
+          textTransform: 'none',
           '&:hover': {
             color: theme.palette[color].main,
           },

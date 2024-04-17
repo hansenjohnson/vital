@@ -6,7 +6,7 @@ import ROUTES from '../routes'
 const ToolsContainer = ({ setRoute }) => {
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
-      <Box sx={{ width: '300px', backgroundColor: 'primary.dark' }}>Left Side</Box>
+      <Box sx={{ width: '400px', backgroundColor: 'primary.dark' }}>Left Side</Box>
       <Box
         sx={{
           flex: 1,
@@ -18,14 +18,33 @@ const ToolsContainer = ({ setRoute }) => {
         }}
       >
         <MainActionButton
-          note="156 Associations this week"
+          note={
+            <div>
+              <div style={{ fontSize: '36px', marginBottom: '-18px' }}>156</div>
+              <br />
+              <div style={{ fontSize: '16px' }}>
+                associations
+                <br />
+                created
+                <br />
+                this week
+              </div>
+            </div>
+          }
           action="View Existing Associations"
           noteFirst
           onClick={() => alert('not implemented yet!')}
         />
         <MainActionButton
           action="Create New Associations"
-          note="Select a Folder of Videos"
+          note={
+            <div style={{ marginRight: '0px' }}>
+              select
+              <br />a folder
+              <br />
+              of videos
+            </div>
+          }
           color="secondary"
           onClick={() => {
             setRoute(ROUTES.ASSOCIATIONS_CREATE)
