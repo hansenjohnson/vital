@@ -10,12 +10,12 @@ const ToolButton = ({ name, onClick, selected = false }) => {
         width: '100%',
         height: theme.spacing(4),
         paddingLeft: theme.spacing(2),
-        borderRadius: theme.spacing(1),
         fontSize: theme.spacing(2),
         fontWeight: 700,
         textTransform: 'none',
         justifyContent: 'flex-start',
         boxShadow: 'none',
+        backgroundColor: selected ? theme.palette.primary.dark : 'transparent',
         '&:hover': {
           boxShadow: 'none',
         },

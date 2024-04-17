@@ -36,6 +36,9 @@ const theme = createTheme({
   },
 
   spacing: 12,
+  shape: {
+    borderRadius: 12,
+  },
 
   typography: {
     fontFamily: "'Ubuntu', sans-serif",
