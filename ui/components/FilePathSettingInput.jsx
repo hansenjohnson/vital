@@ -9,7 +9,7 @@ const FilePathSettingInput = ({ label, value, onChange, onFolderClick }) => {
       variant="outlined"
       size="small"
       fullWidth
-      margin="normal"
+      margin="dense"
       InputLabelProps={{
         sx: { fontFamily: "'Sometype Mono Variable', monopace" },
       }}

@@ -28,7 +28,14 @@ const App = () => {
 
   return (
     <Box sx={{ height: '100vh' }}>
-      <SettingsContainer open={settingsOpen} handleClose={() => setSettingsOpen(false)} />
+      <SettingsContainer
+        open={settingsOpen}
+        handleClose={(event, reason) => {
+          if (reason !== 'backdropClick') {
+            setSettingsOpen(false)
+          }
+        }}
+      />
       <ActiveRoute setRoute={setRoute} />
     </Box>
   )
