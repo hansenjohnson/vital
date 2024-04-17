@@ -4,7 +4,7 @@ import Box from '@mui/material/Box'
 import Tools from './Containers/Tools'
 import AssociationsView from './Containers/AssociationsView'
 import AssociationsCreate from './Containers/AssociationsCreate'
-import ROUTES from './routes'
+import ROUTES from './constants/routes'
 
 const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
