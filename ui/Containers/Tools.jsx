@@ -1,0 +1,96 @@
+import { useState } from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+
+import ROUTES from '../constants/routes'
+import TOOLS from '../constants/tools'
+import MainActionButton from '../Components/MainActionButton'
+import ToolButton from '../Components/ToolButton'
+
+const ToolsContainer = ({ setRoute }) => {
+  const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
+
+  return (
+    <Box sx={{ display: 'flex', height: '100%' }}>
+      {/* Tool Selector */}
+      <Box
+        sx={{
+          width: '400px',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 1,
+          gap: 1,
+        }}
+      >
+        <Typography variant="subtitle" color="text.secondary" sx={{ fontWeight: 300 }}>
+          Tools
+        </Typography>
+        <ToolButton
+          name="Associate & Annotate"
+          selected={tool === TOOLS.ASSOCIATE_ANNOTATE}
+          onClick={() => setTool(TOOLS.ASSOCIATE_ANNOTATE)}
+        />
+        <ToolButton
+          name="Ingest & Transcode"
+          selected={tool === TOOLS.INGEST_TRANSCODE}
+          onClick={() => setTool(TOOLS.INGEST_TRANSCODE)}
+        />
+      </Box>
+
+      {/* Contents of Tool View */}
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 4,
+        }}
+      >
+        {tool === TOOLS.ASSOCIATE_ANNOTATE && (
+          <>
+            <MainActionButton
+              note={
+                <div>
+                  <div style={{ fontSize: '36px', marginBottom: '-18px' }}>156</div>
+                  <br />
+                  <div style={{ fontSize: '16px' }}>
+                    associations
+                    <br />
+                    created
+                    <br />
+                    this week
+                  </div>
+                </div>
+              }
+              action="View Existing Associations"
+              noteFirst
+              onClick={() => alert('not implemented yet!')}
+            />
+            <MainActionButton
+              action="Create New Associations"
+              note={
+                <div style={{ marginRight: '0px' }}>
+                  select
+                  <br />a folder
+                  <br />
+                  of videos
+                </div>
+              }
+              color="secondary"
+              onClick={() => {
+                setRoute(ROUTES.ASSOCIATIONS_CREATE)
+              }}
+            />
+          </>
+        )}
+
+        {tool === TOOLS.INGEST_TRANSCODE && <div>Not Implemented Yet</div>}
+      </Box>
+    </Box>
+  )
+}
+
+export default ToolsContainer

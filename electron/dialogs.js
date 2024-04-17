@@ -4,7 +4,7 @@ ipcMain.on('open-file-dialog', (event) => {
   dialog
     .showOpenDialog({
       properties: ['openFile'],
-      filters: [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }]
+      filters: [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }],
     })
     .then((file) => {
       if (!file.canceled) {

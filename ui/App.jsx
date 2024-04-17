@@ -1,33 +1,33 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useState, useMemo } from 'react'
+import Box from '@mui/material/Box'
 
-function App() {
+import Tools from './Containers/Tools'
+import AssociationsView from './Containers/AssociationsView'
+import AssociationsCreate from './Containers/AssociationsCreate'
+import ROUTES from './constants/routes'
+
+const App = () => {
+  const [route, setRoute] = useState(ROUTES.TOOLS)
+
   const selectFile = () => window.api.selectFile()
 
+  const ActiveRoute = useMemo(() => {
+    switch (route) {
+      case ROUTES.TOOLS:
+        return Tools
+      case ROUTES.ASSOCIATIONS_VIEW:
+        return AssociationsView
+      case ROUTES.ASSOCIATIONS_CREATE:
+        return AssociationsCreate
+      default:
+        return null
+    }
+  }, [route])
+
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={selectFile}>
-            Action 2
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+    <Box sx={{ height: '100vh' }}>
+      <ActiveRoute setRoute={setRoute} />
+    </Box>
   )
 }
 

@@ -1,5 +1,5 @@
 singleQuote: true
 semi: false
 printWidth: 100
-trailingComma: none
+trailingComma: es5
 endOfLine: crlf

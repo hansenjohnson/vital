@@ -6,31 +6,31 @@ export default defineConfig({
   main: {
     build: {
       lib: {
-        entry: resolve('electron/main.js')
-      }
+        entry: resolve('electron/main.js'),
+      },
     },
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
   preload: {
     build: {
       lib: {
-        entry: resolve('electron/preload.js')
-      }
+        entry: resolve('electron/preload.js'),
+      },
     },
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
   },
   renderer: {
     root: resolve('ui'),
     build: {
       rollupOptions: {
-        input: resolve('ui/index.html')
-      }
+        input: resolve('ui/index.html'),
+      },
     },
     resolve: {
       alias: {
-        '@renderer': resolve('ui')
-      }
+        '@renderer': resolve('ui'),
+      },
     },
-    plugins: [react()]
-  }
+    plugins: [react()],
+  },
 })
