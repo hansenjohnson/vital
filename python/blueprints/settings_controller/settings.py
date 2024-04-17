@@ -8,8 +8,15 @@ bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
 sql = SQL()
 
+@bp.route('', methods=['OPTIONS'], strict_slashes=False)
+def options():
+    response = jsonify({})
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Methods', 'POST')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    return response, 200
 
-@bp.route('/', methods=['POST'])
+@bp.route('', methods=['POST'], strict_slashes=False)
 def create_or_update_settings():
     try:
         settings_data = request.json
@@ -19,6 +26,11 @@ def create_or_update_settings():
 
         sql.load_sql()
 
-        return jsonify({"message": "Setting saved Successfully"}), 200
+        response = jsonify({"message": "Setting saved Successfully"})
+        status = 200
     except Exception as e:
-        return jsonify({"Setting save failed ": str(e)}), 400
+        response = jsonify({"Setting save failed ": str(e)})
+        status = 500
+    finally:
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        return response, status
