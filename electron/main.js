@@ -27,9 +27,9 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  if (is.dev) {
-    mainWindow.webContents.openDevTools({ mode: 'right' })
-  }
+  // if (is.dev) {
+  //   mainWindow.webContents.openDevTools({ mode: 'right' })
+  // }
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
