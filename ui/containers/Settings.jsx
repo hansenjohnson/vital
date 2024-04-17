@@ -8,20 +8,24 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 
 import FILE_TYPES from '../constants/fileTypes'
+import SETTING_KEYS from '../constants/settingKeys'
 import SettingInput from '../components/SettingInput'
 import FilePathSettingInput from '../components/FilePathSettingInput'
+import settingsAPI from '../api/settings'
 
 const SettingsContainer = ({ open, handleClose }) => {
   const [settings, setSettings] = useState({
-    associationsFile: '',
-    associationsSheet: '',
-    sightingsFile: '',
-    sightingsSheet: '',
-    thumbnailsFolder: '',
-    stillsFolder: '',
+    [SETTING_KEYS.ASSOCIATION_FILE_PATH]: '',
+    [SETTING_KEYS.ASSOCIATION_SHEET_NAME]: '',
+    [SETTING_KEYS.SIGHTING_FILE_PATH]: '',
+    [SETTING_KEYS.SIGHTING_SHEET_NAME]: '',
+    [SETTING_KEYS.THUMBNAIL_DIR_PATH]: '',
+    [SETTING_KEYS.STILLFRAME_DIR_NAME]: '',
   })
   const setOneSetting = (key, value) => setSettings({ ...settings, [key]: value })
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
+
+  const handleSubmit = () => settingsAPI.save(settings)
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -33,60 +37,66 @@ const SettingsContainer = ({ open, handleClose }) => {
 
         <FilePathSettingInput
           label="Associations File"
-          value={settings.associationsFile}
-          onChange={handleChangeFor('associationsFile')}
+          value={settings[SETTING_KEYS.ASSOCIATION_FILE_PATH]}
+          onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
-            setOneSetting('associationsFile', filePath)
+            setOneSetting(SETTING_KEYS.ASSOCIATION_FILE_PATH, filePath)
           }}
         />
         <SettingInput
           label="Associations Sheet Name"
-          value={settings.associationsSheet}
-          onChange={handleChangeFor('associationsSheet')}
+          value={settings[SETTING_KEYS.ASSOCIATION_SHEET_NAME]}
+          onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_SHEET_NAME)}
         />
 
         <Box mb={1} />
 
         <FilePathSettingInput
           label="Sightings Data File"
-          value={settings.sightingsFile}
-          onChange={handleChangeFor('sightingsFile')}
+          value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
+          onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
-            setOneSetting('sightingsFile', filePath)
+            setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
           }}
         />
         <SettingInput
           label="Sightings Sheet Name"
-          value={settings.sightingsSheet}
-          onChange={handleChangeFor('sightingsSheet')}
+          value={settings[SETTING_KEYS.SIGHTING_SHEET_NAME]}
+          onChange={handleChangeFor(SETTING_KEYS.SIGHTING_SHEET_NAME)}
         />
 
         <Box mb={1} />
 
         <FilePathSettingInput
           label="Internal Thumbnails Folder"
-          value={settings.thumbnailsFolder}
-          onChange={handleChangeFor('thumbnailsFolder')}
+          value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
+          onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
-            setOneSetting('thumbnailsFolder', filePath)
+            setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
           }}
         />
 
         <FilePathSettingInput
           label="Exported Still Frames Folder"
-          value={settings.stillsFolder}
-          onChange={handleChangeFor('stillsFolder')}
+          value={settings[SETTING_KEYS.STILLFRAME_DIR_NAME]}
+          onChange={handleChangeFor(SETTING_KEYS.STILLFRAME_DIR_NAME)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
-            setOneSetting('stillsFolder', filePath)
+            setOneSetting(SETTING_KEYS.STILLFRAME_DIR_NAME, filePath)
           }}
         />
       </DialogContent>
+
       <DialogActions>
-        <Button>Save</Button>
+        <Button
+          disabled={!Object.values(settings).every((setting) => !!setting)}
+          onClick={handleSubmit}
+        >
+          Save
+        </Button>
       </DialogActions>
     </Dialog>
   )
