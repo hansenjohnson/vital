@@ -34,3 +34,16 @@ def create_or_update_settings():
     finally:
         response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
         return response, status
+
+@bp.route('/<key>', methods=['GET'])
+def get_settings(key=None):
+    try:
+        setting_value = settings_service.get_setting(key)
+        response = jsonify({ key: setting_value })
+        status = 200
+    except Exception as e:
+        response = jsonify({ "Setting get failed ": str(e) })
+        status = 500
+    finally:
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        return response, status

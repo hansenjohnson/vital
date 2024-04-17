@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -19,20 +19,40 @@ const SettingsContainer = ({ open, handleClose }) => {
     [SETTING_KEYS.ASSOCIATION_SHEET_NAME]: '',
     [SETTING_KEYS.SIGHTING_FILE_PATH]: '',
     [SETTING_KEYS.SIGHTING_SHEET_NAME]: '',
-    [SETTING_KEYS.THUMBNAIL_DIR_PATH]: '',
-    [SETTING_KEYS.STILLFRAME_DIR_NAME]: '',
+    // [SETTING_KEYS.THUMBNAIL_DIR_PATH]: '',
+    // [SETTING_KEYS.STILLFRAME_DIR_NAME]: '',
   })
-  const setOneSetting = (key, value) => setSettings({ ...settings, [key]: value })
+
+  const setOneSetting = (key, value) => {
+    setSettings((existingSettings) => ({ ...existingSettings, [key]: value }))
+  }
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
 
-  const handleSubmit = () => settingsAPI.save(settings)
+  const handleSubmit = async () => {
+    const successful = await settingsAPI.save(settings)
+    if (successful) {
+      handleClose()
+    }
+  }
+
+  // Load existing settings on mount
+  useEffect(() => {
+    settingsAPI.getList(Object.values(SETTING_KEYS)).then((settingsList) => {
+      settingsList.forEach((settingData) => {
+        const [key, value] = Object.entries(settingData)[0]
+        if (value != null) {
+          setOneSetting(key, value)
+        }
+      })
+    })
+  }, [])
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
         <Alert severity="warning" sx={{ marginBottom: 1 }}>
-          You must fill out these settings in order to use the Application.
+          You must populate these settings in order to use the Application.
         </Alert>
 
         <FilePathSettingInput
@@ -67,9 +87,10 @@ const SettingsContainer = ({ open, handleClose }) => {
           onChange={handleChangeFor(SETTING_KEYS.SIGHTING_SHEET_NAME)}
         />
 
-        <Box mb={1} />
+        {/* TODO: include these in a future release */}
+        {/* <Box mb={1} /> */}
 
-        <FilePathSettingInput
+        {/* <FilePathSettingInput
           label="Internal Thumbnails Folder"
           value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
@@ -77,9 +98,9 @@ const SettingsContainer = ({ open, handleClose }) => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
             setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
           }}
-        />
+        /> */}
 
-        <FilePathSettingInput
+        {/* <FilePathSettingInput
           label="Exported Still Frames Folder"
           value={settings[SETTING_KEYS.STILLFRAME_DIR_NAME]}
           onChange={handleChangeFor(SETTING_KEYS.STILLFRAME_DIR_NAME)}
@@ -87,7 +108,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
             setOneSetting(SETTING_KEYS.STILLFRAME_DIR_NAME, filePath)
           }}
-        />
+        /> */}
       </DialogContent>
 
       <DialogActions>
