@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron-vite dev",
+    "devtools": "cross-env OPEN_DEVTOOLS=true electron-vite dev",
     "prebuild": "electron-vite build",
     "build:win": "npm run prebuild && electron-builder --win"
   },
@@ -22,6 +23,7 @@
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
     "@vitejs/plugin-react": "^4.2.1",
+    "cross-env": "^7.0.3",
     "electron": "^29.1.5",
     "electron-builder": "^24.9.1",
     "electron-packager": "^17.1.2",
