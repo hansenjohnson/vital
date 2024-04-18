@@ -6,6 +6,7 @@ import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
+import Sidebar from '../components/Sidebar'
 
 const ToolsContainer = ({ setRoute }) => {
   useEffect(() => {
@@ -17,16 +18,7 @@ const ToolsContainer = ({ setRoute }) => {
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       {/* Tool Selector */}
-      <Box
-        sx={{
-          width: '400px',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 1,
-          gap: 1,
-        }}
-      >
+      <Sidebar>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 300 }}>
           TOOLS
         </Typography>
@@ -40,7 +32,7 @@ const ToolsContainer = ({ setRoute }) => {
           selected={tool === TOOLS.INGEST_TRANSCODE}
           onClick={() => setTool(TOOLS.INGEST_TRANSCODE)}
         />
-      </Box>
+      </Sidebar>
 
       {/* Contents of Tool View */}
       <Box
