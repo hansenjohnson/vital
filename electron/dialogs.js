@@ -17,4 +17,5 @@ ipcMain.handle('open-file-dialog', async (event, type) => {
   if (!canceled) {
     return filePaths[0]
   }
+  return ''
 })

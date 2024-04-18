@@ -61,6 +61,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            if (!filePath) return
             setOneSetting(SETTING_KEYS.ASSOCIATION_FILE_PATH, filePath)
           }}
         />
@@ -78,6 +79,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            if (!filePath) return
             setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
           }}
         />
@@ -96,6 +98,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            if (!filePath) return
             setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
           }}
         /> */}
@@ -106,6 +109,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           onChange={handleChangeFor(SETTING_KEYS.STILLFRAME_DIR_NAME)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            if (!filePath) return
             setOneSetting(SETTING_KEYS.STILLFRAME_DIR_NAME, filePath)
           }}
         /> */}
