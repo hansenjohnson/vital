@@ -4,8 +4,8 @@ import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
-import MainActionButton from '../Components/MainActionButton'
-import ToolButton from '../Components/ToolButton'
+import MainActionButton from '../components/MainActionButton'
+import ToolButton from '../components/ToolButton'
 
 const ToolsContainer = ({ setRoute }) => {
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
@@ -23,8 +23,8 @@ const ToolsContainer = ({ setRoute }) => {
           gap: 1,
         }}
       >
-        <Typography variant="subtitle" color="text.secondary" sx={{ fontWeight: 300 }}>
-          Tools
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 300 }}>
+          TOOLS
         </Typography>
         <ToolButton
           name="Associate & Annotate"

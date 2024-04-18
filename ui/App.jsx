@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
-import Tools from './Containers/Tools'
-import AssociationsView from './Containers/AssociationsView'
-import AssociationsCreate from './Containers/AssociationsCreate'
+import SettingsContainer from './containers/Settings'
+import Tools from './containers/Tools'
+import AssociationsView from './containers/AssociationsView'
+import AssociationsCreate from './containers/AssociationsCreate'
 import ROUTES from './constants/routes'
 
 const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
+  const [settingsOpen, setSettingsOpen] = useState(true)
 
   const selectFile = () => window.api.selectFile()
 
@@ -26,6 +28,14 @@ const App = () => {
 
   return (
     <Box sx={{ height: '100vh' }}>
+      <SettingsContainer
+        open={settingsOpen}
+        handleClose={(event, reason) => {
+          if (reason !== 'backdropClick') {
+            setSettingsOpen(false)
+          }
+        }}
+      />
       <ActiveRoute setRoute={setRoute} />
     </Box>
   )

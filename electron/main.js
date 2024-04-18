@@ -1,6 +1,7 @@
-import { app, shell, BrowserWindow } from 'electron'
 import path from 'path'
+import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+
 import { launchPythonServer, killPythonServer } from './childProcesses'
 
 let pythonServer
@@ -27,7 +28,7 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  if (is.dev) {
+  if (process.env.OPEN_DEVTOOLS === 'true' && is.dev) {
     mainWindow.webContents.openDevTools({ mode: 'right' })
   }
 

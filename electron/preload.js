@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {
-  selectFile: () => ipcRenderer.send('open-file-dialog'),
+  selectFile: (type) => ipcRenderer.invoke('open-file-dialog', type),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
