@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
@@ -8,6 +8,10 @@ import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 
 const ToolsContainer = ({ setRoute }) => {
+  useEffect(() => {
+    window.api.setTitle('Video Catalog Suite')
+  }, [])
+
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
 
   return (
@@ -81,6 +85,7 @@ const ToolsContainer = ({ setRoute }) => {
               }
               color="secondary"
               onClick={() => {
+                // TODO: launch a file picker dialog instead of changing the route
                 setRoute(ROUTES.ASSOCIATIONS_CREATE)
               }}
             />
