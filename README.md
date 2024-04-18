@@ -31,3 +31,7 @@ There is an Javascript frontend, running within an Electron container, and a pyt
 - Go to `dist\electron-win32-x64\electron.exe` and double click
 - The app should open an run as an executable
 - Exiting closes the app and the python `server.exe`
+
+## Attributions
+
+[Folder icon created by kmg design - Flaticon](https://www.flaticon.com/free-icons/folder)

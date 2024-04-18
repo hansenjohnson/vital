@@ -1,5 +1,8 @@
 import { createTheme } from '@mui/material/styles'
 
+const root = document.querySelector(':root')
+root.style.setProperty('color-scheme', 'dark')
+
 const defaultTheme = createTheme()
 
 const theme = createTheme({
@@ -45,4 +48,13 @@ const theme = createTheme({
   },
 })
 
+const blackPixelToTheme = {
+  palette: {
+    primary: {
+      dark: 'invert(57%) sepia(26%) saturate(5732%) hue-rotate(147deg) brightness(93%) contrast(83%)',
+    },
+  },
+}
+
+export { blackPixelToTheme }
 export default theme
