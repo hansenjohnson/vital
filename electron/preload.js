@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 // Custom APIs for renderer
 const api = {
+  setTitle: (title) => ipcRenderer.send('set-title', title),
   selectFile: (type) => ipcRenderer.invoke('open-file-dialog', type),
 }
 

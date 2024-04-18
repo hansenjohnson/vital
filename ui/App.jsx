@@ -11,8 +11,6 @@ const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
   const [settingsOpen, setSettingsOpen] = useState(true)
 
-  const selectFile = () => window.api.selectFile()
-
   const ActiveRoute = useMemo(() => {
     switch (route) {
       case ROUTES.TOOLS:
