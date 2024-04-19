@@ -17,6 +17,9 @@ const AssociationsCreateContainer = () => {
     dummyData.completedVideoFiles || []
   )
 
+  const saveAssociation = () => {}
+  const skipVideo = () => {}
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <AssociationsCreateSidebar
@@ -25,7 +28,7 @@ const AssociationsCreateContainer = () => {
         activeVideoFile={activeVideoFile}
         completedVideoFiles={completedVideoFiles}
       />
-      <AssociationsCreateWorkspace />
+      <AssociationsCreateWorkspace handleSave={saveAssociation} handleSkip={skipVideo} />
     </Box>
   )
 }

@@ -1,10 +1,10 @@
 import Typography from '@mui/material/Typography'
 
-const SectionHeading = ({ children }) => (
+const SectionHeading = ({ children, size = 24 }) => (
   <Typography
     sx={{
       color: 'text.secondary',
-      fontSize: '24px',
+      fontSize: `${size}px`,
       fontWeight: 700,
     }}
   >

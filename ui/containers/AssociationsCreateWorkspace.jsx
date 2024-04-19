@@ -2,13 +2,19 @@ import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
-import AssociationsDetailsBox from '../components/AssociationDetialsBox'
+import AssociationsDetailsBox from '../components/AssociationDetailsBox'
 import StyledButton from '../components/StyledButton'
+import { association as dummyAssociation } from '../constants/dummyData'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
-const AssociationsCreateWorkspace = () => {
+const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
+  const setStart = () => {}
+  const setEnd = () => {}
+  const openSightingDialog = () => {}
+  const deleteAnnotation = () => {}
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
@@ -21,7 +27,16 @@ const AssociationsCreateWorkspace = () => {
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
-          <AssociationsDetailsBox />
+          <AssociationsDetailsBox
+            regionStart={dummyAssociation.regionStart}
+            regionEnd={dummyAssociation.regionEnd}
+            setStart={setStart}
+            setEnd={setEnd}
+            sightingName={dummyAssociation.sightingName}
+            annotations={dummyAssociation.annotations}
+            openSightingDialog={openSightingDialog}
+            deleteAnnotation={deleteAnnotation}
+          />
         </Box>
         <Box
           sx={{
@@ -33,10 +48,10 @@ const AssociationsCreateWorkspace = () => {
             gap: 1,
           }}
         >
-          <StyledButton>Annotation Tools</StyledButton>
-          <StyledButton>Export Still Frame</StyledButton>
-          <StyledButton>Save Association</StyledButton>
-          <StyledButton>Skip Video</StyledButton>
+          <StyledButton disabled>Annotation Tools</StyledButton>
+          <StyledButton disabled>Export Still Frame</StyledButton>
+          <StyledButton onClick={handleSave}>Save Association</StyledButton>
+          <StyledButton onClick={handleSkip}>Skip Video</StyledButton>
         </Box>
       </Box>
     </Box>

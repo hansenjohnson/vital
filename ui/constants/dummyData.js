@@ -38,3 +38,10 @@ export const creation = {
     'whale-video-114.mp4',
   ],
 }
+
+export const association = {
+  regionStart: '02:10;00',
+  regionEnd: '04:01;06',
+  sightingName: '2021-10-13 TC/DASH8 F',
+  annotations: ['arrow 1', 'ellipse 1', 'rectangle 1'],
+}
