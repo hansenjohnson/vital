@@ -67,7 +67,7 @@ const AssociationsCreateSidebar = ({
           >
             {activeVideoFile}
           </Typography>
-          <IconNote icon={ArtTrackIcon} note="3 Associations Added" />
+          <IconNote icon={ArtTrackIcon} note="3 Associations Added" color="secondary.light" />
           <IconNote icon={PostAddIcon} note="1 Association Pending" />
         </Box>
 
