@@ -43,7 +43,7 @@ const AssociationsCreateSidebar = ({
           {videoFiles.slice(0, NUM_VIDEOS_TO_SHOW).map((videoFile, index) => (
             <Typography key={videoFile} sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
               {videoFile}
-              <Box sx={{ display: 'inline', color: 'text.disabled' }}>
+              <Box component="span" sx={{ color: 'text.disabled' }}>
                 {index === 0 ? ' - up next' : ''}
               </Box>
             </Typography>
@@ -81,12 +81,9 @@ const AssociationsCreateSidebar = ({
             </Box>
             {completedVideoFiles.length > 0 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <IconButton>
+                <IconButton onClick={() => setShowCompletedVideos(!showCompletedVideos)}>
                   <PlayArrowIcon
-                    sx={{
-                      transform: showCompletedVideos ? 'rotate(90deg)' : 'rotate(180deg)',
-                    }}
-                    onClick={() => setShowCompletedVideos(!showCompletedVideos)}
+                    sx={{ transform: showCompletedVideos ? 'rotate(90deg)' : 'rotate(180deg)' }}
                   />
                 </IconButton>
               </Box>

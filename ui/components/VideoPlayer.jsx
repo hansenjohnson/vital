@@ -117,18 +117,24 @@ const VideoPlayer = ({ siblingHeights }) => {
             gap: 0.5,
           }}
         >
-          <IconButton sx={{ width: '20px', height: '20px' }}>
+          <IconButton
+            sx={{ width: '20px', height: '20px' }}
+            onClick={playing ? pauseVideo : playVideo}
+          >
             {playing ? (
-              <PauseIcon sx={controlIconStyle} onClick={pauseVideo} />
+              <PauseIcon sx={controlIconStyle} />
             ) : (
-              <PlayArrowIcon sx={controlIconStyle} onClick={playVideo} />
+              <PlayArrowIcon sx={controlIconStyle} />
             )}
           </IconButton>
-          <IconButton sx={{ width: '20px', height: '20px' }}>
+          <IconButton
+            sx={{ width: '20px', height: '20px' }}
+            onClick={fullscreen ? exitFullscreen : enterFullscreen}
+          >
             {fullscreen ? (
-              <FullscreenExitIcon sx={controlIconStyle} onClick={exitFullscreen} />
+              <FullscreenExitIcon sx={controlIconStyle} />
             ) : (
-              <FullscreenIcon sx={controlIconStyle} onClick={enterFullscreen} />
+              <FullscreenIcon sx={controlIconStyle} />
             )}
           </IconButton>
           <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>00:00:00</Box>
