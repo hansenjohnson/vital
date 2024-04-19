@@ -1,24 +1,87 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import PauseIcon from '@mui/icons-material/Pause'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
 
-const PLAYER_CONTROLS_WIDTH = 126
+import useWindowSize from '../hooks/useWindowSize'
+
+const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
+const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.5)'
 
-const VideoPlayer = () => {
+const controlIconStyle = {
+  fontSize: '20px',
+  filter: `drop-shadow(${CONTENT_SHADOW})`,
+}
+
+const VideoPlayer = ({ siblingHeights }) => {
   const theme = useTheme()
+
+  // Responding to Window Resize with a Lock to 16/9 Aspect Ratio
+  const heightToLeaveForSiblings = siblingHeights.reduce((acc, height) => acc + height, 0)
+  const { windowWidth, windowHeight } = useWindowSize()
+  const videoContainerRef = useRef(null)
+  const [widerContainer, setWiderContainer] = useState(false)
+  useEffect(() => {
+    const { clientWidth, clientHeight } = videoContainerRef.current
+    const videoContainerAspectRatio = clientWidth / clientHeight
+    const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
+    const enoughHeightForSiblings = windowHeight - clientHeight > heightToLeaveForSiblings
+    if (!enoughHeightForSiblings || tooMuchAspectRatio) {
+      setWiderContainer(true)
+    } else {
+      setWiderContainer(false)
+    }
+  }, [videoContainerRef, windowWidth, windowHeight])
+
+  // Play Controls
+  const [playing, setPlaying] = useState(false)
+  const playVideo = () => {
+    setPlaying(true)
+  }
+  const pauseVideo = () => {
+    setPlaying(false)
+  }
+
+  // Fullscreen Controls
+  const [fullscreen, setFullscreen] = useState(false)
+  const enterFullscreen = () => {
+    setFullscreen(true)
+  }
+  const exitFullscreen = () => {
+    setFullscreen(false)
+  }
+
   return (
     <Box
+      ref={videoContainerRef}
       sx={{
-        backgroundColor: 'palevioletred',
         width: '100%',
-        paddingTop: '56.25%', // 16by9 aspect ratio
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        height: '100%',
+        backgroundColor: 'black',
+        display: 'grid',
+        overflow: 'hidden',
         position: 'relative',
       }}
     >
-      Video
+      <Box
+        sx={{
+          backgroundColor: 'rgba(100, 200, 100, 0.5)',
+          width: widerContainer ? 'auto' : '100%',
+          height: widerContainer ? '100%' : 'auto',
+          aspectRatio: '16 / 9',
+          objectFit: 'contain',
+          overflow: 'hidden',
+          margin: 'auto',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>Video</Box>
+      </Box>
+
       <Box
         sx={{
           position: 'absolute',
@@ -29,26 +92,46 @@ const VideoPlayer = () => {
           clipPath: `rect(auto auto auto ${theme.spacing(1)})`,
         }}
       >
+        {/* Video Controls Backdrop */}
         <Box
           sx={{
             position: 'absolute',
             width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(1)})`,
             height: `calc(${PLAYER_CONTROLS_HEIGHT}px + ${theme.spacing(1)})`,
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 85%)',
+            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 85%)',
             filter: 'blur(6px)',
           }}
         />
+
+        {/* Video Controls */}
         <Box
           sx={{
             position: 'absolute',
-            bottom: '0px',
-            left: theme.spacing(2),
+            bottom: theme.spacing(0.25),
+            left: theme.spacing(1.25),
             width: `${PLAYER_CONTROLS_WIDTH}px`,
             height: `calc(${PLAYER_CONTROLS_HEIGHT}px - ${theme.spacing(2)})`,
             fontFamily: "'Sometype Mono Variable', monopace",
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
           }}
         >
-          &gt; 00:00:00
+          <IconButton sx={{ width: '20px', height: '20px' }}>
+            {playing ? (
+              <PauseIcon sx={controlIconStyle} onClick={pauseVideo} />
+            ) : (
+              <PlayArrowIcon sx={controlIconStyle} onClick={playVideo} />
+            )}
+          </IconButton>
+          <IconButton sx={{ width: '20px', height: '20px' }}>
+            {fullscreen ? (
+              <FullscreenExitIcon sx={controlIconStyle} onClick={exitFullscreen} />
+            ) : (
+              <FullscreenIcon sx={controlIconStyle} onClick={enterFullscreen} />
+            )}
+          </IconButton>
+          <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>00:00:00</Box>
         </Box>
       </Box>
     </Box>
