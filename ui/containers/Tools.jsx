@@ -4,16 +4,28 @@ import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
+import FILE_TYPES from '../constants/fileTypes'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 
-const ToolsContainer = ({ setRoute }) => {
+const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
   }, [])
 
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
+
+  const handleClickViewAssociations = () => {
+    alert('not implemented yet!')
+  }
+
+  const handleClickCreateAssociations = async () => {
+    const folderPath = await window.api.selectFile(FILE_TYPES.FOLDER)
+    if (!folderPath) return
+    setFolderOfVideosToCreate(folderPath)
+    setRoute(ROUTES.ASSOCIATIONS_CREATE)
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
@@ -63,7 +75,7 @@ const ToolsContainer = ({ setRoute }) => {
               }
               action="View Existing Associations"
               noteFirst
-              onClick={() => alert('not implemented yet!')}
+              onClick={handleClickViewAssociations}
             />
             <MainActionButton
               action="Create New Associations"
@@ -76,10 +88,7 @@ const ToolsContainer = ({ setRoute }) => {
                 </div>
               }
               color="secondary"
-              onClick={() => {
-                // TODO: launch a file picker dialog instead of changing the route
-                setRoute(ROUTES.ASSOCIATIONS_CREATE)
-              }}
+              onClick={handleClickCreateAssociations}
             />
           </>
         )}

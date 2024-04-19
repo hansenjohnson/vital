@@ -3,14 +3,17 @@ import Box from '@mui/material/Box'
 
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
 import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
+import { splitPath } from '../utilities/paths'
 import { creation as dummyData } from '../constants/dummyData'
 
-const AssociationsCreateContainer = () => {
+const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   useEffect(() => {
     window.api.setTitle('Associate & Annotate')
   }, [])
 
-  const [videoFolderName, setVideoFolderName] = useState(dummyData.videoFolderName || '')
+  const folderPathParts = splitPath(folderOfVideosToCreate)
+  const videoFolderName = folderPathParts[folderPathParts.length - 1]
+
   const [videoFiles, setVideoFiles] = useState(dummyData.videoFiles || [])
   const [activeVideoFile, setActiveVideoFile] = useState(dummyData.activeVideoFile || '')
   const [completedVideoFiles, setCompletedVideoFiles] = useState(
