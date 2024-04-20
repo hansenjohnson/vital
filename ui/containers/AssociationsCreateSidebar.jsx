@@ -68,7 +68,7 @@ const AssociationsCreateSidebar = ({
             {activeVideoFile}
           </Typography>
           <IconNote icon={ArtTrackIcon} note="3 Associations Added" color="secondary.light" />
-          <IconNote icon={PostAddIcon} note="1 Association Pending" />
+          <IconNote icon={PostAddIcon} iconFontSize={20} note="1 Association Pending" />
         </Box>
 
         <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
