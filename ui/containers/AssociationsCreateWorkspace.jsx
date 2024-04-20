@@ -19,6 +19,9 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
   const setStart = () => {}
   const setEnd = () => {}
 
+  // const saveable = regionStart || regionEnd || sightingName
+  const saveable = true
+
   const [sightingsDialogOpen, setSightingsDialogOpen] = useState(false)
   const openSightingDialog = () => {
     setSightingsDialogOpen(true)
@@ -68,8 +71,21 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
-          <StyledButton onClick={handleSave}>Save Association</StyledButton>
-          <StyledButton onClick={handleSkip}>Skip Video</StyledButton>
+          <StyledButton
+            onClick={handleSave}
+            variant="contained"
+            color="tertiary"
+            disabled={!saveable}
+          >
+            Save Association
+          </StyledButton>
+          <StyledButton
+            onClick={handleSkip}
+            variant="contained"
+            color={saveable ? 'secondary' : 'error'}
+          >
+            {saveable ? 'Next Video' : 'Skip Video'}
+          </StyledButton>
         </Box>
       </Box>
 
