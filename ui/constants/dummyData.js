@@ -45,3 +45,19 @@ export const association = {
   sightingName: '2021-10-13 TC/DASH8 F',
   annotations: ['arrow 1', 'ellipse 1', 'rectangle 1'],
 }
+
+export const video = {
+  percentBuffered: 75,
+  existingRegions: [
+    [20, 280],
+    [200, 400],
+    [800, 1500],
+    [1200, 1800],
+    [1300, 1400],
+    [2000, 2200],
+  ],
+  regionStart: 314,
+  regionEnd: 880,
+  videoDuration: 2357,
+  currentTime: 526,
+}

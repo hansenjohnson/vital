@@ -4,7 +4,7 @@ import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
 import StyledButton from '../components/StyledButton'
-import { association as dummyAssociation } from '../constants/dummyData'
+import { association as dummyAssociation, video as dummyVideo } from '../constants/dummyData'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -22,7 +22,14 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
       </Box>
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>
-        <VideoTimeline />
+        <VideoTimeline
+          percentBuffered={dummyVideo.percentBuffered}
+          existingRegions={dummyVideo.existingRegions}
+          regionStart={dummyVideo.regionStart}
+          regionEnd={dummyVideo.regionEnd}
+          videoDuration={dummyVideo.videoDuration}
+          currentTime={dummyVideo.currentTime}
+        />
       </Box>
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
