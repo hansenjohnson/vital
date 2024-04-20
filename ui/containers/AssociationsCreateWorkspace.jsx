@@ -1,10 +1,16 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
 import StyledButton from '../components/StyledButton'
-import { association as dummyAssociation, video as dummyVideo } from '../constants/dummyData'
+import SightingsDialog from '../components/SightingsDialog'
+import {
+  association as dummyAssociation,
+  video as dummyVideo,
+  sightings as dummySightings,
+} from '../constants/dummyData'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -12,7 +18,12 @@ const DETAILS_HEIGHT = 245
 const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
   const setStart = () => {}
   const setEnd = () => {}
-  const openSightingDialog = () => {}
+
+  const [sightingsDialogOpen, setSightingsDialogOpen] = useState(false)
+  const openSightingDialog = () => {
+    setSightingsDialogOpen(true)
+  }
+
   const deleteAnnotation = () => {}
 
   return (
@@ -61,6 +72,12 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
           <StyledButton onClick={handleSkip}>Skip Video</StyledButton>
         </Box>
       </Box>
+
+      <SightingsDialog
+        open={sightingsDialogOpen}
+        handleClose={() => setSightingsDialogOpen(false)}
+        sightings={dummySightings}
+      />
     </Box>
   )
 }
