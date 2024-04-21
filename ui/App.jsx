@@ -10,21 +10,20 @@ import ROUTES from './constants/routes'
 const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
   const [settingsOpen, setSettingsOpen] = useState(true)
+  const [folderOfVideosToCreate, setFolderOfVideosToCreate] = useState('')
 
-  const selectFile = () => window.api.selectFile()
-
-  const ActiveRoute = useMemo(() => {
+  const [ActiveRoute, routeSpecificProps] = (() => {
     switch (route) {
       case ROUTES.TOOLS:
-        return Tools
+        return [Tools, { setFolderOfVideosToCreate }]
       case ROUTES.ASSOCIATIONS_VIEW:
-        return AssociationsView
+        return [AssociationsView, {}]
       case ROUTES.ASSOCIATIONS_CREATE:
-        return AssociationsCreate
+        return [AssociationsCreate, { folderOfVideosToCreate }]
       default:
-        return null
+        return [null, {}]
     }
-  }, [route])
+  })()
 
   return (
     <Box sx={{ height: '100vh' }}>
@@ -36,7 +35,7 @@ const App = () => {
           }
         }}
       />
-      <ActiveRoute setRoute={setRoute} />
+      <ActiveRoute setRoute={setRoute} {...routeSpecificProps} />
     </Box>
   )
 }

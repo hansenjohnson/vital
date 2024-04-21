@@ -1,28 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
+import FILE_TYPES from '../constants/fileTypes'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
+import Sidebar from '../components/Sidebar'
 
-const ToolsContainer = ({ setRoute }) => {
+const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
+  useEffect(() => {
+    window.api.setTitle('Video Catalog Suite')
+  }, [])
+
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
+
+  const handleClickViewAssociations = () => {
+    alert('not implemented yet!')
+  }
+
+  const handleClickCreateAssociations = async () => {
+    const folderPath = await window.api.selectFile(FILE_TYPES.FOLDER)
+    if (!folderPath) return
+    setFolderOfVideosToCreate(folderPath)
+    setRoute(ROUTES.ASSOCIATIONS_CREATE)
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       {/* Tool Selector */}
-      <Box
-        sx={{
-          width: '400px',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 1,
-          gap: 1,
-        }}
-      >
+      <Sidebar>
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 300 }}>
           TOOLS
         </Typography>
@@ -36,7 +44,7 @@ const ToolsContainer = ({ setRoute }) => {
           selected={tool === TOOLS.INGEST_TRANSCODE}
           onClick={() => setTool(TOOLS.INGEST_TRANSCODE)}
         />
-      </Box>
+      </Sidebar>
 
       {/* Contents of Tool View */}
       <Box
@@ -67,7 +75,7 @@ const ToolsContainer = ({ setRoute }) => {
               }
               action="View Existing Associations"
               noteFirst
-              onClick={() => alert('not implemented yet!')}
+              onClick={handleClickViewAssociations}
             />
             <MainActionButton
               action="Create New Associations"
@@ -80,9 +88,7 @@ const ToolsContainer = ({ setRoute }) => {
                 </div>
               }
               color="secondary"
-              onClick={() => {
-                setRoute(ROUTES.ASSOCIATIONS_CREATE)
-              }}
+              onClick={handleClickCreateAssociations}
             />
           </>
         )}
