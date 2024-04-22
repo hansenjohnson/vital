@@ -30,10 +30,13 @@ export const postJSONWithResponse = async (url, data) => {
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify(data),
     })
+    if (!response.ok) {
+      console.warn(`Issue with POST to ${url}`)
+    }
     const responseData = await response.json()
-    return { ok: response.ok, data: responseData }
+    return responseData
   } catch (error) {
     console.error(`Error with POST to ${url}:`, error?.message || error)
-    return { ok: false, data: null }
+    return null
   }
 }

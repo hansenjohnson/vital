@@ -15,7 +15,7 @@ import {
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
-const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
+const AssociationsCreateWorkspace = ({ handleSave, handleNext }) => {
   const setStart = () => {}
   const setEnd = () => {}
 
@@ -80,7 +80,7 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
             Save Association
           </StyledButton>
           <StyledButton
-            onClick={handleSkip}
+            onClick={handleNext}
             variant="contained"
             color={saveable ? 'secondary' : 'error'}
           >

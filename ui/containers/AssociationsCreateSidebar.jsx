@@ -11,6 +11,7 @@ import Sidebar from '../components/Sidebar'
 import CreationHeader from '../components/CreationHeader'
 import SectionHeading from '../components/SectionHeading'
 import IconNote from '../components/IconNote'
+import { leafPath } from '../utilities/paths'
 
 const AssociationsCreateSidebar = ({
   videoFolderName,
@@ -42,7 +43,7 @@ const AssociationsCreateSidebar = ({
           <SectionHeading>Unprocessed Videos</SectionHeading>
           {videoFiles.slice(0, NUM_VIDEOS_TO_SHOW).map((videoFile, index) => (
             <Typography key={videoFile} sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
-              {videoFile}
+              {leafPath(videoFile)}
               <Box component="span" sx={{ color: 'text.disabled' }}>
                 {index === 0 ? ' - up next' : ''}
               </Box>
@@ -65,7 +66,7 @@ const AssociationsCreateSidebar = ({
               fontSize: '20px',
             }}
           >
-            {activeVideoFile}
+            {leafPath(activeVideoFile)}
           </Typography>
           <IconNote icon={ArtTrackIcon} note="3 Associations Added" color="secondary.light" />
           <IconNote icon={PostAddIcon} iconFontSize={20} note="1 Association Pending" />
@@ -92,7 +93,7 @@ const AssociationsCreateSidebar = ({
           {showCompletedVideos &&
             completedVideoFiles.map((videoFile) => (
               <Typography key={videoFile} sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
-                {videoFile}
+                {leafPath(videoFile)}
               </Typography>
             ))}
         </Box>
