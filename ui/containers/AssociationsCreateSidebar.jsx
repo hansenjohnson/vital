@@ -17,6 +17,8 @@ const AssociationsCreateSidebar = ({
   videoFolderName,
   videoFiles,
   activeVideoFile,
+  associationsAdded,
+  associationIsPending,
   completedVideoFiles,
 }) => {
   const [showCompletedVideos, setShowCompletedVideos] = useState(false)
@@ -68,8 +70,16 @@ const AssociationsCreateSidebar = ({
           >
             {leafPath(activeVideoFile)}
           </Typography>
-          <IconNote icon={ArtTrackIcon} note="3 Associations Added" color="secondary.light" />
-          <IconNote icon={PostAddIcon} iconFontSize={20} note="1 Association Pending" />
+          <IconNote
+            icon={ArtTrackIcon}
+            note={`${associationsAdded} Association${associationsAdded !== 1 ? 's' : ''} Added`}
+            color="secondary.light"
+          />
+          <IconNote
+            icon={PostAddIcon}
+            iconFontSize={20}
+            note={associationIsPending ? '1 Association Pending' : 'none pending'}
+          />
         </Box>
 
         <Divider sx={{ marginTop: 1, marginBottom: 1 }} />

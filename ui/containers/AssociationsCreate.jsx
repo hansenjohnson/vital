@@ -5,8 +5,10 @@ import Button from '@mui/material/Button'
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
 import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
 import BlankSlate from '../components/BlankSlate'
+import SightingsDialog from '../components/SightingsDialog'
 import filepathsAPI from '../api/filepaths'
 import associationsAPI from '../api/associations'
+import sightingsAPI from '../api/sightings'
 import { splitPath } from '../utilities/paths'
 import ROUTES from '../constants/routes'
 
@@ -30,8 +32,56 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
     })
   }, [folderOfVideosToCreate])
 
-  const saveAssociation = (associationData) => {
-    associationsAPI.create(associationData)
+  const [sightingData, setSightingData] = useState([])
+  useEffect(() => {
+    sightingsAPI.get().then((data) => {
+      setSightingData(data)
+    })
+  }, [])
+
+  const [regionStart, setRegionStart] = useState(null)
+  const [regionEnd, setRegionEnd] = useState(null)
+  const [sightingId, setSightingId] = useState(null)
+
+  const selectedSighting = sightingData.find((sighting) => sighting.id === sightingId)
+  const sightingName = selectedSighting
+    ? `${selectedSighting.date} ${selectedSighting.observer} ${selectedSighting.letter}`
+    : null
+  const saveable = regionStart != null && regionEnd != null && sightingName != null
+
+  const [sightingsDialogOpen, setSightingsDialogOpen] = useState(false)
+  const selectSighting = (id) => {
+    setSightingId(id)
+    setSightingsDialogOpen(false)
+  }
+
+  const [annotations, setAnnotations] = useState([])
+  const deleteAnnotation = () => {}
+
+  const [existingRegions, setExistingRegions] = useState([])
+
+  const clearAssociation = () => {
+    setRegionStart(null)
+    setRegionEnd(null)
+    setSightingId(null)
+    setAnnotations([])
+  }
+  const saveAssociation = async () => {
+    const status = await associationsAPI.create({
+      StartTime: regionStart,
+      EndTime: regionEnd,
+      SightingId: sightingId,
+      Annotation: annotations,
+      VideoFilePath: '',
+      ThumbnailFilePath: '',
+      CreatedBy: '',
+      CreatedDate: `${new Date()}`,
+    })
+
+    if (status === true) {
+      setExistingRegions([...existingRegions, [regionStart, regionEnd]])
+      clearAssociation()
+    }
   }
 
   const nextVideo = () => {
@@ -43,6 +93,8 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
       setAllDone(true)
       return
     }
+    setExistingRegions([])
+    clearAssociation()
     setActiveVideoFile(videoFiles[0])
     setVideoFiles(videoFiles.slice(1))
   }
@@ -53,8 +105,11 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
         videoFolderName={videoFolderName}
         videoFiles={videoFiles}
         activeVideoFile={activeVideoFile}
+        associationsAdded={existingRegions.length}
+        associationIsPending={saveable}
         completedVideoFiles={completedVideoFiles}
       />
+
       {allDone ? (
         <BlankSlate
           message="You've completed creating assoications for this folder of videos."
@@ -66,8 +121,30 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
           }
         />
       ) : (
-        <AssociationsCreateWorkspace handleSave={saveAssociation} handleNext={nextVideo} />
+        <AssociationsCreateWorkspace
+          activeVideoFile={activeVideoFile}
+          sightings={sightingData}
+          handleNext={nextVideo}
+          existingRegions={existingRegions}
+          regionStart={regionStart}
+          regionEnd={regionEnd}
+          sightingName={sightingName}
+          annotations={annotations}
+          setRegionStart={setRegionStart}
+          setRegionEnd={setRegionEnd}
+          setSightingsDialogOpen={setSightingsDialogOpen}
+          deleteAnnotation={deleteAnnotation}
+          saveable={saveable}
+          saveAssociation={saveAssociation}
+        />
       )}
+
+      <SightingsDialog
+        open={sightingsDialogOpen}
+        handleClose={() => setSightingsDialogOpen(false)}
+        sightings={sightingData}
+        handleSelect={selectSighting}
+      />
     </Box>
   )
 }

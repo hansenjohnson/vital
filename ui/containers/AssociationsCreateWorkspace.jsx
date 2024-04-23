@@ -1,33 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
 import StyledButton from '../components/StyledButton'
-import SightingsDialog from '../components/SightingsDialog'
-import {
-  association as dummyAssociation,
-  video as dummyVideo,
-  sightings as dummySightings,
-} from '../constants/dummyData'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
-const AssociationsCreateWorkspace = ({ handleSave, handleNext }) => {
-  const setStart = () => {}
-  const setEnd = () => {}
+const AssociationsCreateWorkspace = ({
+  activeVideoFile,
+  handleNext,
+  existingRegions,
+  regionStart,
+  regionEnd,
+  sightingName,
+  annotations,
+  setRegionStart,
+  setRegionEnd,
+  setSightingsDialogOpen,
+  deleteAnnotation,
+  saveable,
+  saveAssociation,
+}) => {
+  const [videoDuration, setVideoDuration] = useState(0)
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0)
+  const [videoPercentBuffered, setVideoPercentBuffered] = useState(0)
+  useEffect(() => {
+    setVideoDuration(1000) // TODO: get this from the video
+    setVideoCurrentTime(0) // TODO: update these from the video plugin
+    setVideoPercentBuffered(Math.floor(Math.random() * 80) + 10) // TODO: update these from the video plugin
+  }, [activeVideoFile])
 
-  // const saveable = regionStart || regionEnd || sightingName
-  const saveable = true
-
-  const [sightingsDialogOpen, setSightingsDialogOpen] = useState(false)
-  const openSightingDialog = () => {
-    setSightingsDialogOpen(true)
-  }
-
-  const deleteAnnotation = () => {}
+  const nextable = existingRegions.length > 0 || saveable
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -37,25 +43,28 @@ const AssociationsCreateWorkspace = ({ handleSave, handleNext }) => {
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>
         <VideoTimeline
-          percentBuffered={dummyVideo.percentBuffered}
-          existingRegions={dummyVideo.existingRegions}
-          regionStart={dummyVideo.regionStart}
-          regionEnd={dummyVideo.regionEnd}
-          videoDuration={dummyVideo.videoDuration}
-          currentTime={dummyVideo.currentTime}
+          percentBuffered={videoPercentBuffered}
+          existingRegions={existingRegions}
+          regionStart={regionStart}
+          regionEnd={regionEnd}
+          videoDuration={videoDuration}
+          currentTime={videoCurrentTime}
         />
       </Box>
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
           <AssociationsDetailsBox
-            regionStart={dummyAssociation.regionStart}
-            regionEnd={dummyAssociation.regionEnd}
-            setStart={setStart}
-            setEnd={setEnd}
-            sightingName={dummyAssociation.sightingName}
-            annotations={dummyAssociation.annotations}
-            openSightingDialog={openSightingDialog}
+            regionStart={regionStart}
+            regionEnd={regionEnd}
+            // TODO: remove math randoms
+            setStart={() =>
+              setRegionStart(videoCurrentTime || Math.floor(Math.random() * 400) + 50)
+            }
+            setEnd={() => setRegionEnd(videoCurrentTime || Math.floor(Math.random() * 400) + 450)}
+            sightingName={sightingName}
+            annotations={annotations}
+            openSightingDialog={() => setSightingsDialogOpen(true)}
             deleteAnnotation={deleteAnnotation}
           />
         </Box>
@@ -72,7 +81,7 @@ const AssociationsCreateWorkspace = ({ handleSave, handleNext }) => {
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
           <StyledButton
-            onClick={handleSave}
+            onClick={saveAssociation}
             variant="contained"
             color="tertiary"
             disabled={!saveable}
@@ -82,18 +91,12 @@ const AssociationsCreateWorkspace = ({ handleSave, handleNext }) => {
           <StyledButton
             onClick={handleNext}
             variant="contained"
-            color={saveable ? 'secondary' : 'error'}
+            color={nextable ? 'secondary' : 'error'}
           >
-            {saveable ? 'Next Video' : 'Skip Video'}
+            {nextable ? 'Next Video' : 'Skip Video'}
           </StyledButton>
         </Box>
       </Box>
-
-      <SightingsDialog
-        open={sightingsDialogOpen}
-        handleClose={() => setSightingsDialogOpen(false)}
-        sightings={dummySightings}
-      />
     </Box>
   )
 }

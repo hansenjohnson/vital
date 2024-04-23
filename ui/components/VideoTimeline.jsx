@@ -55,6 +55,7 @@ const VideoTimeline = ({
           backgroundColor: 'tertiary.dark',
           opacity: 0.1,
           borderRadius: '4px',
+          visibility: regionStart == null || regionEnd == null ? 'hidden' : 'visible',
         }}
       />
       <Box
@@ -68,6 +69,7 @@ const VideoTimeline = ({
           borderRight: 'none',
           borderTopLeftRadius: '4px',
           borderBottomLeftRadius: '4px',
+          visibility: regionStart == null ? 'hidden' : 'visible',
         })}
       />
       <Box
@@ -81,6 +83,7 @@ const VideoTimeline = ({
           borderLeft: 'none',
           borderTopRightRadius: '4px',
           borderBottomRightRadius: '4px',
+          visibility: regionEnd == null ? 'hidden' : 'visible',
         })}
       />
 
