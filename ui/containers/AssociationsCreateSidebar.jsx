@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
@@ -25,6 +25,14 @@ const AssociationsCreateSidebar = ({
   const NUM_VIDEOS_TO_SHOW = showCompletedVideos ? 5 : 10
   const additionalVideos =
     videoFiles.length > NUM_VIDEOS_TO_SHOW ? videoFiles.length - NUM_VIDEOS_TO_SHOW : 0
+
+  const flashFadeInDuration = 200
+  const [shouldFlash, setShouldFlash] = useState(false)
+  useEffect(() => {
+    setShouldFlash(true)
+    const timeout = setTimeout(() => setShouldFlash(false), flashFadeInDuration)
+    return () => clearTimeout(timeout)
+  }, [activeVideoFile])
 
   return (
     <Sidebar>
@@ -66,6 +74,11 @@ const AssociationsCreateSidebar = ({
               fontFamily: "'Sometype Mono Variable', monopace",
               color: 'secondary.main',
               fontSize: '20px',
+              backgroundColor: shouldFlash ? 'secondary.light' : 'transparent',
+              borderRadius: 1,
+              transition: shouldFlash
+                ? `background-color ${flashFadeInDuration}ms ease-in-out`
+                : `background-color ${flashFadeInDuration * 2}ms ease-in`,
             }}
           >
             {leafPath(activeVideoFile)}
@@ -92,7 +105,10 @@ const AssociationsCreateSidebar = ({
             </Box>
             {completedVideoFiles.length > 0 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <IconButton onClick={() => setShowCompletedVideos(!showCompletedVideos)}>
+                <IconButton
+                  size="small"
+                  onClick={() => setShowCompletedVideos(!showCompletedVideos)}
+                >
                   <PlayArrowIcon
                     sx={{ transform: showCompletedVideos ? 'rotate(90deg)' : 'rotate(180deg)' }}
                   />
