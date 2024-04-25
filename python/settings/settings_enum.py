@@ -11,6 +11,8 @@ class SettingsEnum(Enum):
     THUMBNAIL_DIR_PATH = 'thumbnail_dir_path'
     STILLFRAME_DIR_NAME = 'stillframe_dir_path'
 
+    FOLDER_OF_VIDEOS_TO_CREATE = 'folder_of_videos_to_create'
+
     @classmethod
     def has_value(cls, value):
         return value in cls._value2member_map_

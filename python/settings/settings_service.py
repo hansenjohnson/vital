@@ -21,5 +21,8 @@ class SettingsService:
             raise ValueError(f"Invalid setting key: {key}")
 
     def clear_file_settings(self):
-        self.model.set_setting('association_file_path', None)
-        self.model.set_setting('association_sheet_name', None)
+        self.model.set_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value, None)
+        self.model.set_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value, None)
+
+        self.model.set_setting(SettingsEnum.SIGHTING_FILE_PATH.value, None)
+        self.model.set_setting(SettingsEnum.SIGHTING_SHEET_NAME.value, None)

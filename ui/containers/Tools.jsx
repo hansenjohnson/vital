@@ -9,6 +9,11 @@ import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 
+import Settings from '../api/settings'
+import SettingsKeys from '../constants/settingKeys'
+import SETTING_KEYS from "../constants/settingKeys";
+
+
 const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
@@ -25,6 +30,7 @@ const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
     if (!folderPath) return
     setFolderOfVideosToCreate(folderPath)
     setRoute(ROUTES.ASSOCIATIONS_CREATE)
+    await Settings.save({'folder_of_videos_to_create': folderPath})
   }
 
   return (

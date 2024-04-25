@@ -5,4 +5,5 @@ export default {
   SIGHTING_SHEET_NAME: 'sighting_sheet_name',
   THUMBNAIL_DIR_PATH: 'thumbnail_dir_path',
   STILLFRAME_DIR_NAME: 'stillframe_dir_path',
+  FOLDER_OF_VIDEOS_TO_CREATE: 'folder_of_videos_to_create'
 }
