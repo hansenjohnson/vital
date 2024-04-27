@@ -12,6 +12,7 @@ class SettingsEnum(Enum):
     STILLFRAME_DIR_NAME = 'stillframe_dir_path'
 
     FOLDER_OF_VIDEOS = 'folder_of_videos'
+    CURRENT_VIDEO = 'current_video'
 
     @classmethod
     def has_value(cls, value):

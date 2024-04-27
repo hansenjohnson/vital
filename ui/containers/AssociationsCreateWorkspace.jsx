@@ -15,7 +15,7 @@ import {
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
-const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
+const AssociationsCreateWorkspace = ({ handleSave, handleSkip, activeVideoFile }) => {
   const setStart = () => {}
   const setEnd = () => {}
 
@@ -32,7 +32,7 @@ const AssociationsCreateWorkspace = ({ handleSave, handleSkip }) => {
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
-        <VideoPlayer siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]} />
+        <VideoPlayer url={`http://localhost:5000/videos/${activeVideoFile}.mpd`} />
       </Box>
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>

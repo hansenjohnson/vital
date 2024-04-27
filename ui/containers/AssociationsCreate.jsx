@@ -6,6 +6,9 @@ import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
 import { splitPath } from '../utilities/paths'
 import { creation as dummyData } from '../constants/dummyData'
 
+import VideosApi from '../api/videos'
+import {act} from "react-dom/test-utils";
+
 const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   useEffect(() => {
     window.api.setTitle('Associate & Annotate')
@@ -14,14 +17,24 @@ const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   const folderPathParts = splitPath(folderOfVideosToCreate)
   const videoFolderName = folderPathParts[folderPathParts.length - 1]
 
-  const [videoFiles, setVideoFiles] = useState(dummyData.videoFiles || [])
+  const [videoFiles, setVideoFiles] = useState([])
   const [activeVideoFile, setActiveVideoFile] = useState(dummyData.activeVideoFile || '')
   const [completedVideoFiles, setCompletedVideoFiles] = useState(
     dummyData.completedVideoFiles || []
   )
 
+  useEffect(() => {
+    fetchVideoFiles();
+}, []);
+
   const saveAssociation = () => {}
   const skipVideo = () => {}
+
+  const fetchVideoFiles = async () => {
+    const videos = await VideosApi.getList()
+    setVideoFiles(videos)
+    setActiveVideoFile(videos[0])
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
@@ -31,7 +44,11 @@ const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
         activeVideoFile={activeVideoFile}
         completedVideoFiles={completedVideoFiles}
       />
-      <AssociationsCreateWorkspace handleSave={saveAssociation} handleSkip={skipVideo} />
+      {activeVideoFile ? (
+        <AssociationsCreateWorkspace handleSave={saveAssociation} handleSkip={skipVideo} activeVideoFile={activeVideoFile}/>
+      ) : (
+        <div>Loading...</div>
+      )}
     </Box>
   )
 }
