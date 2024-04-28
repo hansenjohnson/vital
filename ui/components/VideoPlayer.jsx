@@ -171,14 +171,19 @@ const VideoPlayer = ({
           objectFit: 'contain',
           overflow: 'hidden',
           margin: 'auto',
+          position: 'relative',
         }}
       >
-        <Box sx={{ textAlign: 'center' }}>
-          <video
-            ref={videoElementRef}
-            style={{ width: '100%', objectPosition: 'center', objectFit: 'scale-down' }}
-          ></video>
-        </Box>
+        <video
+          ref={videoElementRef}
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            objectPosition: 'center',
+            objectFit: 'scale-down',
+          }}
+        ></video>
       </Box>
 
       <Box
