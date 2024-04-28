@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import SettingsContainer from './containers/Settings'
