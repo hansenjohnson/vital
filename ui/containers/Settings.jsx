@@ -13,6 +13,13 @@ import SettingInput from '../components/SettingInput'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
+const VISIBLE_SETTINGS = [
+  SETTING_KEYS.ASSOCIATION_FILE_PATH,
+  SETTING_KEYS.ASSOCIATION_SHEET_NAME,
+  SETTING_KEYS.SIGHTING_FILE_PATH,
+  SETTING_KEYS.SIGHTING_SHEET_NAME,
+]
+
 const SettingsContainer = ({ open, handleClose }) => {
   const [settings, setSettings] = useState({
     [SETTING_KEYS.ASSOCIATION_FILE_PATH]: '',
@@ -37,7 +44,7 @@ const SettingsContainer = ({ open, handleClose }) => {
 
   // Load existing settings on mount
   useEffect(() => {
-    settingsAPI.getList(Object.values(SETTING_KEYS)).then((settingsList) => {
+    settingsAPI.getList(Object.values(VISIBLE_SETTINGS)).then((settingsList) => {
       settingsList.forEach((settingData) => {
         const [key, value] = Object.entries(settingData)[0]
         if (value != null) {

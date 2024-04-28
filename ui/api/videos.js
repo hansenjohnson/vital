@@ -1,14 +1,9 @@
 import { baseURL } from './config'
+import { getJSON } from './fetchers'
 
 const getList = async () => {
-  try {
-    const response = await fetch(`${baseURL}/videos/file_names`)
-    const videos = await response.json()
-    return videos['videos']
-  } catch (error) {
-    console.error('Error getting videos:', error?.message || error)
-    return null
-  }
+  const data = await getJSON(`${baseURL}/videos/file_names`)
+  return data ? data['videos'] : []
 }
 
 export default {

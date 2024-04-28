@@ -9,7 +9,7 @@ settings_service = SettingsService()
 sql = SQL()
 
 
-@bp.route('/', methods=['GET'])
+@bp.route('', methods=['GET'], strict_slashes=False)
 def get_all_associations():
     try:
         return jsonify(sql.get_all_associations()), 200
@@ -25,7 +25,7 @@ def get_association(association_id):
         return jsonify({"error": str(e)}), 400
 
 
-@bp.route('/', methods=['POST'])
+@bp.route('', methods=['POST'], strict_slashes=False)
 def create_association():
     payload = request.json
     try:

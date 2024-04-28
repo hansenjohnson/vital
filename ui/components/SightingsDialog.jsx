@@ -54,14 +54,10 @@ const TableHeader = () => (
   </TableHead>
 )
 
-const SightingsDialog = ({ open, handleClose, sightings }) => {
-  const handleSelect = () => {
-    handleClose()
-  }
-
-  const makeTableRow = ({ date, observer, time, letter }) => (
+const SightingsDialog = ({ open, handleClose, sightings, handleSelect }) => {
+  const makeTableRow = ({ id, date, observer, time, letter }) => (
     <TableRow
-      key={JSON.stringify({ date, observer, time, letter })}
+      key={id}
       sx={{
         '&:last-child td, &:last-child th': { border: 0 },
       }}
@@ -83,7 +79,7 @@ const SightingsDialog = ({ open, handleClose, sightings }) => {
         {letter}
       </TableCell>
       <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="right">
-        <PillButton onClick={handleSelect}>select</PillButton>
+        <PillButton onClick={() => handleSelect(id)}>select</PillButton>
       </TableCell>
     </TableRow>
   )

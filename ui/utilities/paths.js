@@ -3,3 +3,7 @@
 export const splitPath = (path) => {
   return path.split('\\')
 }
+
+export const leafPath = (path) => {
+  return path.split('\\').pop()
+}

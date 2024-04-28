@@ -16,8 +16,8 @@ const AssociationsDetailsBox = ({
   deleteAnnotation,
 }) => {
   let regionString = <em>None Set</em>
-  if (regionStart || regionEnd) {
-    regionString = `${regionStart} - ${regionEnd}`
+  if (regionStart != null || regionEnd != null) {
+    regionString = `${regionStart ?? 'not set'} - ${regionEnd ?? 'not set'}`
   }
   return (
     <Box

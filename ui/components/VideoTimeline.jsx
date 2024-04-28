@@ -3,16 +3,17 @@ import Box from '@mui/material/Box'
 import { determineNonOverlappingTracksForRegions } from '../utilities/numbers'
 
 const VideoTimeline = ({
-  percentBuffered,
+  bufferedRegions, // array of [start, end] of unit frames, sorted by start
   existingRegions, // array of [start, end] of unit frames, sorted by start
   regionStart, // unit frames
   regionEnd, // unit frames
   videoDuration, // unit frames
   currentTime, // unit frames
 }) => {
-  const playheadPosition = (currentTime / videoDuration) * 100
+  const playheadPosition = (currentTime / videoDuration) * 100 || 0
   const regionStartPosition = (regionStart / videoDuration) * 100
   const regionEndPosition = (regionEnd / videoDuration) * 100
+  const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0
 
   const trackForRegion = determineNonOverlappingTracksForRegions(existingRegions)
 
@@ -23,6 +24,7 @@ const VideoTimeline = ({
         height: '100%',
         backgroundColor: 'background.paper',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       {/* Existing Regions */}
@@ -55,6 +57,7 @@ const VideoTimeline = ({
           backgroundColor: 'tertiary.dark',
           opacity: 0.1,
           borderRadius: '4px',
+          visibility: regionStart == null || regionEnd == null ? 'hidden' : 'visible',
         }}
       />
       <Box
@@ -68,6 +71,7 @@ const VideoTimeline = ({
           borderRight: 'none',
           borderTopLeftRadius: '4px',
           borderBottomLeftRadius: '4px',
+          visibility: regionStart == null ? 'hidden' : 'visible',
         })}
       />
       <Box
@@ -81,27 +85,35 @@ const VideoTimeline = ({
           borderLeft: 'none',
           borderTopRightRadius: '4px',
           borderBottomRightRadius: '4px',
+          visibility: regionEnd == null ? 'hidden' : 'visible',
         })}
       />
 
       {/* Buffer Bar */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: `${percentBuffered}%`,
-          height: '4px',
-          backgroundColor: 'action.selected',
-        }}
-      />
+      {bufferedRegions.map((region, index) => {
+        const [start, end] = region
+        return (
+          <Box
+            key={`${index}`}
+            sx={(theme) => ({
+              position: 'absolute',
+              bottom: 0,
+              left: `${(start / videoDuration) * 100}%`,
+              width: `${((end - start) / videoDuration) * 100}%`,
+              height: '4px',
+              backgroundColor: 'action.selected',
+              transition: `width ${theme.transitions.duration.shortest}ms ease-in-out`,
+            })}
+          />
+        )
+      })}
 
       {/* Playhead */}
       <Box
         sx={{
           position: 'absolute',
           top: 0,
-          left: `${playheadPosition}%`,
+          left: `calc(${playheadPosition}% - ${accountForPlayheadWidthNearRightEdge}px)`,
           width: '2px',
           height: '100%',
           backgroundColor: 'secondary.main',
@@ -111,7 +123,7 @@ const VideoTimeline = ({
         sx={(theme) => ({
           position: 'absolute',
           bottom: 0,
-          left: `calc(${playheadPosition}% - 5px)`,
+          left: `calc(${playheadPosition}% - 5px - ${accountForPlayheadWidthNearRightEdge}px)`,
           width: '0px',
           height: '0px',
           borderLeft: '6px solid transparent',
