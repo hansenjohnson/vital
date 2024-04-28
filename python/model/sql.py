@@ -18,16 +18,17 @@ class SQL:
         self.conn = sqlite3.connect('video_catalog.db', check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
 
-        self.cursor = self.conn.cursor()
         self.settings = SettingsService()
 
     def load_table(self, table_name, create_table_statement, file_path, sheet_name, index_col):
         try:
-            self.cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-            self.cursor.execute(create_table_statement)
+            cursor = self.conn.cursor()
+            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+            cursor.execute(create_table_statement)
             self.df = pd.read_excel(file_path, sheet_name, index_col=index_col, engine='openpyxl')
             self.df.to_sql(table_name, self.conn, if_exists='append')
             self.conn.commit()
+            cursor.close()
         except Exception as e:
             sys.stderr.write(f"Failed to load sql for {table_name}: {e}")
             self.settings.clear_file_settings()

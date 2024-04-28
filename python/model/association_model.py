@@ -42,8 +42,10 @@ class AssociationModel(SQL):
 
     def get_all_associations(self):
         try:
-            self.cursor.execute('SELECT * FROM association')
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM association')
+            rows = cursor.fetchall()
+            cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_all_associations: {e}")
@@ -51,8 +53,10 @@ class AssociationModel(SQL):
 
     def get_association_by_id(self, association_id):
         try:
-            self.cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
+            rows = cursor.fetchall()
+            cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_association_by_id: {e}")
@@ -60,25 +64,29 @@ class AssociationModel(SQL):
 
     def create_association(self, payload):
         try:
+            cursor = self.conn.cursor()
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO association
                 (SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
                 VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
             """
-            self.cursor.execute(query, payload)
+            cursor.execute(query, payload)
             self.conn.commit()
 
             self.flush_to_excel('association', self.file_path, self.worksheet_name)
-            return self.cursor.lastrowid
 
+            lastrowid = cursor.lastrowid
+            cursor.close()
+            return lastrowid
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query create_associations: {e}")
             raise
 
     def delete_association_by_id(self, association_id):
         try:
-            self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
+            cursor = self.conn.cursor()
+            cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
             self.conn.commit()
 
             self.flush_to_excel('association', self.file_path, self.worksheet_name)

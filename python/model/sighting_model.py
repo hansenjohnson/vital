@@ -41,8 +41,10 @@ class SightingModel(SQL):
 
     def get_all_sightings(self):
         try:
-            self.cursor.execute('SELECT * FROM sighting')
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM sighting')
+            rows = cursor.fetchall()
+            cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_all_sightings: {e}")
@@ -50,8 +52,10 @@ class SightingModel(SQL):
 
     def get_sighting_by_id(self, sighting_id):
         try:
-            self.cursor.execute(f'SELECT * FROM sighting WHERE SightingId = {sighting_id}')
-            rows = self.cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute(f'SELECT * FROM sighting WHERE SightingId = {sighting_id}')
+            rows = cursor.fetchall()
+            cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_sighting_by_id: {e}")
