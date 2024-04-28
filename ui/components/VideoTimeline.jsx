@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import { determineNonOverlappingTracksForRegions } from '../utilities/numbers'
 
 const VideoTimeline = ({
-  percentBuffered, // TODO: this needs to be a list of regions
+  bufferedRegions, // array of [start, end] of unit frames, sorted by start
   existingRegions, // array of [start, end] of unit frames, sorted by start
   regionStart, // unit frames
   regionEnd, // unit frames
@@ -90,16 +90,23 @@ const VideoTimeline = ({
       />
 
       {/* Buffer Bar */}
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          width: `${percentBuffered}%`,
-          height: '4px',
-          backgroundColor: 'action.selected',
-        }}
-      />
+      {bufferedRegions.map((region, index) => {
+        const [start, end] = region
+        return (
+          <Box
+            key={`${index}`}
+            sx={(theme) => ({
+              position: 'absolute',
+              bottom: 0,
+              left: `${(start / videoDuration) * 100}%`,
+              width: `${((end - start) / videoDuration) * 100}%`,
+              height: '4px',
+              backgroundColor: 'action.selected',
+              transition: `width ${theme.transitions.duration.shortest}ms ease-in-out`,
+            })}
+          />
+        )
+      })}
 
       {/* Playhead */}
       <Box

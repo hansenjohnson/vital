@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { MediaPlayer } from 'dashjs'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PauseIcon from '@mui/icons-material/Pause'
@@ -12,6 +13,11 @@ import useWindowSize from '../hooks/useWindowSize'
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
 const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.5)'
+const VIDEO_STATES = {
+  LOADING: 'LOADING',
+  PLAYING: 'PLAYING',
+  PAUSED: 'PAUSED',
+}
 
 const controlIconStyle = {
   fontSize: '20px',
@@ -23,7 +29,7 @@ const VideoPlayer = ({
   siblingHeights,
   setVideoDuration,
   setVideoCurrentTime,
-  setVideoPercentBuffered,
+  setVideoRangesBuffered,
 }) => {
   const theme = useTheme()
 
@@ -47,11 +53,11 @@ const VideoPlayer = ({
   // Video Player, Init/Destroy Loop, URL reactivity
   const playerRef = useRef(null)
   const videoElementRef = useRef(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [playing, setPlaying] = useState(false)
+  const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
+
   const loadingFinished = () => {
-    setIsLoading(false)
-    setPlaying(true) // because Auto-Play
+    // move immediatley from Loading to Playing because of Auto-Play
+    setVideoIs(VIDEO_STATES.PLAYING)
   }
 
   const initializePlayer = (videoElement, url) => {
@@ -88,8 +94,7 @@ const VideoPlayer = ({
   }
 
   useEffect(() => {
-    setPlaying(false)
-    setIsLoading(true)
+    setVideoIs(VIDEO_STATES.LOADING)
     initializePlayer(videoElementRef.current, url)
     return destroyPlayer
   }, [url])
@@ -100,13 +105,13 @@ const VideoPlayer = ({
     if (!video) return
 
     video.play()
-    setPlaying(true)
+    setVideoIs(VIDEO_STATES.PLAYING)
   }
   const pauseVideo = () => {
     const video = videoElementRef.current
     if (!video) return
     video.pause()
-    setPlaying(false)
+    setVideoIs(VIDEO_STATES.PAUSED)
   }
 
   // Sync Video Element state with UI components
@@ -124,11 +129,15 @@ const VideoPlayer = ({
     }
     // TODO: publish this to setVideoPercentBuffered
     const reportOnBuffer = () => {
-      Array.from(Array(videoElementRef.current?.buffered.length)).forEach((_, index) => {
-        console.log(
-          `Buffered: ${videoElementRef.current?.buffered.start(index)} - ${videoElementRef.current?.buffered.end(index)}`
-        )
-      })
+      const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
+        (_, index) => {
+          return [
+            videoElementRef.current?.buffered.start(index),
+            videoElementRef.current?.buffered.end(index),
+          ]
+        }
+      )
+      setVideoRangesBuffered(bufferedRanges)
     }
 
     videoElementRef.current?.addEventListener('durationchange', reportOnDuration)
@@ -164,7 +173,8 @@ const VideoPlayer = ({
     >
       <Box
         sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          // enable for debugging
+          // backgroundColor: 'rgba(255, 0, 0, 0.3)',
           width: widerContainer ? 'auto' : '100%',
           height: widerContainer ? '100%' : 'auto',
           aspectRatio: '16 / 9',
@@ -221,20 +231,32 @@ const VideoPlayer = ({
             gap: 0.25,
           }}
         >
-          <IconButton
-            sx={{ width: '24px', height: '24px' }}
-            onClick={playing ? pauseVideo : playVideo}
-          >
-            {playing ? (
-              <PauseIcon sx={controlIconStyle} />
-            ) : (
-              <PlayArrowIcon sx={controlIconStyle} />
-            )}
-          </IconButton>
-          <IconButton sx={{ width: '24px', height: '24px' }} onClick={enterFullscreen}>
-            <FullscreenIcon sx={controlIconStyle} />
-          </IconButton>
-          <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>{currentTime.toFixed(2)}</Box>
+          {videoIs === VIDEO_STATES.LOADING ? (
+            <CircularProgress
+              color="inherit"
+              size={16}
+              sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}
+            />
+          ) : (
+            <>
+              <IconButton
+                sx={{ width: '24px', height: '24px' }}
+                onClick={videoIs === VIDEO_STATES.PLAYING ? pauseVideo : playVideo}
+              >
+                {videoIs === VIDEO_STATES.PLAYING ? (
+                  <PauseIcon sx={controlIconStyle} />
+                ) : (
+                  <PlayArrowIcon sx={controlIconStyle} />
+                )}
+              </IconButton>
+              <IconButton sx={{ width: '24px', height: '24px' }} onClick={enterFullscreen}>
+                <FullscreenIcon sx={controlIconStyle} />
+              </IconButton>
+              <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>
+                {currentTime.toFixed(2)}
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
     </Box>
