@@ -8,6 +8,7 @@ import videosAPI from '../api/videos'
 import settingsAPI from '../api/settings'
 import { baseURL } from '../api/config'
 import { leafPath } from '../utilities/paths'
+import { transformSightingData, sortSightingData } from '../utilities/transformers'
 import ROUTES from '../constants/routes'
 import SETTING_KEYS from '../constants/settingKeys'
 
@@ -49,7 +50,9 @@ const AssociationsCreateContainer = ({ setRoute }) => {
   const [sightingData, setSightingData] = useState([])
   useEffect(() => {
     sightingsAPI.get().then((data) => {
-      setSightingData(data)
+      const transformedData = data.map(transformSightingData)
+      const sortedData = sortSightingData(transformedData)
+      setSightingData(sortedData)
     })
   }, [])
 
@@ -137,7 +140,6 @@ const AssociationsCreateContainer = ({ setRoute }) => {
       ) : (
         <AssociationsCreateWorkspace
           activeVideoURL={activeVideoFile ? `${baseURL}/videos/${activeVideoFile}.mpd` : ''}
-          sightings={sightingData}
           handleNext={nextVideo}
           existingRegions={existingRegions}
           regionStart={regionStart}
