@@ -1,18 +1,17 @@
 from flask import Blueprint, jsonify, request
-import sys
 
-from model.sql import SQL
+from model.association_model import AssociationModel
 from settings.settings_service import SettingsService
 
 bp = Blueprint('associations', __name__)
 settings_service = SettingsService()
-sql = SQL()
+association_model = AssociationModel()
 
 
 @bp.route('', methods=['GET'], strict_slashes=False)
 def get_all_associations():
     try:
-        return jsonify(sql.get_all_associations()), 200
+        return jsonify(association_model.get_all_associations()), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -20,7 +19,7 @@ def get_all_associations():
 @bp.route('/<int:association_id>', methods=['GET'])
 def get_association(association_id):
     try:
-        return jsonify(sql.get_association_by_id(association_id)), 200
+        return jsonify(association_model.get_association_by_id(association_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -29,7 +28,7 @@ def get_association(association_id):
 def create_association():
     payload = request.json
     try:
-        association_id = sql.create_association(payload)
+        association_id = association_model.create_association(payload)
         return jsonify({"AssociationId": association_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -38,7 +37,7 @@ def create_association():
 @bp.route('/<int:association_id>', methods=['DELETE'])
 def delete_association_by_id(association_id):
     try:
-        sql.delete_association_by_id(association_id)
+        association_model.delete_association_by_id(association_id)
         return jsonify({"message": "Association deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

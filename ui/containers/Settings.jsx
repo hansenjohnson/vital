@@ -39,6 +39,8 @@ const SettingsContainer = ({ open, handleClose }) => {
     const successful = await settingsAPI.save(settings)
     if (successful) {
       handleClose()
+    } else {
+      alert('Failed to save settings. Please adjust them and try again.')
     }
   }
 

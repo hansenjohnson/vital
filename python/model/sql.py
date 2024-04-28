@@ -1,10 +1,8 @@
 import sys
-import json
 import pandas as pd
 import sqlite3
 
 from settings.settings_service import SettingsService
-from settings.settings_enum import SettingsEnum
 
 
 class SQL:
@@ -18,82 +16,21 @@ class SQL:
     def __init__(self):
         self.df = pd.DataFrame()
         self.conn = sqlite3.connect('video_catalog.db', check_same_thread=False)
-        self.cursor = self.conn.cursor()
+        self.conn.row_factory = sqlite3.Row
+
         self.settings = SettingsService()
 
-        self.load_sql()
-
-    def load_sql(self):
+    def load_table(self, table_name, create_table_statement, file_path, sheet_name, index_col):
         try:
-            self.cursor.execute("DROP TABLE IF EXISTS association")
-            self.cursor.execute("""
-                         CREATE TABLE association (
-                            AssociationId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            SightingId INTEGER,
-                            StartTime TEXT,
-                            EndTime TEXT,
-                            Annotation JSON,
-                            VideoFilePath TEXT,
-                            ThumbnailFilePath TEXT,
-                            CreatedBy TEXT,
-                            CreatedDate TEXT
-                         )
-                     """)
-            self.df = pd.read_excel(self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value),
-                                    self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value),
-                                    index_col='AssociationId')
-            self.df.to_sql('association', self.conn, if_exists='append')
+            cursor = self.conn.cursor()
+            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+            cursor.execute(create_table_statement)
+            self.df = pd.read_excel(file_path, sheet_name, index_col=index_col, engine='openpyxl')
+            self.df.to_sql(table_name, self.conn, if_exists='append')
             self.conn.commit()
+            cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to load sql: {e}")
-            self.settings.clear_file_settings()
-
-    def get_all_associations(self):
-        try:
-            result = self.cursor.execute('SELECT * FROM association')
-            rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
-            return rows
-        except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_all_associations: {e}")
-        return None
-
-    def get_association_by_id(self, association_id):
-        try:
-            result = self.cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
-            rows = [dict(zip([column[0] for column in result.description], row)) for row in result.fetchall()]
-            return rows
-        except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_association_by_id: {e}")
-        return None
-
-    def create_association(self, payload):
-        try:
-            payload['Annotation'] = json.dumps(payload['Annotation'])
-            query = """
-                INSERT INTO association
-                (SightingId, StartTime, EndTime, Annotation, VideoFilePath, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :VideoFilePath, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
-            """
-            self.cursor.execute(query, payload)
-            self.conn.commit()
-
-            self.flush_to_excel('association', self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value), 
-                                self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value))
-            return self.cursor.lastrowid
-
-        except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_associations: {e}")
-            raise
-
-    def delete_association_by_id(self, association_id):
-        try:
-            self.cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
-            self.conn.commit()
-
-            self.flush_to_excel('association', self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value), 
-                                self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value))
-        except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query delete_association_by_id: {e}")
+            sys.stderr.write(f"Failed to load sql for {table_name}: {e}")
             raise e
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
