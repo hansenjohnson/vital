@@ -1,11 +1,7 @@
-from flask import Blueprint, jsonify, request
-
-from model.sql import SQL
-from settings.settings_service import SettingsService
+from flask import Blueprint, jsonify
 from model.sighting_model import SightingModel
 
 bp = Blueprint('sightings', __name__)
-settings_service = SettingsService()
 sighting_model = SightingModel()
 
 
