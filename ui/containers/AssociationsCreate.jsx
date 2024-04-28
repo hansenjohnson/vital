@@ -32,6 +32,13 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
     })
   }, [folderOfVideosToCreate])
 
+  const [activeVideoURL, setActiveVideoURL] = useState('')
+  useEffect(() => {
+    filepathsAPI.getVideoURL(activeVideoFile).then((url) => {
+      setActiveVideoURL(url)
+    })
+  }, [activeVideoFile])
+
   const [sightingData, setSightingData] = useState([])
   useEffect(() => {
     sightingsAPI.get().then((data) => {
@@ -122,7 +129,7 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
         />
       ) : (
         <AssociationsCreateWorkspace
-          activeVideoFile={activeVideoFile}
+          activeVideoURL={activeVideoURL}
           sightings={sightingData}
           handleNext={nextVideo}
           existingRegions={existingRegions}

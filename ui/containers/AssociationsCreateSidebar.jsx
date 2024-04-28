@@ -30,7 +30,11 @@ const AssociationsCreateSidebar = ({
   const [shouldFlash, setShouldFlash] = useState(false)
   useEffect(() => {
     setShouldFlash(true)
-    const timeout = setTimeout(() => setShouldFlash(false), flashFadeInDuration)
+    // the extra time added helps ensure the original css transition completes
+    // before the flash is removed. This is necessary becaue the css "animation" is
+    // controled by the browser paint cycle, and might be delayed by something like the
+    // video player changing source URLs.
+    const timeout = setTimeout(() => setShouldFlash(false), flashFadeInDuration + 250)
     return () => clearTimeout(timeout)
   }, [activeVideoFile])
 

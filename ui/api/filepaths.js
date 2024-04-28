@@ -16,6 +16,20 @@ const listDirectory = (directoryPath) => {
   ])
 }
 
+let currDummyPath = 0
+const getVideoURL = (filePath) => {
+  const dummyPaths = [
+    'https://ftp.itec.aau.at/datasets/DASHDataset2014/BigBuckBunny/4sec/BigBuckBunny_4s_simple_2014_05_09.mpd',
+    'https://ftp.itec.aau.at/datasets/DASHDataset2014/TearsOfSteel/4sec/TearsOfSteel_4s_simple_2014_05_09.mpd',
+    'https://ftp.itec.aau.at/datasets/DASHDataset2014/ElephantsDream/4sec/ElephantsDream_4s_simple_2014_05_09.mpd',
+    'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+  ]
+  const dummyPath = dummyPaths[currDummyPath]
+  currDummyPath = (currDummyPath + 1) % dummyPaths.length
+  return Promise.resolve(dummyPath)
+}
+
 export default {
   listDirectory,
+  getVideoURL,
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -10,7 +10,7 @@ const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
 const AssociationsCreateWorkspace = ({
-  activeVideoFile,
+  activeVideoURL,
   handleNext,
   existingRegions,
   regionStart,
@@ -27,18 +27,18 @@ const AssociationsCreateWorkspace = ({
   const [videoDuration, setVideoDuration] = useState(0)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
   const [videoPercentBuffered, setVideoPercentBuffered] = useState(0)
-  useEffect(() => {
-    setVideoDuration(1000) // TODO: get this from the video
-    setVideoCurrentTime(0) // TODO: update these from the video plugin
-    setVideoPercentBuffered(Math.floor(Math.random() * 80) + 10) // TODO: update these from the video plugin
-  }, [activeVideoFile])
-
   const nextable = existingRegions.length > 0 || saveable
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
-        <VideoPlayer siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]} />
+        <VideoPlayer
+          url={activeVideoURL}
+          siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
+          setVideoDuration={setVideoDuration}
+          setVideoCurrentTime={setVideoCurrentTime}
+          setVideoPercentBuffered={setVideoPercentBuffered}
+        />
       </Box>
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>
@@ -57,11 +57,8 @@ const AssociationsCreateWorkspace = ({
           <AssociationsDetailsBox
             regionStart={regionStart}
             regionEnd={regionEnd}
-            // TODO: remove math randoms
-            setStart={() =>
-              setRegionStart(videoCurrentTime || Math.floor(Math.random() * 400) + 50)
-            }
-            setEnd={() => setRegionEnd(videoCurrentTime || Math.floor(Math.random() * 400) + 450)}
+            setStart={() => setRegionStart(videoCurrentTime)}
+            setEnd={() => setRegionEnd(videoCurrentTime)}
             sightingName={sightingName}
             annotations={annotations}
             openSightingDialog={() => setSightingsDialogOpen(true)}

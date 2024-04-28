@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import { determineNonOverlappingTracksForRegions } from '../utilities/numbers'
 
 const VideoTimeline = ({
-  percentBuffered,
+  percentBuffered, // TODO: this needs to be a list of regions
   existingRegions, // array of [start, end] of unit frames, sorted by start
   regionStart, // unit frames
   regionEnd, // unit frames
@@ -13,6 +13,7 @@ const VideoTimeline = ({
   const playheadPosition = (currentTime / videoDuration) * 100
   const regionStartPosition = (regionStart / videoDuration) * 100
   const regionEndPosition = (regionEnd / videoDuration) * 100
+  const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0
 
   const trackForRegion = determineNonOverlappingTracksForRegions(existingRegions)
 
@@ -23,6 +24,7 @@ const VideoTimeline = ({
         height: '100%',
         backgroundColor: 'background.paper',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       {/* Existing Regions */}
@@ -104,7 +106,7 @@ const VideoTimeline = ({
         sx={{
           position: 'absolute',
           top: 0,
-          left: `${playheadPosition}%`,
+          left: `calc(${playheadPosition}% - ${accountForPlayheadWidthNearRightEdge}px)`,
           width: '2px',
           height: '100%',
           backgroundColor: 'secondary.main',
@@ -114,7 +116,7 @@ const VideoTimeline = ({
         sx={(theme) => ({
           position: 'absolute',
           bottom: 0,
-          left: `calc(${playheadPosition}% - 5px)`,
+          left: `calc(${playheadPosition}% - 5px - ${accountForPlayheadWidthNearRightEdge}px)`,
           width: '0px',
           height: '0px',
           borderLeft: '6px solid transparent',
