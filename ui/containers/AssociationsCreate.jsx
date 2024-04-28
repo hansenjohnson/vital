@@ -106,6 +106,12 @@ const AssociationsCreateContainer = ({ setRoute, folderOfVideosToCreate }) => {
     setVideoFiles(videoFiles.slice(1))
   }
 
+  const fetchVideoFiles = async () => {
+    const videos = await VideosApi.getList()
+    setVideoFiles(videos)
+    setActiveVideoFile(videos[0])
+  }
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <AssociationsCreateSidebar
