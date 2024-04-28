@@ -55,9 +55,9 @@ class AssociationModel(SQL):
         try:
             cursor = self.conn.cursor()
             cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
-            rows = cursor.fetchall()
+            row = cursor.fetchone()
             cursor.close()
-            return [dict(row) for row in rows]
+            return dict(row) if row else None
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_association_by_id: {e}")
         return None
@@ -90,6 +90,7 @@ class AssociationModel(SQL):
             self.conn.commit()
 
             self.flush_to_excel('association', self.file_path, self.worksheet_name)
+            cursor.close()
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query delete_association_by_id: {e}")
             raise e

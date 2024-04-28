@@ -1,5 +1,4 @@
 import sys
-import json
 
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
@@ -15,12 +14,15 @@ class SightingModel(SQL):
         return cls._instance
 
     def __init__(self):
-        super().__init__()
+        try:
+            super().__init__()
 
-        self.file_path = None
-        self.worksheet_name = None
+            self.file_path = None
+            self.worksheet_name = None
 
-        self.refresh_table()
+            self.refresh_table()
+        except Exception as e:
+            sys.stderr.write(f"Failed to initialize SightingModel: {e}")
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.SIGHTING_FILE_PATH.value)
@@ -54,9 +56,9 @@ class SightingModel(SQL):
         try:
             cursor = self.conn.cursor()
             cursor.execute(f'SELECT * FROM sighting WHERE SightingId = {sighting_id}')
-            rows = cursor.fetchall()
+            row = cursor.fetchone()
             cursor.close()
-            return [dict(row) for row in rows]
+            return dict(row) if row else None
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_sighting_by_id: {e}")
         return None

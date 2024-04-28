@@ -31,7 +31,7 @@ class SQL:
             cursor.close()
         except Exception as e:
             sys.stderr.write(f"Failed to load sql for {table_name}: {e}")
-            self.settings.clear_file_settings()
+            raise e
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
         try:
