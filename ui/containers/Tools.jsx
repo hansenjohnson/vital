@@ -5,13 +5,13 @@ import Typography from '@mui/material/Typography'
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
 import FILE_TYPES from '../constants/fileTypes'
+import SETTINGS_KEYS from '../constants/settingKeys'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
+import settingsAPI from '../api/settings'
 
-import Settings from '../api/settings'
-
-const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
+const ToolsContainer = ({ setRoute }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
   }, [])
@@ -25,9 +25,8 @@ const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
   const handleClickCreateAssociations = async () => {
     const folderPath = await window.api.selectFile(FILE_TYPES.FOLDER)
     if (!folderPath) return
-    setFolderOfVideosToCreate(folderPath)
+    await settingsAPI.save({ [SETTINGS_KEYS.FOLDER_OF_VIDEOS]: folderPath })
     setRoute(ROUTES.ASSOCIATIONS_CREATE)
-    await Settings.save({ folder_of_videos: folderPath })
   }
 
   return (

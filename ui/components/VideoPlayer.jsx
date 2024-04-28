@@ -9,8 +9,6 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
 
-import dashjs from 'dashjs'
-
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
 const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.5)'
@@ -29,13 +27,22 @@ const VideoPlayer = ({
 }) => {
   const theme = useTheme()
 
+  // Responding to Window Resize with a Lock to 16/9 Aspect Ratio
+  const heightToLeaveForSiblings = siblingHeights.reduce((acc, height) => acc + height, 0)
+  const { windowWidth, windowHeight } = useWindowSize()
+  const videoContainerRef = useRef(null)
+  const [widerContainer, setWiderContainer] = useState(false)
   useEffect(() => {
-    let player
-    if (videoRef.current) {
-      // Initialize dash.js player
-      player = dashjs.MediaPlayer().create()
-      player.initialize(videoRef.current, url, true)
+    const { clientWidth, clientHeight } = videoContainerRef.current
+    const videoContainerAspectRatio = clientWidth / clientHeight
+    const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
+    const enoughHeightForSiblings = windowHeight - clientHeight > heightToLeaveForSiblings
+    if (!enoughHeightForSiblings || tooMuchAspectRatio) {
+      setWiderContainer(true)
+    } else {
+      setWiderContainer(false)
     }
+  }, [videoContainerRef, windowWidth, windowHeight])
 
   // Video Player, Init/Destroy Loop, URL reactivity
   const playerRef = useRef(null)

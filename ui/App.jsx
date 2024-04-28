@@ -10,16 +10,15 @@ import ROUTES from './constants/routes'
 const App = () => {
   const [route, setRoute] = useState(ROUTES.TOOLS)
   const [settingsOpen, setSettingsOpen] = useState(true)
-  const [folderOfVideosToCreate, setFolderOfVideosToCreate] = useState('')
 
   const [ActiveRoute, routeSpecificProps] = (() => {
     switch (route) {
       case ROUTES.TOOLS:
-        return [Tools, { setFolderOfVideosToCreate }]
+        return [Tools, {}]
       case ROUTES.ASSOCIATIONS_VIEW:
         return [AssociationsView, {}]
       case ROUTES.ASSOCIATIONS_CREATE:
-        return [AssociationsCreate, { folderOfVideosToCreate }]
+        return [AssociationsCreate, {}]
       default:
         return [null, {}]
     }

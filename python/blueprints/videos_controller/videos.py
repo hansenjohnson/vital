@@ -11,7 +11,10 @@ settings_service = SettingsService()
 
 @bp.route('/<path:file>', methods=['GET'])
 def get_video(file):
-    folder_path = os.path.join(settings_service.get_setting(SettingsEnum.CURRENT_VIDEO.value))
+    folder_path = os.path.join(
+        settings_service.get_setting(SettingsEnum.FOLDER_OF_VIDEOS.value),
+        settings_service.get_setting(SettingsEnum.CURRENT_VIDEO.value)
+    )
     return send_from_directory(str(folder_path), file, as_attachment=False, mimetype='application/dash+xml')
 
 

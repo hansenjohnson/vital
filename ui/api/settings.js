@@ -9,5 +9,6 @@ const getList = (listOfKeys) => Promise.all(listOfKeys.map((key) => get(key)))
 
 export default {
   save,
+  get,
   getList,
 }
