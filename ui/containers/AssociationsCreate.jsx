@@ -7,7 +7,6 @@ import { splitPath } from '../utilities/paths'
 import { creation as dummyData } from '../constants/dummyData'
 
 import VideosApi from '../api/videos'
-import { act } from 'react-dom/test-utils'
 
 const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   useEffect(() => {
