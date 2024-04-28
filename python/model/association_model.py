@@ -15,11 +15,14 @@ class AssociationModel(SQL):
         return cls._instance
 
     def __init__(self):
-        super().__init__()
+        try:
+            super().__init__()
 
-        self.file_path = None
-        self.worksheet_name = None
-        self.refresh_table()
+            self.file_path = None
+            self.worksheet_name = None
+            self.refresh_table()
+        except Exception as e:
+            sys.stderr.write(f"Failed to initialize AssociationModel: {e}")
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value)
