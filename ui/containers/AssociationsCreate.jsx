@@ -7,7 +7,7 @@ import { splitPath } from '../utilities/paths'
 import { creation as dummyData } from '../constants/dummyData'
 
 import VideosApi from '../api/videos'
-import {act} from "react-dom/test-utils";
+import { act } from 'react-dom/test-utils'
 
 const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   useEffect(() => {
@@ -24,8 +24,8 @@ const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
   )
 
   useEffect(() => {
-    fetchVideoFiles();
-}, []);
+    fetchVideoFiles()
+  }, [])
 
   const saveAssociation = () => {}
   const skipVideo = () => {}
@@ -45,7 +45,11 @@ const AssociationsCreateContainer = ({ folderOfVideosToCreate }) => {
         completedVideoFiles={completedVideoFiles}
       />
       {activeVideoFile ? (
-        <AssociationsCreateWorkspace handleSave={saveAssociation} handleSkip={skipVideo} activeVideoFile={activeVideoFile}/>
+        <AssociationsCreateWorkspace
+          handleSave={saveAssociation}
+          handleSkip={skipVideo}
+          activeVideoFile={activeVideoFile}
+        />
       ) : (
         <div>Loading...</div>
       )}

@@ -27,7 +27,7 @@ const ToolsContainer = ({ setRoute, setFolderOfVideosToCreate }) => {
     if (!folderPath) return
     setFolderOfVideosToCreate(folderPath)
     setRoute(ROUTES.ASSOCIATIONS_CREATE)
-    await Settings.save({'folder_of_videos': folderPath})
+    await Settings.save({ folder_of_videos: folderPath })
   }
 
   return (

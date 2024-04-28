@@ -9,7 +9,7 @@ import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
 
 import useWindowSize from '../hooks/useWindowSize'
 
-import dashjs from "dashjs";
+import dashjs from 'dashjs'
 
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
@@ -21,29 +21,29 @@ const controlIconStyle = {
 }
 
 const VideoPlayer = ({ url }) => {
-     const videoRef = useRef(null);
+  const videoRef = useRef(null)
 
-    useEffect(() => {
-        let player;
-        if (videoRef.current) {
-            // Initialize dash.js player
-            player = dashjs.MediaPlayer().create();
-            player.initialize(videoRef.current, url, true);
-        }
+  useEffect(() => {
+    let player
+    if (videoRef.current) {
+      // Initialize dash.js player
+      player = dashjs.MediaPlayer().create()
+      player.initialize(videoRef.current, url, true)
+    }
 
-        return () => {
-            // Clean up the player on component unmount
-            if (player) {
-                player.reset();
-            }
-        };
-    }, [url]);
+    return () => {
+      // Clean up the player on component unmount
+      if (player) {
+        player.reset()
+      }
+    }
+  }, [url])
 
-    return (
-        <video ref={videoRef} controls style={{ width: '100%' }}>
-            Your browser does not support HTML5 video.
-        </video>
-    );
-};
+  return (
+    <video ref={videoRef} controls style={{ width: '100%' }}>
+      Your browser does not support HTML5 video.
+    </video>
+  )
+}
 
 export default VideoPlayer
