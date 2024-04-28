@@ -68,7 +68,6 @@ const VideoPlayer = ({
     playerRef.current.updateSettings({
       streaming: {
         buffer: {
-          stableBufferTime: 120,
           bufferTimeAtTopQuality: 120,
           bufferTimeAtTopQualityLongForm: 120,
           bufferToKeep: 120,
@@ -191,7 +190,7 @@ const VideoPlayer = ({
             width: '100%',
             height: '100%',
             objectPosition: 'center',
-            objectFit: 'scale-down',
+            objectFit: 'contain',
           }}
         ></video>
       </Box>
@@ -203,7 +202,6 @@ const VideoPlayer = ({
           left: theme.spacing(-1),
           width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(3)})`,
           height: `${PLAYER_CONTROLS_HEIGHT}px`,
-          clipPath: `rect(auto auto auto ${theme.spacing(1)})`,
         }}
       >
         {/* Video Controls Backdrop */}
@@ -212,7 +210,7 @@ const VideoPlayer = ({
             position: 'absolute',
             width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(1)})`,
             height: `calc(${PLAYER_CONTROLS_HEIGHT}px + ${theme.spacing(1)})`,
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 85%)',
+            background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 90%)',
             filter: 'blur(6px)',
           }}
         />

@@ -10,7 +10,7 @@ const VideoTimeline = ({
   videoDuration, // unit frames
   currentTime, // unit frames
 }) => {
-  const playheadPosition = (currentTime / videoDuration) * 100
+  const playheadPosition = (currentTime / videoDuration) * 100 || 0
   const regionStartPosition = (regionStart / videoDuration) * 100
   const regionEndPosition = (regionEnd / videoDuration) * 100
   const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0
