@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
@@ -36,11 +37,14 @@ const SettingsContainer = ({ open, handleClose }) => {
   }
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
 
+  const [submitting, setSubmitting] = useState(false)
   const handleSubmit = async () => {
+    setSubmitting(true)
     const successful = await settingsAPI.save(settings)
     if (successful) {
       handleClose()
     } else {
+      setSubmitting(false)
       alert('Failed to save settings. Please adjust them and try again.')
     }
   }
@@ -116,8 +120,12 @@ const SettingsContainer = ({ open, handleClose }) => {
 
       <DialogActions>
         <Button
-          disabled={!Object.values(settings).every((setting) => !!setting)}
           onClick={handleSubmit}
+          disabled={!Object.values(settings).every((setting) => !!setting) || submitting}
+          startIcon={
+            submitting && <CircularProgress color="inherit" size={16} sx={{ marginRight: 1 }} />
+          }
+          sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
         >
           Save
         </Button>
