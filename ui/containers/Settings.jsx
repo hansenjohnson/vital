@@ -12,6 +12,7 @@ import SETTING_KEYS from '../constants/settingKeys'
 import SettingInput from '../components/SettingInput'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
+import { Skeleton } from '@mui/material'
 
 const VISIBLE_SETTINGS = [
   SETTING_KEYS.ASSOCIATION_FILE_PATH,
@@ -45,6 +46,7 @@ const SettingsContainer = ({ open, handleClose }) => {
   }
 
   // Load existing settings on mount
+  const [initialLoading, setInitialLoading] = useState(true)
   useEffect(() => {
     settingsAPI.getList(Object.values(VISIBLE_SETTINGS)).then((settingsList) => {
       settingsList.forEach((settingData) => {
@@ -53,6 +55,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           setOneSetting(key, value)
         }
       })
+      setInitialLoading(false)
     })
   }, [])
 
@@ -64,64 +67,51 @@ const SettingsContainer = ({ open, handleClose }) => {
           You must populate these settings in order to use the Application.
         </Alert>
 
-        <FilePathSettingInput
-          label="Associations File"
-          value={settings[SETTING_KEYS.ASSOCIATION_FILE_PATH]}
-          onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_FILE_PATH)}
-          onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
-            if (!filePath) return
-            setOneSetting(SETTING_KEYS.ASSOCIATION_FILE_PATH, filePath)
-          }}
-        />
-        <SettingInput
-          label="Associations Sheet Name"
-          value={settings[SETTING_KEYS.ASSOCIATION_SHEET_NAME]}
-          onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_SHEET_NAME)}
-        />
+        {initialLoading ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Skeleton variant="rounded" animation="wave" height={40} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
+            <Box mb={1} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
+          </Box>
+        ) : (
+          <>
+            <FilePathSettingInput
+              label="Associations File"
+              value={settings[SETTING_KEYS.ASSOCIATION_FILE_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_FILE_PATH)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.ASSOCIATION_FILE_PATH, filePath)
+              }}
+            />
+            <SettingInput
+              label="Associations Sheet Name"
+              value={settings[SETTING_KEYS.ASSOCIATION_SHEET_NAME]}
+              onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_SHEET_NAME)}
+            />
 
-        <Box mb={1} />
+            <Box mb={1} />
 
-        <FilePathSettingInput
-          label="Sightings Data File"
-          value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
-          onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
-          onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
-            if (!filePath) return
-            setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
-          }}
-        />
-        <SettingInput
-          label="Sightings Sheet Name"
-          value={settings[SETTING_KEYS.SIGHTING_SHEET_NAME]}
-          onChange={handleChangeFor(SETTING_KEYS.SIGHTING_SHEET_NAME)}
-        />
-
-        {/* TODO: include these in a future release */}
-        {/* <Box mb={1} /> */}
-
-        {/* <FilePathSettingInput
-          label="Internal Thumbnails Folder"
-          value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
-          onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
-          onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
-            if (!filePath) return
-            setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
-          }}
-        /> */}
-
-        {/* <FilePathSettingInput
-          label="Exported Still Frames Folder"
-          value={settings[SETTING_KEYS.STILLFRAME_DIR_NAME]}
-          onChange={handleChangeFor(SETTING_KEYS.STILLFRAME_DIR_NAME)}
-          onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
-            if (!filePath) return
-            setOneSetting(SETTING_KEYS.STILLFRAME_DIR_NAME, filePath)
-          }}
-        /> */}
+            <FilePathSettingInput
+              label="Sightings Data File"
+              value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
+              }}
+            />
+            <SettingInput
+              label="Sightings Sheet Name"
+              value={settings[SETTING_KEYS.SIGHTING_SHEET_NAME]}
+              onChange={handleChangeFor(SETTING_KEYS.SIGHTING_SHEET_NAME)}
+            />
+          </>
+        )}
       </DialogContent>
 
       <DialogActions>
