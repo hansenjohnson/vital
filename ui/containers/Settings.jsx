@@ -7,13 +7,13 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Skeleton from '@mui/material/Skeleton'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
 import SettingInput from '../components/SettingInput'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
-import { Skeleton } from '@mui/material'
 
 const VISIBLE_SETTINGS = [
   SETTING_KEYS.ASSOCIATION_FILE_PATH,
