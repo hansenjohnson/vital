@@ -6,6 +6,7 @@ const SectionHeading = ({ children, size = 24 }) => (
       color: 'text.secondary',
       fontSize: `${size}px`,
       fontWeight: 700,
+      userSelect: 'none',
     }}
   >
     {children}
