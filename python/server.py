@@ -14,5 +14,9 @@ app.register_blueprint(sightings_bp, url_prefix='/sightings')
 app.register_blueprint(settings_bp, url_prefix='/settings')
 app.register_blueprint(videos_bp, url_prefix='/videos')
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    return 'pong'
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

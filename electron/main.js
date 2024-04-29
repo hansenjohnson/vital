@@ -1,8 +1,12 @@
 import path from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import log from 'electron-log/main'
 
 import { launchPythonServer, killPythonServer } from './childProcesses'
+
+log.initialize()
+log.info(`App Launched at  ${new Date()}`)
 
 let pythonServer
 

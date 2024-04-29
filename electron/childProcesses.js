@@ -1,6 +1,8 @@
 import path from 'path'
 import child_process from 'child_process'
+import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
+import log from 'electron-log/main'
 
 const launchPythonServer = () => {
   if (is.dev) {
@@ -21,34 +23,36 @@ const launchPythonServer = () => {
 
   const processCallback = (err, stdout, stderr) => {
     if (err) {
-      console.log(err)
+      log.error(err)
     }
     if (stdout) {
-      console.log(stdout)
+      log.info(stdout)
     }
     if (stderr) {
-      console.log(stderr)
+      log.error(stderr)
     }
   }
 
-  const backend = path.join(process.cwd(), 'resources/app/bin/server.exe')
+  const installFolder = path.dirname(path.dirname(app.getAppPath()))
+  const backend = path.join(installFolder, 'bin/server.exe')
+  log.info(`Launching python server at: ${backend}`)
   child_process.execFile(backend, { windowsHide: true }, processCallback)
   return null
 }
 
 const killPythonServer = (pythonServer) => {
   if (is.dev) {
-    console.log('Killing python server')
+    log.info('Killing python server')
     pythonServer.kill('SIGINT')
     pythonServer.kill('SIGKILL')
   } else {
     child_process.exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
       if (err) {
-        console.log(err)
+        log.error(err)
         return
       }
-      console.log(`stdout: ${stdout}`)
-      console.log(`stderr: ${stderr}`)
+      log.info(`stdout: ${stdout}`)
+      log.error(`stderr: ${stderr}`)
     })
   }
 }
