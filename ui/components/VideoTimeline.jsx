@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import { determineNonOverlappingTracksForRegions } from '../utilities/numbers'
@@ -9,6 +10,7 @@ const VideoTimeline = ({
   regionEnd, // unit frames
   videoDuration, // unit frames
   currentTime, // unit frames
+  seekToFrame,
 }) => {
   const playheadPosition = (currentTime / videoDuration) * 100 || 0
   const regionStartPosition = (regionStart / videoDuration) * 100
@@ -16,6 +18,25 @@ const VideoTimeline = ({
   const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0
 
   const trackForRegion = determineNonOverlappingTracksForRegions(existingRegions)
+
+  const clickToSeek = (event) => {
+    const rect = event.target.getBoundingClientRect()
+    const xOffset = event.clientX - rect.x
+    const xPercent = xOffset / rect.width
+    const seekTo = xPercent * videoDuration
+    seekToFrame(seekTo)
+  }
+
+  const [clickLineXPercent, setClickLineXPercent] = useState(null)
+  const showClickLine = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const xOffset = event.clientX - rect.x
+    const xPercent = (xOffset / rect.width) * 100
+    setClickLineXPercent(xPercent)
+  }
+  const hideClickLine = () => {
+    setClickLineXPercent(null)
+  }
 
   return (
     <Box
@@ -26,7 +47,26 @@ const VideoTimeline = ({
         position: 'relative',
         overflow: 'hidden',
       }}
+      onPointerMove={showClickLine}
+      onPointerLeave={hideClickLine}
     >
+      {/* Clickable Scrubber/Seeker */}
+      <Box sx={{ width: '100%', height: '100%' }} onClick={clickToSeek} />
+      {clickLineXPercent != null && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: `${clickLineXPercent}%`,
+            width: '2px',
+            height: '100%',
+            backgroundColor: 'secondary.main',
+            opacity: 0.4,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
       {/* Existing Regions */}
       {existingRegions.map((region, index) => {
         const [start, end] = region

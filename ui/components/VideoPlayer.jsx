@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, forwardRef } from 'react'
 import { MediaPlayer } from 'dashjs'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
@@ -25,15 +25,16 @@ const controlIconStyle = {
   filter: `drop-shadow(${CONTENT_SHADOW})`,
 }
 
-const VideoPlayer = ({
-  url,
-  changingActiveVideo,
-  siblingHeights,
-  setVideoDuration,
-  setVideoFrameRate,
-  setVideoCurrentTime,
-  setVideoRangesBuffered,
-}) => {
+const VideoPlayer = forwardRef((props, videoElementRef) => {
+  const {
+    url,
+    changingActiveVideo,
+    siblingHeights,
+    setVideoDuration,
+    setVideoFrameRate,
+    setVideoCurrentTime,
+    setVideoRangesBuffered,
+  } = props
   const theme = useTheme()
 
   // Responding to Window Resize with a Lock to 16/9 Aspect Ratio
@@ -55,7 +56,6 @@ const VideoPlayer = ({
 
   // Video Player, Init/Destroy Loop, URL reactivity
   const playerRef = useRef(null)
-  const videoElementRef = useRef(null)
   const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
 
   useEffect(() => {
@@ -291,6 +291,7 @@ const VideoPlayer = ({
       </Box>
     </Box>
   )
-}
+})
 
+VideoPlayer.displayName = 'VideoPlayer'
 export default VideoPlayer

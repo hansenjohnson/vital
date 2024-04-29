@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -25,16 +25,25 @@ const AssociationsCreateWorkspace = ({
   saveable,
   saveAssociation,
 }) => {
+  const videoElementRef = useRef(null)
+
   const [videoDuration, setVideoDuration] = useState(0)
   const [videoFrameRate, setVideoFrameRate] = useState(1)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
   const nextable = existingRegions.length > 0 || saveable
 
+  const seekToFrame = (frame) => {
+    if (videoElementRef.current) {
+      videoElementRef.current.currentTime = frame / videoFrameRate
+    }
+  }
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
         <VideoPlayer
+          ref={videoElementRef}
           url={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
@@ -53,6 +62,7 @@ const AssociationsCreateWorkspace = ({
           regionEnd={regionEnd}
           videoDuration={videoDuration}
           currentTime={videoCurrentTime}
+          seekToFrame={seekToFrame}
         />
       </Box>
 
