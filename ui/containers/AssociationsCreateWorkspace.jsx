@@ -26,6 +26,7 @@ const AssociationsCreateWorkspace = ({
   saveAssociation,
 }) => {
   const [videoDuration, setVideoDuration] = useState(0)
+  const [videoFrameRate, setVideoFrameRate] = useState(1)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
   const nextable = existingRegions.length > 0 || saveable
@@ -38,6 +39,7 @@ const AssociationsCreateWorkspace = ({
           changingActiveVideo={changingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
+          setVideoFrameRate={setVideoFrameRate}
           setVideoCurrentTime={setVideoCurrentTime}
           setVideoRangesBuffered={setVideoRangesBuffered}
         />
@@ -57,6 +59,7 @@ const AssociationsCreateWorkspace = ({
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
           <AssociationsDetailsBox
+            frameRate={videoFrameRate}
             regionStart={regionStart}
             regionEnd={regionEnd}
             setStart={() => setRegionStart(videoCurrentTime)}

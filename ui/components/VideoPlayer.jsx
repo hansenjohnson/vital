@@ -9,6 +9,7 @@ import PauseIcon from '@mui/icons-material/Pause'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
+import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilities/video'
 
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
@@ -29,6 +30,7 @@ const VideoPlayer = ({
   changingActiveVideo,
   siblingHeights,
   setVideoDuration,
+  setVideoFrameRate,
   setVideoCurrentTime,
   setVideoRangesBuffered,
 }) => {
@@ -67,10 +69,18 @@ const VideoPlayer = ({
     setVideoIs(VIDEO_STATES.PLAYING)
   }
 
+  const [frameRate, setFrameRate] = useState(null)
+  const videoStreamInitialized = () => {
+    const _frameRate = getFrameRateFromDashPlayer(playerRef.current)
+    setVideoFrameRate(_frameRate)
+    setFrameRate(_frameRate)
+  }
+
   const initializePlayer = (videoElement, url) => {
     playerRef.current = MediaPlayer().create()
     playerRef.current.initialize()
     playerRef.current.on('canPlay', loadingFinished)
+    playerRef.current.on('streamInitialized', videoStreamInitialized)
 
     playerRef.current.updateSettings({
       streaming: {
@@ -95,6 +105,7 @@ const VideoPlayer = ({
   const destroyPlayer = () => {
     if (!playerRef.current) return
     playerRef.current.off('canPlay', loadingFinished)
+    playerRef.current.off('streamInitialized', videoStreamInitialized)
     playerRef.current.destroy()
     playerRef.current = null
   }
@@ -123,24 +134,38 @@ const VideoPlayer = ({
   // Sync Video Element state with UI components
   // TODO: convert this to a timestamp (which requires frame rate as well)
   const [currentTime, setCurrentTime] = useState(0)
+  const [cachedDuration, setCachedDuration] = useState(null)
   useEffect(() => {
     if (!videoElementRef.current) return
 
+    if (!!cachedDuration && frameRate) {
+      setVideoDuration(cachedDuration * frameRate)
+    }
+
     const reportOnDuration = () => {
-      setVideoDuration(videoElementRef.current?.duration)
+      if (!frameRate) {
+        // somtimes the duration event will come before we receive the frame rate
+        // however, the duration event will not trigger more than once per video
+        // so we cache that duration as seconds, and convert it to frames when we have the frame rate
+        setCachedDuration(videoElementRef.current?.duration)
+        return
+      }
+      const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
+      setVideoDuration(durationAsFrames)
     }
     const reportOnTime = () => {
-      setVideoCurrentTime(videoElementRef.current?.currentTime)
-      setCurrentTime(videoElementRef.current?.currentTime)
+      if (!frameRate) return
+      const currentTimeAsFrameNum = Math.floor(videoElementRef.current?.currentTime * frameRate)
+      setVideoCurrentTime(currentTimeAsFrameNum)
+      setCurrentTime(currentTimeAsFrameNum)
     }
-    // TODO: publish this to setVideoPercentBuffered
     const reportOnBuffer = () => {
+      if (!frameRate) return
       const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
         (_, index) => {
-          return [
-            videoElementRef.current?.buffered.start(index),
-            videoElementRef.current?.buffered.end(index),
-          ]
+          const bufferStartAsFrameNum = videoElementRef.current?.buffered.start(index) * frameRate
+          const bufferendAsFrameNum = videoElementRef.current?.buffered.end(index) * frameRate
+          return [bufferStartAsFrameNum, bufferendAsFrameNum]
         }
       )
       setVideoRangesBuffered(bufferedRanges)
@@ -155,7 +180,7 @@ const VideoPlayer = ({
       videoElementRef.current?.removeEventListener('timeupdate', reportOnTime)
       videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
     }
-  }, [])
+  }, [frameRate])
 
   // Fullscreen Controls
   // Chromium renders default controls on Fullscreen Video,
@@ -258,7 +283,7 @@ const VideoPlayer = ({
                 <FullscreenIcon sx={controlIconStyle} />
               </IconButton>
               <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>
-                {currentTime.toFixed(2)}
+                {timecodeFromFrameNumber(currentTime, frameRate)}
               </Box>
             </>
           )}

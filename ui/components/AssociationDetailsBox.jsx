@@ -4,8 +4,10 @@ import Typography from '@mui/material/Typography'
 import SectionHeading from './SectionHeading'
 import PillButtonGroup from './PillButtonGroup'
 import AnnotationChip from './AnnotationChip'
+import { timecodeFromFrameNumber } from '../utilities/video'
 
 const AssociationsDetailsBox = ({
+  frameRate,
   regionStart,
   regionEnd,
   setStart,
@@ -16,9 +18,22 @@ const AssociationsDetailsBox = ({
   deleteAnnotation,
 }) => {
   let regionString = <em>None Set</em>
+
   if (regionStart != null || regionEnd != null) {
-    regionString = `${regionStart ?? 'not set'} - ${regionEnd ?? 'not set'}`
+    regionString = ''
+    if (regionStart == null) {
+      regionString += 'not set - '
+    } else {
+      regionString += timecodeFromFrameNumber(regionStart, frameRate)
+      regionString += ' - '
+    }
+    if (regionEnd == null) {
+      regionString += 'not set'
+    } else {
+      regionString += timecodeFromFrameNumber(regionEnd, frameRate)
+    }
   }
+
   return (
     <Box
       sx={(theme) => ({
