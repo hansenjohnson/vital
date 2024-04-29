@@ -26,6 +26,7 @@ const controlIconStyle = {
 
 const VideoPlayer = ({
   url,
+  changingActiveVideo,
   siblingHeights,
   setVideoDuration,
   setVideoCurrentTime,
@@ -54,6 +55,12 @@ const VideoPlayer = ({
   const playerRef = useRef(null)
   const videoElementRef = useRef(null)
   const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
+
+  useEffect(() => {
+    if (changingActiveVideo) {
+      setVideoIs(VIDEO_STATES.LOADING)
+    }
+  }, [changingActiveVideo])
 
   const loadingFinished = () => {
     // move immediatley from Loading to Playing because of Auto-Play

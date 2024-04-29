@@ -34,9 +34,12 @@ const AssociationsCreateContainer = ({ setRoute }) => {
   const [completedVideoFiles, setCompletedVideoFiles] = useState([])
   const [allDone, setAllDone] = useState(false)
 
+  const [changingActiveVideo, setChangingActiveVideo] = useState(true)
   const [activeVideoFile, setActiveVideoFileString] = useState('')
   const setActiveVideoFile = async (videoFile) => {
+    setChangingActiveVideo(true)
     await settingsAPI.save({ [SETTING_KEYS.CURRENT_VIDEO]: videoFile })
+    setChangingActiveVideo(false)
     setActiveVideoFileString(videoFile)
   }
   useEffect(() => {
@@ -140,6 +143,7 @@ const AssociationsCreateContainer = ({ setRoute }) => {
       ) : (
         <AssociationsCreateWorkspace
           activeVideoURL={activeVideoFile ? `${baseURL}/videos/${activeVideoFile}.mpd` : ''}
+          changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}
           regionStart={regionStart}

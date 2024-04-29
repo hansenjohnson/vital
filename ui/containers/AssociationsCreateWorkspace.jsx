@@ -11,6 +11,7 @@ const DETAILS_HEIGHT = 245
 
 const AssociationsCreateWorkspace = ({
   activeVideoURL,
+  changingActiveVideo,
   handleNext,
   existingRegions,
   regionStart,
@@ -34,6 +35,7 @@ const AssociationsCreateWorkspace = ({
       <Box sx={{ flexGrow: 1 }}>
         <VideoPlayer
           url={activeVideoURL}
+          changingActiveVideo={changingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
           setVideoCurrentTime={setVideoCurrentTime}
@@ -89,6 +91,7 @@ const AssociationsCreateWorkspace = ({
             onClick={handleNext}
             variant="contained"
             color={nextable ? 'secondary' : 'error'}
+            disabled={changingActiveVideo}
           >
             {nextable ? 'Next Video' : 'Skip Video'}
           </StyledButton>
