@@ -153,12 +153,14 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
       const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
       setVideoDuration(durationAsFrames)
     }
+
     const reportOnTime = () => {
       if (!frameRate) return
       const currentTimeAsFrameNum = Math.floor(videoElementRef.current?.currentTime * frameRate)
       setVideoCurrentTime(currentTimeAsFrameNum)
       setCurrentTime(currentTimeAsFrameNum)
     }
+
     const reportOnBuffer = () => {
       if (!frameRate) return
       const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
@@ -171,14 +173,20 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
       setVideoRangesBuffered(bufferedRanges)
     }
 
+    const handleVideoEnded = () => {
+      setVideoIs(VIDEO_STATES.PAUSED)
+    }
+
     videoElementRef.current?.addEventListener('durationchange', reportOnDuration)
     videoElementRef.current?.addEventListener('timeupdate', reportOnTime)
     videoElementRef.current?.addEventListener('progress', reportOnBuffer)
+    videoElementRef.current?.addEventListener('ended', handleVideoEnded)
 
     return () => {
       videoElementRef.current?.removeEventListener('durationchange', reportOnDuration)
       videoElementRef.current?.removeEventListener('timeupdate', reportOnTime)
       videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
+      videoElementRef.current?.removeEventListener('ended', handleVideoEnded)
     }
   }, [frameRate])
 
