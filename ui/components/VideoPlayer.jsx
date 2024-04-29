@@ -132,7 +132,6 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   }
 
   // Sync Video Element state with UI components
-  // TODO: convert this to a timestamp (which requires frame rate as well)
   const [currentTime, setCurrentTime] = useState(0)
   const [cachedDuration, setCachedDuration] = useState(null)
   useEffect(() => {
