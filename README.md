@@ -34,4 +34,5 @@ There is an Javascript frontend, running within an Electron container, and a pyt
 
 ## Attributions
 
-[Folder icon created by kmg design - Flaticon](https://www.flaticon.com/free-icons/folder)
+- [Folder icon created by kmg design - Flaticon](https://www.flaticon.com/free-icons/folder)
+- [Whale icon created by ekays.dsgn](https://www.freepik.com/icon/whale_14948232#fromView=image_search_similar&page=1&position=48&uuid=7a2ad780-c395-40da-9aec-656d8b79b0c8)

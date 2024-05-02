@@ -6,8 +6,9 @@ files:
   - '!**/.vscode/*'
   - '!electron/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,jsconfig.json}'
+  - '!{package.json,package-lock.json,requirements.txt}'
+  - '!{CHANGELOG.md,README.md}'
 extraFiles:
   - 'bin'
 win:
