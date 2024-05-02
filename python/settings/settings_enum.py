@@ -2,6 +2,12 @@ from enum import Enum
 
 
 class SettingsEnum(Enum):
+    CATALOG_FOLDER_FILE_PATH = 'catalog_folder_file_path'
+    CATALOG_FOLDER_SHEET_NAME = 'catalog_folder_sheet_name'
+
+    CATALOG_VIDEO_FILE_PATH = 'catalog_video_file_path'
+    CATALOG_VIDEO_SHEET_NAME = 'catalog_video_sheet_name'
+
     ASSOCIATION_FILE_PATH = 'association_file_path'
     ASSOCIATION_SHEET_NAME = 'association_sheet_name'
 

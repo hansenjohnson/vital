@@ -16,6 +16,10 @@ import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
 const VISIBLE_SETTINGS = [
+  SETTING_KEYS.CATALOG_FOLDER_FILE_PATH,
+  SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME,
+  SETTING_KEYS.CATALOG_VIDEO_FILE_PATH,
+  SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME,
   SETTING_KEYS.ASSOCIATION_FILE_PATH,
   SETTING_KEYS.ASSOCIATION_SHEET_NAME,
   SETTING_KEYS.SIGHTING_FILE_PATH,
@@ -24,6 +28,10 @@ const VISIBLE_SETTINGS = [
 
 const SettingsContainer = ({ open, handleClose }) => {
   const [settings, setSettings] = useState({
+    [SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]: '',
+    [SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME]: '',
+    [SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]: '',
+    [SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME]: '',
     [SETTING_KEYS.ASSOCIATION_FILE_PATH]: '',
     [SETTING_KEYS.ASSOCIATION_SHEET_NAME]: '',
     [SETTING_KEYS.SIGHTING_FILE_PATH]: '',
@@ -81,6 +89,42 @@ const SettingsContainer = ({ open, handleClose }) => {
           </Box>
         ) : (
           <>
+            <FilePathSettingInput
+              label="Catalog Folder File"
+              value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH, filePath)
+              }}
+            />
+            <SettingInput
+              label="Catalog Folder Sheet Name"
+              value={settings[SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME]}
+              onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME)}
+            />
+
+            <Box mb={1} />
+
+            <FilePathSettingInput
+              label="Catalog Video File"
+              value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH, filePath)
+              }}
+            />
+            <SettingInput
+              label="Catalog Video Sheet Name"
+              value={settings[SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME]}
+              onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME)}
+            />
+
+            <Box mb={1} />
+
             <FilePathSettingInput
               label="Associations File"
               value={settings[SETTING_KEYS.ASSOCIATION_FILE_PATH]}
