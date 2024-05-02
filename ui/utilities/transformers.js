@@ -1,10 +1,15 @@
+export const yearMonthDayString = (year, month, day) =>
+  `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+
 export const transformSightingData = (sightingRow) => {
   const timeStr = `${sightingRow.SightingTime}`
-  const monthStr = `${sightingRow.SightingMonth}`.padStart(2, '0')
-  const dayStr = `${sightingRow.SightingDay}`.padStart(2, '0')
   return {
     id: sightingRow.SightingId,
-    date: `${sightingRow.SightingYear}-${monthStr}-${dayStr}`,
+    date: yearMonthDayString(
+      sightingRow.SightingYear,
+      sightingRow.SightingMonth,
+      sightingRow.SightingDay
+    ),
     observer: sightingRow.ObserverCode,
     time: `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}`,
     letter: sightingRow.SightingLetter,

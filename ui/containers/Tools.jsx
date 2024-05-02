@@ -8,8 +8,10 @@ import SETTINGS_KEYS from '../constants/settingKeys'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
+import CatalogFolderDialog from '../components/CatalogFolderDialog'
 import settingsAPI from '../api/settings'
 import catalogFoldersAPI from '../api/catalogFolders'
+import { yearMonthDayString } from '../utilities/transformers'
 
 const ToolsContainer = ({ setRoute }) => {
   useEffect(() => {
@@ -109,6 +111,17 @@ const ToolsContainer = ({ setRoute }) => {
 
         {tool === TOOLS.INGEST_TRANSCODE && <div>Not Implemented Yet</div>}
       </Box>
+
+      <CatalogFolderDialog
+        open={catalogFoldersDialog}
+        handleClose={() => setCatalogFoldersDialog(false)}
+        catalogFolders={catalogFolders.map((entry) => ({
+          id: entry.CatalogFolderId,
+          date: yearMonthDayString(entry.FolderYear, entry.FolderMonth, entry.FolderDay),
+          observer: entry.ObserverCode,
+        }))}
+        handleSelect={handleSelectCatalogFolder}
+      />
     </Box>
   )
 }
