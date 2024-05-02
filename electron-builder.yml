@@ -13,4 +13,6 @@ extraFiles:
   - bin
 win:
   executableName: video-catalog-suite
+nsis:
+  runAfterFinish: false
 npmRebuild: false
