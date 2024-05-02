@@ -4,12 +4,12 @@ import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
-import FILE_TYPES from '../constants/fileTypes'
 import SETTINGS_KEYS from '../constants/settingKeys'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import settingsAPI from '../api/settings'
+import catalogFoldersAPI from '../api/catalogFolders'
 
 const ToolsContainer = ({ setRoute }) => {
   useEffect(() => {
@@ -18,15 +18,27 @@ const ToolsContainer = ({ setRoute }) => {
 
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
 
+  const [catalogFolders, setCatalogFolders] = useState([])
+  const [catalogFoldersDialog, setCatalogFoldersDialog] = useState(false)
+  const [catalogFoldersRedirect, setCatalogFoldersRedirect] = useState(null)
+  useEffect(() => {
+    catalogFoldersAPI.get().then((data) => {
+      setCatalogFolders(data)
+    })
+  }, [])
+
   const handleClickViewAssociations = () => {
     alert('not implemented yet!')
   }
 
-  const handleClickCreateAssociations = async () => {
-    const folderPath = await window.api.selectFile(FILE_TYPES.FOLDER)
-    if (!folderPath) return
-    await settingsAPI.save({ [SETTINGS_KEYS.FOLDER_OF_VIDEOS]: folderPath })
-    setRoute(ROUTES.ASSOCIATIONS_CREATE)
+  const handleClickCreateAssociations = () => {
+    setCatalogFoldersRedirect(ROUTES.ASSOCIATIONS_CREATE)
+    setCatalogFoldersDialog(true)
+  }
+
+  const handleSelectCatalogFolder = async (catalogFolderId) => {
+    await settingsAPI.save({ [SETTINGS_KEYS.FOLDER_OF_VIDEOS]: catalogFolderId })
+    setRoute(catalogFoldersRedirect)
   }
 
   return (
