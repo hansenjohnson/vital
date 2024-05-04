@@ -142,7 +142,7 @@ const AssociationsCreateContainer = ({ setRoute }) => {
         />
       ) : (
         <AssociationsCreateWorkspace
-          activeVideoURL={activeVideoFile ? `${baseURL}/videos/${activeVideoFile}.mpd` : ''}
+          activeVideoURL={activeVideoFile ? `${baseURL}/videos/static/${activeVideoFile}.mpd` : ''}
           changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}

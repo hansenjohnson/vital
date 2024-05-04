@@ -1,6 +1,8 @@
 import sys
 import pandas as pd
 import sqlite3
+import os
+from pathlib import Path
 
 from settings.settings_service import SettingsService
 
@@ -20,17 +22,31 @@ class SQL:
 
         self.settings = SettingsService()
 
-    def load_table(self, table_name, create_table_statement, file_path, sheet_name, index_col):
+    def load_table(self, table_name, create_table_statement, file_path, index_col):
         try:
+            base_name = os.path.basename(file_path)
+            worksheet_name = os.path.splitext(base_name)[0]
+
             cursor = self.conn.cursor()
             cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
             cursor.execute(create_table_statement)
-            self.df = pd.read_excel(file_path, sheet_name, index_col=index_col, engine='openpyxl')
+            self.df = pd.read_excel(file_path, worksheet_name, index_col=index_col, engine='openpyxl')
             self.df.to_sql(table_name, self.conn, if_exists='append')
             self.conn.commit()
             cursor.close()
         except Exception as e:
             sys.stderr.write(f"Failed to load sql for {table_name}: {e}")
+            raise e
+
+    def get_all_rows(self, table_name):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+            cursor.close()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            sys.stderr.write(f"Failed to get all rows from {table_name}: {e}")
             raise e
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
