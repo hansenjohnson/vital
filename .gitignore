@@ -61,7 +61,6 @@ server.spec
 *.sqlite*
 *.db
 **/test-files/*
-!**/test-files/.gitkeep
 
 
 __pycache__
