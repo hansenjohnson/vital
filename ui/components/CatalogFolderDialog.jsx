@@ -45,31 +45,31 @@ const PillButton = ({ children, ...rest }) => (
 const TableHeader = () => (
   <TableHead>
     <TableRow>
-      <TableCell>Date</TableCell>
-      <TableCell align="left">Observer</TableCell>
+      <TableCell>Year</TableCell>
+      <TableCell>Month</TableCell>
+      <TableCell>Day</TableCell>
+      <TableCell>Observer</TableCell>
       <TableCell align="right"></TableCell>
     </TableRow>
   </TableHead>
 )
 
 const CatalogFolderDialog = ({ open, handleClose, catalogFolders, handleSelect }) => {
-  const makeTableRow = ({ id, date, observer }) => (
+  const makeTableRow = ({ id, year, month, day, observer }) => (
     <TableRow
       key={id}
       sx={{
         '&:last-child td, &:last-child th': { border: 0 },
       }}
     >
-      <TableCell
-        sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}
-        component="th"
-        scope="row"
-      >
-        {date}
+      <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{year}</TableCell>
+      <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+        {`${month}`.padStart(2, '0')}
       </TableCell>
-      <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="left">
-        {observer}
+      <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+        {`${day}`.padStart(2, '0')}
       </TableCell>
+      <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{observer}</TableCell>
       <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="right">
         <PillButton onClick={() => handleSelect(id)}>select</PillButton>
       </TableCell>

@@ -11,7 +11,7 @@ import Sidebar from '../components/Sidebar'
 import CatalogFolderDialog from '../components/CatalogFolderDialog'
 import settingsAPI from '../api/settings'
 import catalogFoldersAPI from '../api/catalogFolders'
-import { yearMonthDayString } from '../utilities/transformers'
+import { sortCatalogFolderData } from '../utilities/transformers'
 
 const ToolsContainer = ({ setRoute }) => {
   useEffect(() => {
@@ -25,7 +25,9 @@ const ToolsContainer = ({ setRoute }) => {
   const [catalogFoldersRedirect, setCatalogFoldersRedirect] = useState(null)
   useEffect(() => {
     catalogFoldersAPI.get().then((data) => {
-      setCatalogFolders(data)
+      const { folders } = data
+      const sortedFolders = sortCatalogFolderData(folders)
+      setCatalogFolders(sortedFolders)
     })
   }, [])
 
@@ -117,7 +119,9 @@ const ToolsContainer = ({ setRoute }) => {
         handleClose={() => setCatalogFoldersDialog(false)}
         catalogFolders={catalogFolders.map((entry) => ({
           id: entry.CatalogFolderId,
-          date: yearMonthDayString(entry.FolderYear, entry.FolderMonth, entry.FolderDay),
+          year: entry.FolderYear,
+          month: entry.FolderMonth,
+          day: entry.FolderDay,
           observer: entry.ObserverCode,
         }))}
         handleSelect={handleSelectCatalogFolder}
