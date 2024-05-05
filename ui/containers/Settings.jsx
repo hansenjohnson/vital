@@ -19,17 +19,13 @@ const VISIBLE_SETTINGS = [
   SETTING_KEYS.CATALOG_VIDEO_FILE_PATH,
   SETTING_KEYS.LINKAGE_FILE_PATH,
   SETTING_KEYS.SIGHTING_FILE_PATH,
+  SETTING_KEYS.BASE_FOLDER_OF_VIDEOS,
 ]
 
 const SettingsContainer = ({ open, handleClose }) => {
-  const [settings, setSettings] = useState({
-    [SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]: '',
-    [SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]: '',
-    [SETTING_KEYS.LINKAGE_FILE_PATH]: '',
-    [SETTING_KEYS.SIGHTING_FILE_PATH]: '',
-    // [SETTING_KEYS.THUMBNAIL_DIR_PATH]: '',
-    // [SETTING_KEYS.STILLFRAME_DIR_NAME]: '',
-  })
+  const [settings, setSettings] = useState(
+    Object.fromEntries(VISIBLE_SETTINGS.map((key) => [key, '']))
+  )
 
   const setOneSetting = (key, value) => {
     setSettings((existingSettings) => ({ ...existingSettings, [key]: value }))
@@ -76,6 +72,8 @@ const SettingsContainer = ({ open, handleClose }) => {
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
+            <Box mb={1} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
           </Box>
         ) : (
           <>
@@ -120,6 +118,19 @@ const SettingsContainer = ({ open, handleClose }) => {
                 const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
                 if (!filePath) return
                 setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
+              }}
+            />
+
+            <Box mb={1} />
+
+            <FilePathSettingInput
+              label="Base Folder of Videos"
+              value={settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
+              onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS, filePath)
               }}
             />
           </>
