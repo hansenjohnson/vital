@@ -1,13 +1,13 @@
 from flask import Blueprint, jsonify, request
 
-from model.association_model import AssociationModel
+from model.linkage_model import LinkageModel
 from model.sighting_model import SightingModel
 from settings.settings_service import SettingsService
 
 bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
 
-association_model = AssociationModel()
+association_model = LinkageModel()
 sighting_model = SightingModel()
 
 
