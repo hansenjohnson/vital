@@ -11,31 +11,22 @@ import Skeleton from '@mui/material/Skeleton'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
-import SettingInput from '../components/SettingInput'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
 const VISIBLE_SETTINGS = [
   SETTING_KEYS.CATALOG_FOLDER_FILE_PATH,
-  SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME,
   SETTING_KEYS.CATALOG_VIDEO_FILE_PATH,
-  SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME,
-  SETTING_KEYS.ASSOCIATION_FILE_PATH,
-  SETTING_KEYS.ASSOCIATION_SHEET_NAME,
+  SETTING_KEYS.LINKAGE_FILE_PATH,
   SETTING_KEYS.SIGHTING_FILE_PATH,
-  SETTING_KEYS.SIGHTING_SHEET_NAME,
 ]
 
 const SettingsContainer = ({ open, handleClose }) => {
   const [settings, setSettings] = useState({
     [SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]: '',
-    [SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME]: '',
     [SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]: '',
-    [SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME]: '',
-    [SETTING_KEYS.ASSOCIATION_FILE_PATH]: '',
-    [SETTING_KEYS.ASSOCIATION_SHEET_NAME]: '',
+    [SETTING_KEYS.LINKAGE_FILE_PATH]: '',
     [SETTING_KEYS.SIGHTING_FILE_PATH]: '',
-    [SETTING_KEYS.SIGHTING_SHEET_NAME]: '',
     // [SETTING_KEYS.THUMBNAIL_DIR_PATH]: '',
     // [SETTING_KEYS.STILLFRAME_DIR_NAME]: '',
   })
@@ -83,14 +74,13 @@ const SettingsContainer = ({ open, handleClose }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
-            <Box mb={1} />
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
           </Box>
         ) : (
           <>
             <FilePathSettingInput
-              label="Catalog Folder File"
+              label="Catalog Folder Data File"
               value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
               onFolderClick={async () => {
@@ -99,16 +89,9 @@ const SettingsContainer = ({ open, handleClose }) => {
                 setOneSetting(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH, filePath)
               }}
             />
-            <SettingInput
-              label="Catalog Folder Sheet Name"
-              value={settings[SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME]}
-              onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_SHEET_NAME)}
-            />
-
-            <Box mb={1} />
 
             <FilePathSettingInput
-              label="Catalog Video File"
+              label="Catalog Video Data File"
               value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
               onFolderClick={async () => {
@@ -117,31 +100,17 @@ const SettingsContainer = ({ open, handleClose }) => {
                 setOneSetting(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH, filePath)
               }}
             />
-            <SettingInput
-              label="Catalog Video Sheet Name"
-              value={settings[SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME]}
-              onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_SHEET_NAME)}
-            />
-
-            <Box mb={1} />
 
             <FilePathSettingInput
-              label="Associations File"
-              value={settings[SETTING_KEYS.ASSOCIATION_FILE_PATH]}
-              onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_FILE_PATH)}
+              label="Linkage Data File"
+              value={settings[SETTING_KEYS.LINKAGE_FILE_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.LINKAGE_FILE_PATH)}
               onFolderClick={async () => {
                 const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
                 if (!filePath) return
-                setOneSetting(SETTING_KEYS.ASSOCIATION_FILE_PATH, filePath)
+                setOneSetting(SETTING_KEYS.LINKAGE_FILE_PATH, filePath)
               }}
             />
-            <SettingInput
-              label="Associations Sheet Name"
-              value={settings[SETTING_KEYS.ASSOCIATION_SHEET_NAME]}
-              onChange={handleChangeFor(SETTING_KEYS.ASSOCIATION_SHEET_NAME)}
-            />
-
-            <Box mb={1} />
 
             <FilePathSettingInput
               label="Sightings Data File"
@@ -152,11 +121,6 @@ const SettingsContainer = ({ open, handleClose }) => {
                 if (!filePath) return
                 setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
               }}
-            />
-            <SettingInput
-              label="Sightings Sheet Name"
-              value={settings[SETTING_KEYS.SIGHTING_SHEET_NAME]}
-              onChange={handleChangeFor(SETTING_KEYS.SIGHTING_SHEET_NAME)}
             />
           </>
         )}
