@@ -4,16 +4,14 @@ import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
-import SETTINGS_KEYS from '../constants/settingKeys'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import CatalogFolderDialog from '../components/CatalogFolderDialog'
-import settingsAPI from '../api/settings'
 import catalogFoldersAPI from '../api/catalogFolders'
-import { sortCatalogFolderData } from '../utilities/transformers'
+import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
-const ToolsContainer = ({ setRoute }) => {
+const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
   }, [])
@@ -24,9 +22,10 @@ const ToolsContainer = ({ setRoute }) => {
   const [catalogFoldersDialog, setCatalogFoldersDialog] = useState(false)
   const [catalogFoldersRedirect, setCatalogFoldersRedirect] = useState(null)
   useEffect(() => {
-    catalogFoldersAPI.get().then((data) => {
+    catalogFoldersAPI.getList().then((data) => {
       const { folders } = data
-      const sortedFolders = sortCatalogFolderData(folders)
+      const transformedData = folders.map(transformCatalogFolderData)
+      const sortedFolders = sortCatalogFolderData(transformedData)
       setCatalogFolders(sortedFolders)
     })
   }, [])
@@ -41,7 +40,9 @@ const ToolsContainer = ({ setRoute }) => {
   }
 
   const handleSelectCatalogFolder = async (catalogFolderId) => {
-    await settingsAPI.save({ [SETTINGS_KEYS.FOLDER_OF_VIDEOS]: catalogFolderId })
+    const catalogFolder = catalogFolders.find((entry) => entry.id === catalogFolderId)
+    setVideoFolderId(catalogFolderId)
+    setVideoFolderName(`${catalogFolder.date}-${catalogFolder.observer}`)
     setRoute(catalogFoldersRedirect)
   }
 
@@ -117,13 +118,7 @@ const ToolsContainer = ({ setRoute }) => {
       <CatalogFolderDialog
         open={catalogFoldersDialog}
         handleClose={() => setCatalogFoldersDialog(false)}
-        catalogFolders={catalogFolders.map((entry) => ({
-          id: entry.CatalogFolderId,
-          year: entry.FolderYear,
-          month: entry.FolderMonth,
-          day: entry.FolderDay,
-          observer: entry.ObserverCode,
-        }))}
+        catalogFolders={catalogFolders}
         handleSelect={handleSelectCatalogFolder}
       />
     </Box>
