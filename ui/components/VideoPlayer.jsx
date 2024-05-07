@@ -13,7 +13,7 @@ import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilitie
 
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
-const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.5)'
+const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.7)'
 const VIDEO_STATES = {
   LOADING: 'LOADING',
   PLAYING: 'PLAYING',
@@ -249,7 +249,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
             position: 'absolute',
             width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(1)})`,
             height: `calc(${PLAYER_CONTROLS_HEIGHT}px + ${theme.spacing(1)})`,
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 90%)',
+            background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 90%)',
             filter: 'blur(6px)',
           }}
         />
