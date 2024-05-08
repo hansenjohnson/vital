@@ -108,7 +108,7 @@ const AssociationsCreateWorkspace = ({
             color="tertiary"
             disabled={!saveable}
           >
-            Save Association
+            Save Linkage
           </StyledButton>
           <StyledButton
             onClick={handleNext}
