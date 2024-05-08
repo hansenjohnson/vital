@@ -88,6 +88,14 @@ const VideoTimeline = ({
     }
   }, [])
 
+  const shouldDrawBufferBarPadding = existingLetters.length > 4
+
+  const doSytheticScroll = (event) => {
+    const containerEl = existingRegionsContainerRef.current
+    if (!containerEl) return
+    containerEl.scrollTop += event.deltaY
+  }
+
   return (
     <Box
       sx={{
@@ -98,6 +106,7 @@ const VideoTimeline = ({
         overflowX: 'clip',
         overflowY: 'visible',
       }}
+      onWheel={doSytheticScroll}
     >
       {/* Existing Regions */}
       <Box
@@ -113,12 +122,43 @@ const VideoTimeline = ({
       >
         <Box
           sx={{
+            position: 'absolute',
+            direction: 'ltr',
+            left: 0,
+            width: `${LETTERS_CONTAINER_WIDTH}px`,
+            // `10px` is the height of each letter
+            minHeight: '100%',
+            height: `${(existingLetters.length + 1 * shouldDrawBufferBarPadding) * 10}px`,
+            borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+            paddingTop: '2px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0px',
+          }}
+        >
+          {existingLetters.map((letter) => (
+            <Box
+              sx={{
+                color: 'text.secondary',
+                fontFamily: "'Sometype Mono Variable', monopace",
+                fontSize: '10px',
+                lineHeight: 1,
+              }}
+              key={letter}
+            >
+              {letter}
+            </Box>
+          ))}
+        </Box>
+        <Box
+          sx={{
             // This container is already pushed left by the scrollbar, so we only need to
             // push it further left by the letters container width
+            position: 'relative',
             width: `calc(100% - ${LETTERS_CONTAINER_WIDTH}px)`,
             height: '100%',
             marginLeft: `${LETTERS_CONTAINER_WIDTH}px`,
-            position: 'relative',
           }}
         >
           {existingRegions.map((region) => {
@@ -139,15 +179,6 @@ const VideoTimeline = ({
             )
           })}
         </Box>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: `calc(${existingLetters.length * 10}px + 6px)`,
-            width: `${LINE_HEIGHT}px`,
-            height: `${LINE_HEIGHT}px`,
-            backgroundColor: 'transparent',
-          }}
-        />
       </Box>
 
       {/* Interactive Area */}
