@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
-import associationsAPI from '../api/associations'
+import linkagesAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
 import settingsAPI from '../api/settings'
@@ -78,11 +78,12 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   const clearAssociation = () => {
     setRegionStart(null)
     setRegionEnd(null)
-    setSightingId(null)
     setAnnotations([])
+    // NOTE: we do not clear sightingId. This enables the user to more quickly tag the same mammal
+    // within the current video. They only need to set a new region.
   }
   const saveAssociation = async () => {
-    const status = await associationsAPI.create({
+    const status = await linkagesAPI.create({
       StartTime: regionStart,
       EndTime: regionEnd,
       SightingId: sightingId,
