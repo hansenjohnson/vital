@@ -75,12 +75,15 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
 
   const [existingRegions, setExistingRegions] = useState([])
 
-  const clearAssociation = () => {
+  const clearAssociation = (clearAll = false) => {
     setRegionStart(null)
     setRegionEnd(null)
     setAnnotations([])
     // NOTE: we do not clear sightingId. This enables the user to more quickly tag the same mammal
     // within the current video. They only need to set a new region.
+    if (clearAll) {
+      setSightingId(null)
+    }
   }
   const saveAssociation = async () => {
     const status = await linkagesAPI.create({
@@ -110,7 +113,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
       return
     }
     setExistingRegions([])
-    clearAssociation()
+    clearAssociation(true)
     setActiveVideoFile(videoFiles[0])
     setVideoFiles(videoFiles.slice(1))
   }
