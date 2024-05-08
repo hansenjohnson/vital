@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -28,10 +28,18 @@ const AssociationsCreateWorkspace = ({
   const videoElementRef = useRef(null)
 
   const [videoDuration, setVideoDuration] = useState(0)
-  const [videoFrameRate, setVideoFrameRate] = useState(1)
-  const [videoCurrentTime, setVideoCurrentTime] = useState(0)
+  const [videoFrameRate, setVideoFrameRate] = useState(null)
+  const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
   const nextable = existingRegions.length > 0 || saveable
+
+  // Reset state when video changes
+  useEffect(() => {
+    setVideoDuration(0)
+    setVideoFrameRate(null)
+    setVideoFrameNumber(0)
+    setVideoRangesBuffered([])
+  }, [activeVideoURL])
 
   const seekToFrame = (frame) => {
     if (videoElementRef.current) {
@@ -48,8 +56,10 @@ const AssociationsCreateWorkspace = ({
           changingActiveVideo={changingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
-          setVideoFrameRate={setVideoFrameRate}
-          setVideoCurrentTime={setVideoCurrentTime}
+          frameRate={videoFrameRate}
+          setFrameRate={setVideoFrameRate}
+          currentFrameNumber={videoFrameNumber}
+          setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
         />
       </Box>
@@ -61,7 +71,7 @@ const AssociationsCreateWorkspace = ({
           regionStart={regionStart}
           regionEnd={regionEnd}
           videoDuration={videoDuration}
-          currentTime={videoCurrentTime}
+          currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
         />
       </Box>
@@ -72,8 +82,8 @@ const AssociationsCreateWorkspace = ({
             frameRate={videoFrameRate}
             regionStart={regionStart}
             regionEnd={regionEnd}
-            setStart={() => setRegionStart(videoCurrentTime)}
-            setEnd={() => setRegionEnd(videoCurrentTime)}
+            setStart={() => setRegionStart(videoFrameNumber)}
+            setEnd={() => setRegionEnd(videoFrameNumber)}
             sightingName={sightingName}
             annotations={annotations}
             openSightingDialog={() => setSightingsDialogOpen(true)}

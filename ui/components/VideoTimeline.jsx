@@ -9,11 +9,14 @@ const VideoTimeline = ({
   existingRegions, // array of [start, end] of unit frames, sorted by start
   regionStart, // unit frames
   regionEnd, // unit frames
-  videoDuration, // unit frames
-  currentTime, // unit frames
+  videoDuration: videoDurationProp, // unit frames
+  currentFrameNumber, // unit frames
   seekToFrame,
 }) => {
-  const playheadPosition = (currentTime / videoDuration) * 100 || 0
+  const videoDuration = videoDurationProp || 1 // prevent division by zero
+
+  // Lock playhead at 0 in edge case scenarios
+  const playheadPosition = videoDurationProp === 0 ? 0 : (currentFrameNumber / videoDuration) * 100
   const regionStartPosition = (regionStart / videoDuration) * 100
   const regionEndPosition = (regionEnd / videoDuration) * 100
   const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, forwardRef, useCallback } from 'react'
+import { useEffect, useRef, useState, forwardRef } from 'react'
 import { MediaPlayer } from 'dashjs'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
@@ -31,8 +31,10 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     changingActiveVideo,
     siblingHeights,
     setVideoDuration,
-    setVideoFrameRate,
-    setVideoCurrentTime,
+    frameRate,
+    setFrameRate,
+    currentFrameNumber,
+    setCurrentFrameNumber,
     setVideoRangesBuffered,
   } = props
   const theme = useTheme()
@@ -69,10 +71,8 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setVideoIs(VIDEO_STATES.PLAYING)
   }
 
-  const [frameRate, setFrameRate] = useState(null)
   const videoStreamInitialized = () => {
     const _frameRate = getFrameRateFromDashPlayer(playerRef.current)
-    setVideoFrameRate(_frameRate)
     setFrameRate(_frameRate)
   }
 
@@ -131,13 +131,18 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setVideoIs(VIDEO_STATES.PAUSED)
   }
 
-  // Sync Video Element state with UI components
+  // Cached duration explained below in reportOnDuration function
   const [cachedDuration, setCachedDuration] = useState(null)
+  useEffect(() => {
+    setCachedDuration(null)
+  }, [url])
+
+  // Sync Video Element state with UI components
   useEffect(() => {
     if (!videoElementRef.current) return
 
     if (!!cachedDuration && frameRate) {
-      setVideoDuration(cachedDuration * frameRate)
+      setVideoDuration(Math.floor(cachedDuration * frameRate))
     }
 
     const reportOnDuration = () => {
@@ -177,29 +182,22 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
       videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
       videoElementRef.current?.removeEventListener('ended', handleVideoEnded)
     }
-  }, [frameRate])
+  }, [frameRate, url])
 
   // High-Frequency Timestamp Reporting
-  const [currentTime, setCurrentTime] = useState(0)
-  const reportOnTime = useCallback(
-    (videoTimeInSeconds) => {
-      const currentTimeAsFrameNum = Math.floor(videoTimeInSeconds * frameRate)
-      setVideoCurrentTime(currentTimeAsFrameNum)
-      setCurrentTime(currentTimeAsFrameNum)
-    },
-    [frameRate]
-  )
   useEffect(() => {
     const video = videoElementRef.current
     let callbackId
     const videoFrameCallback = (now, metadata) => {
-      reportOnTime(metadata.mediaTime)
+      const timeInSeconds = metadata.mediaTime
+      const frameNumber = Math.floor(timeInSeconds * frameRate)
+      setCurrentFrameNumber(frameNumber)
       callbackId = video.requestVideoFrameCallback(videoFrameCallback)
     }
     // Initial spawn
     callbackId = video.requestVideoFrameCallback(videoFrameCallback)
     return () => video.cancelVideoFrameCallback(callbackId)
-  }, [reportOnTime])
+  }, [frameRate])
 
   // Fullscreen Controls
   // Chromium renders default controls on Fullscreen Video,
@@ -302,7 +300,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
                 <FullscreenIcon sx={controlIconStyle} />
               </IconButton>
               <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>
-                {timecodeFromFrameNumber(currentTime, frameRate)}
+                {timecodeFromFrameNumber(currentFrameNumber, frameRate)}
               </Box>
             </>
           )}
