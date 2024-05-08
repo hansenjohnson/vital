@@ -18,6 +18,7 @@ export const getFrameRateFromDashPlayer = (dashPlayer) => {
 }
 
 export const timecodeFromFrameNumber = (frameNumber, frameRate) => {
+  if (!frameRate) return '00:00;00'
   // Note: this function does not handle hours (aka more than 60 minutes)
   const currentMinutes = `${Math.floor(frameNumber / frameRate / 60)}`.padStart(2, '0')
   const currentSeconds = `${Math.floor(frameNumber / frameRate) % 60}`.padStart(2, '0')
