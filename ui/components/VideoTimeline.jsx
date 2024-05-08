@@ -2,11 +2,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
 import throttle from 'lodash.throttle'
 
-import { determineNonOverlappingTracksForRegions } from '../utilities/numbers'
-
 const VideoTimeline = ({
   bufferedRegions, // array of [start, end] of unit frames, sorted by start
-  existingRegions, // array of [start, end] of unit frames, sorted by start
+  existingRegions, // array of { letter, start, end } of unit frames
   regionStart, // unit frames
   regionEnd, // unit frames
   videoDuration: videoDurationProp, // unit frames
@@ -21,7 +19,14 @@ const VideoTimeline = ({
   const regionEndPosition = (regionEnd / videoDuration) * 100
   const accountForPlayheadWidthNearRightEdge = playheadPosition > 50 ? 2 : 0
 
-  const trackForRegion = determineNonOverlappingTracksForRegions(existingRegions)
+  // NOTE: We assume that all letters belong to the same sighting prefix (Year/Month/Day/Observer)
+  const existingLetters = [...new Set(existingRegions.map((region) => region.letter))]
+  existingLetters.sort()
+  const letterToTrackMap = existingLetters.reduce((acc, letter) => {
+    if (letter in acc) return acc
+    acc[letter] = Object.keys(acc).length
+    return acc
+  }, {})
 
   const containerRef = useRef(null)
 
@@ -104,12 +109,12 @@ const VideoTimeline = ({
       )}
 
       {/* Existing Regions */}
-      {existingRegions.map((region, index) => {
-        const [start, end] = region
-        const track = trackForRegion[index]
+      {existingRegions.map((region) => {
+        const { letter, start, end } = region
+        const track = letterToTrackMap[letter]
         return (
           <Box
-            key={`${start}-${end}`}
+            key={`${letter}-${start}-${end}`}
             sx={{
               position: 'absolute',
               top: `calc(${track * 10}px + 6px)`,

@@ -8,6 +8,7 @@ import { timecodeFromFrameNumber } from '../utilities/video'
 
 const AssociationsDetailsBox = ({
   frameRate,
+  hasOverlap,
   regionStart,
   regionEnd,
   setStart,
@@ -50,7 +51,18 @@ const AssociationsDetailsBox = ({
       })}
     >
       <Box>
-        <SectionHeading size={16}>Region</SectionHeading>
+        <SectionHeading size={16}>
+          Region
+          {hasOverlap && (
+            <Typography
+              variant="caption"
+              color="warning.main"
+              sx={{ marginLeft: 1, fontStyle: 'italic' }}
+            >
+              overlaps another region with this letter
+            </Typography>
+          )}
+        </SectionHeading>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
             {regionString}

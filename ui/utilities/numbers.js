@@ -46,3 +46,8 @@ export const determineNonOverlappingTracksForRegions = (regions) => {
   })
   return trackForRegion
 }
+
+// a function that checks if two numerical regions overlap
+export const doRegionsOverlap = (start1, end1, start2, end2) => {
+  return start1 <= end2 && start2 <= end1
+}

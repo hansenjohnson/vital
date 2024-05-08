@@ -14,6 +14,7 @@ const AssociationsCreateWorkspace = ({
   changingActiveVideo,
   handleNext,
   existingRegions,
+  hasOverlap,
   regionStart,
   regionEnd,
   sightingName,
@@ -80,6 +81,7 @@ const AssociationsCreateWorkspace = ({
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
           <AssociationsDetailsBox
             frameRate={videoFrameRate}
+            hasOverlap={hasOverlap}
             regionStart={regionStart}
             regionEnd={regionEnd}
             setStart={() => setRegionStart(videoFrameNumber)}
