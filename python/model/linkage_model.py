@@ -19,7 +19,6 @@ class LinkageModel(SQL):
             super().__init__()
 
             self.file_path = None
-            self.worksheet_name = None
             self.refresh_table()
         except Exception as e:
             sys.stderr.write(f"Failed to initialize LinkageModel: {e}")
