@@ -1,3 +1,5 @@
+import sys
+
 from flask import Blueprint, jsonify, request
 
 from model.linkage_model import LinkageModel
@@ -25,6 +27,7 @@ def create_or_update_settings():
         response = jsonify({"message": "Setting saved Successfully"})
         status = 200
     except Exception as e:
+        sys.stderr.write(f"Failed to save settings: {e}")
         response = jsonify({"Setting save failed ": str(e)})
         status = 500
     finally:

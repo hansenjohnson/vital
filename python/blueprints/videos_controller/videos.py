@@ -13,13 +13,11 @@ video_model = VideoModel()
 folder_model = FolderModel()
 
 
-@bp.route('/static/<path:file>', methods=['GET'])
-def get_video(file):
-    folder_path = os.path.join(
-        settings_service.get_setting(SettingsEnum.FOLDER_OF_VIDEOS.value),
-        settings_service.get_setting(SettingsEnum.CURRENT_VIDEO.value)
-    )
-    return send_from_directory(str(folder_path), file, as_attachment=False, mimetype='application/dash+xml')
+@bp.route('/static/<path:catalog_video_id>', methods=['GET'])
+def get_video(catalog_video_id):
+    folder_path = settings_service.get_setting(SettingsEnum.FOLDER_OF_VIDEOS.value)
+    file_path = video_model.get_optimized_video_by_id(catalog_video_id)
+    return send_from_directory(folder_path, file_path['OptimizedFileName'], as_attachment=False, mimetype='application/dash+xml')
 
 
 @bp.route('/<int:folder_id>', methods=['GET'])

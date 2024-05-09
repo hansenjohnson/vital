@@ -46,3 +46,14 @@ class VideoModel(SQL):
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_sighting_by_id: {e}")
         return None
+
+    def get_optimized_video_by_id(self, video_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(f'SELECT OptimizedFileName FROM video WHERE CatalogVideoId = {video_id}')
+            row = cursor.fetchone()
+            cursor.close()
+            return dict(row) if row else None
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query get_video_by_id: {e}")
+        return None
