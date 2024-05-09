@@ -50,7 +50,7 @@ class VideoModel(SQL):
     def get_optimized_video_by_id(self, video_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute(f'SELECT OptimizedFileName FROM video WHERE CatalogVideoId = {video_id}')
+            cursor.execute(f'SELECT * FROM video WHERE CatalogVideoId = {video_id}')
             row = cursor.fetchone()
             cursor.close()
             return dict(row) if row else None

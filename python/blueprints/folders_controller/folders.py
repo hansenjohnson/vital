@@ -1,4 +1,4 @@
-import os
+import sys
 
 from flask import Blueprint, jsonify
 from settings.settings_service import SettingsService
@@ -13,6 +13,7 @@ folder_model = FolderModel()
 def get_folders():
     folders = folder_model.get_all_rows('folder')
     return jsonify({"folders": folders})
+
 
 @bp.route('/<int:folder_id>', methods=['GET'])
 def get_folder_by_id(folder_id):

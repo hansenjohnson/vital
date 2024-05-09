@@ -10,6 +10,7 @@ class SettingsEnum(Enum):
     THUMBNAIL_DIR_PATH = 'thumbnail_dir_path'
     STILLFRAME_DIR_NAME = 'stillframe_dir_path'
 
+    BASE_FOLDER_OF_VIDEOS = 'base_folder_of_videos'
     FOLDER_OF_VIDEOS = 'folder_of_videos'
     CURRENT_VIDEO = 'current_video'
 
