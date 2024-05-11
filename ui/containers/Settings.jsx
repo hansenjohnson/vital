@@ -20,6 +20,7 @@ const VISIBLE_SETTINGS = [
   SETTING_KEYS.LINKAGE_FILE_PATH,
   SETTING_KEYS.SIGHTING_FILE_PATH,
   SETTING_KEYS.BASE_FOLDER_OF_VIDEOS,
+  SETTING_KEYS.THUMBNAIL_DIR_PATH,
 ]
 
 const SettingsContainer = ({ open, handleClose }) => {
@@ -131,6 +132,16 @@ const SettingsContainer = ({ open, handleClose }) => {
                 const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
                 if (!filePath) return
                 setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS, filePath)
+              }}
+            />
+            <FilePathSettingInput
+              label="Thumbnails Folder"
+              value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
+              onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+                if (!filePath) return
+                setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
               }}
             />
           </>
