@@ -7,3 +7,7 @@ export const splitPath = (path) => {
 export const leafPath = (path) => {
   return path.split('\\').pop()
 }
+
+export const joinPath = (parts) => {
+  return parts.join('\\')
+}
