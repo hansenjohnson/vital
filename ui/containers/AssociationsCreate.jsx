@@ -100,19 +100,22 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   }
 
   const saveAssociation = async (thumbnailBlob) => {
-    const thumbnailFilePath = await thumbnailsAPI.save(
-      thumbnailsAPI.formulatePath(sightingId, selectedSighting.date, activeVideoFile, regionStart),
-      thumbnailBlob
+    const thumbnailPartialPath = thumbnailsAPI.formulatePath(
+      sightingId,
+      selectedSighting.date,
+      activeVideoFile,
+      regionStart
     )
+    const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, thumbnailBlob)
 
     const status =
-      thumbnailFilePath &&
+      thumbnailStatus &&
       (await linkagesAPI.create({
         StartTime: regionStart,
         EndTime: regionEnd,
         SightingId: sightingId,
         Annotation: annotations,
-        ThumbnailFilePath: thumbnailFilePath,
+        ThumbnailFilePath: thumbnailPartialPath,
         CreatedDate: `${new Date()}`,
       }))
 

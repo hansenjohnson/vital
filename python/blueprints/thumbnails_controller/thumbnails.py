@@ -22,6 +22,6 @@ def save_thumbnail(filepath):
         with open(final_file_path, 'wb') as aFile:
             aFile.write(blob)
 
-        return jsonify(final_file_path), 200
+        return jsonify(filepath_decoded), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
