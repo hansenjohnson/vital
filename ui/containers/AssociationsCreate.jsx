@@ -6,7 +6,9 @@ import linkagesAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
 import settingsAPI from '../api/settings'
+import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
+
 import { transformSightingData, sortSightingData } from '../utilities/transformers'
 import { doRegionsOverlap } from '../utilities/numbers'
 import ROUTES from '../constants/routes'
@@ -96,17 +98,23 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
       setSightingId(null)
     }
   }
-  const saveAssociation = async () => {
-    const status = await linkagesAPI.create({
-      StartTime: regionStart,
-      EndTime: regionEnd,
-      SightingId: sightingId,
-      Annotation: annotations,
-      VideoFilePath: '',
-      ThumbnailFilePath: '',
-      CreatedBy: '',
-      CreatedDate: `${new Date()}`,
-    })
+
+  const saveAssociation = async (thumbnailBlob) => {
+    const thumbnailFilePath = await thumbnailsAPI.save(
+      thumbnailsAPI.formulatePath(sightingId, selectedSighting.date, activeVideoFile, regionStart),
+      thumbnailBlob
+    )
+
+    const status =
+      thumbnailFilePath &&
+      (await linkagesAPI.create({
+        StartTime: regionStart,
+        EndTime: regionEnd,
+        SightingId: sightingId,
+        Annotation: annotations,
+        ThumbnailFilePath: thumbnailFilePath,
+        CreatedDate: `${new Date()}`,
+      }))
 
     if (status === true) {
       const newRegion = {
