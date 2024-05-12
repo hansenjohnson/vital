@@ -24,7 +24,9 @@ def catalog_folder_path(catalog_folder_id):
     date = datetime.strptime(f"{folder_by_id['FolderYear']}-{folder_by_id['FolderMonth']}-{folder_by_id['FolderDay']}", "%Y-%m-%d")
     formatted_date = date.strftime("%Y-%m-%d")
 
-    folder_catalog_name = f"{formatted_date}-{folder_by_id['ObserverCode']}"
+    observer_code = folder_by_id['ObserverCode'].replace('/', '-')
+
+    folder_catalog_name = f"{formatted_date}-{observer_code}"
 
     return os.path.join(base_folder_path, f"{folder_year_range[0]}-{folder_year_range[1]}", str(folder_year), folder_catalog_name)
 
