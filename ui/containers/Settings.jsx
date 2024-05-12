@@ -60,7 +60,7 @@ const SettingsContainer = ({ open, handleClose }) => {
   }, [])
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={handleClose} disableEscapeKeyDown fullWidth maxWidth="md">
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
         <Alert severity="warning" sx={{ marginBottom: 1 }}>
@@ -79,7 +79,7 @@ const SettingsContainer = ({ open, handleClose }) => {
         ) : (
           <>
             <FilePathSettingInput
-              label="Catalog Folder Data File"
+              label="Catalog Folder - Data File"
               value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
               onFolderClick={async () => {
@@ -90,7 +90,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             />
 
             <FilePathSettingInput
-              label="Catalog Video Data File"
+              label="Catalog Video - Data File"
               value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
               onFolderClick={async () => {
@@ -101,7 +101,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             />
 
             <FilePathSettingInput
-              label="Linkage Data File"
+              label="Linkage - Data File"
               value={settings[SETTING_KEYS.LINKAGE_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.LINKAGE_FILE_PATH)}
               onFolderClick={async () => {
@@ -112,7 +112,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             />
 
             <FilePathSettingInput
-              label="Sightings Data File"
+              label="Sightings - Data File"
               value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
               onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
               onFolderClick={async () => {

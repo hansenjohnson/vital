@@ -2,6 +2,8 @@ import sys
 
 from flask import Blueprint, jsonify, request
 
+from model.folder_model import FolderModel
+from model.video_model import VideoModel
 from model.linkage_model import LinkageModel
 from model.sighting_model import SightingModel
 from settings.settings_service import SettingsService
@@ -9,7 +11,9 @@ from settings.settings_service import SettingsService
 bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
 
-association_model = LinkageModel()
+folder_model = FolderModel()
+video_model = VideoModel()
+linkage_model = LinkageModel()
 sighting_model = SightingModel()
 
 
@@ -49,5 +53,7 @@ def get_settings(key=None):
 
 
 def refresh_tables():
-    association_model.refresh_table()
+    folder_model.refresh_table()
+    video_model.refresh_table()
+    linkage_model.refresh_table()
     sighting_model.refresh_table()

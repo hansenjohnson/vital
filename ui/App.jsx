@@ -32,7 +32,7 @@ const App = () => {
   const [ActiveRoute, routeSpecificProps] = (() => {
     switch (route) {
       case ROUTES.TOOLS:
-        return [Tools, { setVideoFolderId, setVideoFolderName }]
+        return [Tools, { settingsOpen, setVideoFolderId, setVideoFolderName }]
       case ROUTES.ASSOCIATIONS_VIEW:
         return [AssociationsView, {}]
       case ROUTES.ASSOCIATIONS_CREATE:
