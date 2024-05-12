@@ -79,3 +79,4 @@ app.on('window-all-closed', () => {
 
 // Import/instantiate app specific main process here
 import './dialogs'
+import './window'

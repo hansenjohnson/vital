@@ -40,7 +40,9 @@ const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
   const handleSubmit = async () => {
     setSubmitting(true)
     const successful = await settingsAPI.save(settings)
-    if (successful) {
+    if (successful && initialSettingsComplete) {
+      return window.api.reloadWindow()
+    } else if (successful) {
       handleClose()
       setSubmitting(false)
     } else {
@@ -200,7 +202,7 @@ const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
           }
           sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
         >
-          Save
+          {initialSettingsComplete ? 'Save & Reload' : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
