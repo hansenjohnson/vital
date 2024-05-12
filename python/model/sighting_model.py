@@ -18,7 +18,6 @@ class SightingModel(SQL):
             super().__init__()
 
             self.file_path = None
-            self.worksheet_name = None
 
             self.refresh_table()
         except Exception as e:
@@ -26,7 +25,6 @@ class SightingModel(SQL):
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.SIGHTING_FILE_PATH.value)
-        self.worksheet_name = self.settings.get_setting(SettingsEnum.SIGHTING_SHEET_NAME.value)
         sighting_create = f"""
                     CREATE TABLE sighting  (
                        SightingId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +37,7 @@ class SightingModel(SQL):
                        SightingTime INTEGER,
                        SightingLetter TEXT
                     )"""
-        self.load_table('sighting', sighting_create, self.file_path, self.worksheet_name, 'SightingId')
+        self.load_table('sighting', sighting_create, self.file_path, 'SightingId')
 
     def get_all_sightings(self):
         try:

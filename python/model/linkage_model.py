@@ -5,7 +5,7 @@ from model.sql import SQL
 from settings.settings_enum import SettingsEnum
 
 
-class AssociationModel(SQL):
+class LinkageModel(SQL):
 
     _instance = None
 
@@ -19,18 +19,16 @@ class AssociationModel(SQL):
             super().__init__()
 
             self.file_path = None
-            self.worksheet_name = None
             self.refresh_table()
         except Exception as e:
-            sys.stderr.write(f"Failed to initialize AssociationModel: {e}")
+            sys.stderr.write(f"Failed to initialize LinkageModel: {e}")
 
     def refresh_table(self):
-        self.file_path = self.settings.get_setting(SettingsEnum.ASSOCIATION_FILE_PATH.value)
-        self.worksheet_name = self.settings.get_setting(SettingsEnum.ASSOCIATION_SHEET_NAME.value)
+        self.file_path = self.settings.get_setting(SettingsEnum.LINKAGE_FILE_PATH.value)
 
-        association_create = f"""
-                    CREATE TABLE association  (
-                       AssociationId INTEGER PRIMARY KEY AUTOINCREMENT,
+        linkage_create = f"""
+                    CREATE TABLE linkage  (
+                       LinkageId INTEGER PRIMARY KEY AUTOINCREMENT,
                        CatalogVideoId INTEGER,
                        SightingId INTEGER,
                        StartTime TEXT,
@@ -41,59 +39,48 @@ class AssociationModel(SQL):
                        CreatedDate TEXT
                     )"""
 
-        self.load_table('association', association_create, self.file_path, self.worksheet_name, 'AssociationId')
+        self.load_table('linkage', linkage_create, self.file_path, 'LinkageId')
 
-    def get_all_associations(self):
+    def get_linkage_by_id(self, linkage_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT * FROM association')
-            rows = cursor.fetchall()
-            cursor.close()
-            return [dict(row) for row in rows]
-        except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_all_associations: {e}")
-        return None
-
-    def get_association_by_id(self, association_id):
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute(f'SELECT * FROM association WHERE AssociationId = {association_id}')
+            cursor.execute(f'SELECT * FROM linkage WHERE LinkageId = {linkage_id}')
             row = cursor.fetchone()
             cursor.close()
             return dict(row) if row else None
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_association_by_id: {e}")
+            sys.stderr.write(f"Failed to execute SQL query get_linkage_by_id: {e}")
         return None
 
-    def create_association(self, payload):
+    def create_linkage(self, payload):
         try:
             cursor = self.conn.cursor()
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
-                INSERT INTO association
+                INSERT INTO linkage
                 (SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
                 VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
             """
             cursor.execute(query, payload)
             self.conn.commit()
 
-            self.flush_to_excel('association', self.file_path, self.worksheet_name)
+            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
 
             lastrowid = cursor.lastrowid
             cursor.close()
             return lastrowid
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_associations: {e}")
+            sys.stderr.write(f"Failed to execute SQL query create_linkage: {e}")
             raise
 
-    def delete_association_by_id(self, association_id):
+    def delete_linkage_by_id(self, linkage_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute(f"DELETE FROM association WHERE AssociationId = {association_id}")
+            cursor.execute(f"DELETE FROM linkage WHERE LinkageId = {linkage_id}")
             self.conn.commit()
 
-            self.flush_to_excel('association', self.file_path, self.worksheet_name)
+            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
             cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query delete_association_by_id: {e}")
+            sys.stderr.write(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e

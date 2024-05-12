@@ -2,32 +2,21 @@ import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
-import associationsAPI from '../api/associations'
+import associationsAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
-import settingsAPI from '../api/settings'
 import { baseURL } from '../api/config'
-import { leafPath } from '../utilities/paths'
 import { transformSightingData, sortSightingData } from '../utilities/transformers'
 import ROUTES from '../constants/routes'
-import SETTING_KEYS from '../constants/settingKeys'
 
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
 import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
 import BlankSlate from '../components/BlankSlate'
 import SightingsDialog from '../components/SightingsDialog'
 
-const AssociationsCreateContainer = ({ setRoute }) => {
+const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName }) => {
   useEffect(() => {
     window.api.setTitle('Associate & Annotate')
-  }, [])
-
-  const [videoFolderName, setVideoFolderName] = useState('')
-  useEffect(() => {
-    settingsAPI.get(SETTING_KEYS.FOLDER_OF_VIDEOS).then((settingEntry) => {
-      const folderPath = settingEntry[SETTING_KEYS.FOLDER_OF_VIDEOS]
-      setVideoFolderName(leafPath(folderPath))
-    })
   }, [])
 
   const [videoFiles, setVideoFiles] = useState([])
@@ -36,19 +25,23 @@ const AssociationsCreateContainer = ({ setRoute }) => {
 
   const [changingActiveVideo, setChangingActiveVideo] = useState(true)
   const [activeVideoFile, setActiveVideoFileString] = useState('')
+  const activeVideoURL = activeVideoFile
+    ? `${baseURL}/videos/${videoFolderId}/${activeVideoFile}`
+    : ''
   const setActiveVideoFile = async (videoFile) => {
     setChangingActiveVideo(true)
-    await settingsAPI.save({ [SETTING_KEYS.CURRENT_VIDEO]: videoFile })
     setChangingActiveVideo(false)
     setActiveVideoFileString(videoFile)
   }
   useEffect(() => {
-    videosAPI.getList().then((videos) => {
-      const [firstVideo, ...nonFirstVideos] = videos
+    if (!videoFolderId) return
+    videosAPI.getList(videoFolderId).then((videos) => {
+      const videoFileNames = videos.map((video) => video.OptimizedFileName)
+      const [firstVideo, ...nonFirstVideos] = videoFileNames
       setActiveVideoFile(firstVideo)
       setVideoFiles(nonFirstVideos)
     })
-  }, [])
+  }, [videoFolderId])
 
   const [sightingData, setSightingData] = useState([])
   useEffect(() => {
@@ -142,7 +135,7 @@ const AssociationsCreateContainer = ({ setRoute }) => {
         />
       ) : (
         <AssociationsCreateWorkspace
-          activeVideoURL={activeVideoFile ? `${baseURL}/videos/${activeVideoFile}.mpd` : ''}
+          activeVideoURL={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}

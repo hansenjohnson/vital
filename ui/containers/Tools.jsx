@@ -4,29 +4,46 @@ import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
-import FILE_TYPES from '../constants/fileTypes'
-import SETTINGS_KEYS from '../constants/settingKeys'
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
-import settingsAPI from '../api/settings'
+import CatalogFolderDialog from '../components/CatalogFolderDialog'
+import catalogFoldersAPI from '../api/catalogFolders'
+import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
-const ToolsContainer = ({ setRoute }) => {
+const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
   }, [])
 
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
 
+  const [catalogFolders, setCatalogFolders] = useState([])
+  const [catalogFoldersDialog, setCatalogFoldersDialog] = useState(false)
+  const [catalogFoldersRedirect, setCatalogFoldersRedirect] = useState(null)
+  useEffect(() => {
+    catalogFoldersAPI.getList().then((data) => {
+      const { folders } = data
+      const transformedData = folders.map(transformCatalogFolderData)
+      const sortedFolders = sortCatalogFolderData(transformedData)
+      setCatalogFolders(sortedFolders)
+    })
+  }, [])
+
   const handleClickViewAssociations = () => {
     alert('not implemented yet!')
   }
 
-  const handleClickCreateAssociations = async () => {
-    const folderPath = await window.api.selectFile(FILE_TYPES.FOLDER)
-    if (!folderPath) return
-    await settingsAPI.save({ [SETTINGS_KEYS.FOLDER_OF_VIDEOS]: folderPath })
-    setRoute(ROUTES.ASSOCIATIONS_CREATE)
+  const handleClickCreateAssociations = () => {
+    setCatalogFoldersRedirect(ROUTES.ASSOCIATIONS_CREATE)
+    setCatalogFoldersDialog(true)
+  }
+
+  const handleSelectCatalogFolder = async (catalogFolderId) => {
+    const catalogFolder = catalogFolders.find((entry) => entry.id === catalogFolderId)
+    setVideoFolderId(catalogFolderId)
+    setVideoFolderName(`${catalogFolder.date}-${catalogFolder.observer}`)
+    setRoute(catalogFoldersRedirect)
   }
 
   return (
@@ -97,6 +114,13 @@ const ToolsContainer = ({ setRoute }) => {
 
         {tool === TOOLS.INGEST_TRANSCODE && <div>Not Implemented Yet</div>}
       </Box>
+
+      <CatalogFolderDialog
+        open={catalogFoldersDialog}
+        handleClose={() => setCatalogFoldersDialog(false)}
+        catalogFolders={catalogFolders}
+        handleSelect={handleSelectCatalogFolder}
+      />
     </Box>
   )
 }
