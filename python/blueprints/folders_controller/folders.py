@@ -1,5 +1,3 @@
-import sys
-
 from flask import Blueprint, jsonify
 from settings.settings_service import SettingsService
 from model.folder_model import FolderModel

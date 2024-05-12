@@ -32,9 +32,9 @@ def catalog_folder_path(catalog_folder_id):
 
 
 def video_file_path(catalog_video_id):
-    file_by_id = video_model.get_optimized_video_by_id(catalog_video_id)
+    video_by_id = video_model.get_video_by_id(catalog_video_id)
 
-    catalog_folder_id = file_by_id['CatalogFolderId']
+    catalog_folder_id = video_by_id['CatalogFolderId']
     folder_path = catalog_folder_path(catalog_folder_id)
 
-    return os.path.join(folder_path, file_by_id['OptimizedFileName'])
+    return os.path.join(folder_path, video_by_id['OptimizedFileName'])

@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import sqlite3
 import os
-from pathlib import Path
 
 from settings.settings_service import SettingsService
 
