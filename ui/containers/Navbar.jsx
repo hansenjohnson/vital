@@ -42,7 +42,7 @@ const Navbar = ({
       <NavbarButton selected={settingsOpen} onClick={() => setSettingsOpen(true)}>
         Settings
       </NavbarButton>
-      <NavbarButton disabled={!initialSettingsComplete}>Work Queue</NavbarButton>
+      <NavbarButton disabled={!initialSettingsComplete}>Work Queue (0)</NavbarButton>
       <Box
         sx={{
           flexGrow: 1,
