@@ -23,7 +23,7 @@ const VISIBLE_SETTINGS = [
   SETTING_KEYS.THUMBNAIL_DIR_PATH,
 ]
 
-const SettingsContainer = ({ open, handleClose }) => {
+const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
   const [settings, setSettings] = useState(
     Object.fromEntries(VISIBLE_SETTINGS.map((key) => [key, '']))
   )
@@ -63,9 +63,11 @@ const SettingsContainer = ({ open, handleClose }) => {
     <Dialog open={open} onClose={handleClose} disableEscapeKeyDown fullWidth maxWidth="md">
       <DialogTitle>Settings</DialogTitle>
       <DialogContent>
-        <Alert severity="warning" sx={{ marginBottom: 1 }}>
-          You must populate these settings in order to use the Application.
-        </Alert>
+        {!initialSettingsComplete && (
+          <Alert severity="warning" sx={{ marginBottom: 1 }}>
+            You must initially populate these settings in order to use the Application.
+          </Alert>
+        )}
 
         {initialLoading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -74,6 +76,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Box mb={1} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
           </Box>
         ) : (
