@@ -11,7 +11,7 @@ import CatalogFolderDialog from '../components/CatalogFolderDialog'
 import catalogFoldersAPI from '../api/catalogFolders'
 import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
-const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
+const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName, settingsOpen }) => {
   useEffect(() => {
     window.api.setTitle('Video Catalog Suite')
   }, [])
@@ -28,7 +28,7 @@ const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
       const sortedFolders = sortCatalogFolderData(transformedData)
       setCatalogFolders(sortedFolders)
     })
-  }, [])
+  }, [settingsOpen])
 
   const handleClickViewAssociations = () => {
     alert('not implemented yet!')
