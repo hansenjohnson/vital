@@ -3,6 +3,7 @@ import Box from '@mui/material/Box'
 
 import ping from './api/ping'
 import ROUTES from './constants/routes'
+import { TITLEBAR_HEIGHT } from './constants/dimensions'
 import useLocalStorage from './hooks/useLocalStorage'
 import useWindowSize from './hooks/useWindowSize'
 
@@ -63,10 +64,10 @@ const App = () => {
 
   const windowSize = useWindowSize()
   const _titlebarRect = window.navigator.windowControlsOverlay.getTitlebarAreaRect()
-  const titlebarRect = useMemo(() => {
-    // Windows OS adds a 1px border around the control buttons, so we account for that
-    return { ..._titlebarRect, height: _titlebarRect.height + 1 }
-  }, [JSON.stringify(_titlebarRect), JSON.stringify(windowSize)])
+  const titlebarRect = useMemo(
+    () => _titlebarRect,
+    [JSON.stringify(_titlebarRect), JSON.stringify(windowSize)]
+  )
 
   if (!serverReachable) return <CenteredLoadingCircle />
 
@@ -74,20 +75,19 @@ const App = () => {
     <>
       <Navbar
         width={titlebarRect.width}
-        height={titlebarRect.height}
         title="Video Catalog Suite"
         route={route}
-      />
-      <SettingsContainer
-        open={settingsOpen}
-        handleClose={(event, reason) => {
-          if (reason !== 'backdropClick') {
-            setSettingsOpen(false)
-          }
-        }}
+        setRoute={setRoute}
+        settingsOpen={settingsOpen}
+        setSettingsOpen={setSettingsOpen}
         initialSettingsComplete={initialSettings}
       />
-      <Box sx={{ height: `calc(100vh - ${titlebarRect.height}px)` }}>
+      <Box sx={{ height: `calc(100vh - ${TITLEBAR_HEIGHT}px)` }}>
+        <SettingsContainer
+          open={settingsOpen}
+          handleClose={() => setSettingsOpen(false)}
+          initialSettingsComplete={initialSettings}
+        />
         <ActiveRoute setRoute={setRoute} {...routeSpecificProps} />
       </Box>
     </>

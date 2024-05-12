@@ -1,27 +1,48 @@
 import Box from '@mui/material/Box'
 
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import ROUTES from '../constants/routes'
 import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
-const Navbar = ({ width, height, route }) => {
+const Navbar = ({
+  width,
+  route,
+  setRoute,
+  settingsOpen,
+  setSettingsOpen,
+  initialSettingsComplete,
+}) => {
   const title = TITLES[route]
 
-  if (width * height === 0) return null
+  const handleToolsClick = () => {
+    setSettingsOpen(false)
+    setRoute(ROUTES.TOOLS)
+  }
+
+  if (width === 0) return null
 
   return (
     <Box
       sx={{
         width: `${width}px`,
-        height: `${height}px`,
+        height: `${TITLEBAR_HEIGHT}px`,
         color: 'white',
         display: 'flex',
         alignItems: 'center',
       }}
     >
-      <NavbarButton selected={route === ROUTES.TOOLS}>Tools</NavbarButton>
-      <NavbarButton>Settings</NavbarButton>
-      <NavbarButton>Work Queue</NavbarButton>
+      <NavbarButton
+        selected={route === ROUTES.TOOLS && !settingsOpen}
+        disabled={!initialSettingsComplete}
+        onClick={handleToolsClick}
+      >
+        Tools
+      </NavbarButton>
+      <NavbarButton selected={settingsOpen} onClick={() => setSettingsOpen(true)}>
+        Settings
+      </NavbarButton>
+      <NavbarButton disabled={!initialSettingsComplete}>Work Queue</NavbarButton>
       <Box
         sx={{
           flexGrow: 1,

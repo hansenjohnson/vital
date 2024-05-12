@@ -3,14 +3,17 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import CloseIcon from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
 import Skeleton from '@mui/material/Skeleton'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
@@ -39,6 +42,7 @@ const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
     const successful = await settingsAPI.save(settings)
     if (successful) {
       handleClose()
+      setSubmitting(false)
     } else {
       setSubmitting(false)
       alert('Failed to save settings. Please adjust them and try again.')
@@ -59,9 +63,45 @@ const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
     })
   }, [])
 
+  const _handleClose = (event, reason) => {
+    if (!initialSettingsComplete && reason === 'backdropClick') return
+    handleClose()
+  }
+
   return (
-    <Dialog open={open} onClose={handleClose} disableEscapeKeyDown fullWidth maxWidth="md">
+    <Dialog
+      open={open}
+      onClose={_handleClose}
+      fullWidth
+      maxWidth="md"
+      disablePortal
+      disableEscapeKeyDown={!initialSettingsComplete}
+      sx={{
+        position: 'aboslute',
+        top: `${TITLEBAR_HEIGHT}px`,
+      }}
+      slotProps={{
+        backdrop: {
+          sx: { top: `${TITLEBAR_HEIGHT}px` },
+        },
+      }}
+    >
       <DialogTitle>Settings</DialogTitle>
+
+      {initialSettingsComplete && (
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={(theme) => ({
+            position: 'absolute',
+            right: theme.spacing(1),
+            top: theme.spacing(1),
+          })}
+        >
+          <CloseIcon sx={{ fontSize: '30px' }} />
+        </IconButton>
+      )}
+
       <DialogContent>
         {!initialSettingsComplete && (
           <Alert severity="warning" sx={{ marginBottom: 1 }}>
