@@ -8,6 +8,7 @@ import StyledButton from '../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
+const THUMBNAIL_WIDTH = 200
 
 const AssociationsCreateWorkspace = ({
   activeVideoURL,
@@ -48,6 +49,35 @@ const AssociationsCreateWorkspace = ({
     }
   }
 
+  const regionStartBlob = useRef(null)
+  const _setRegionStart = (...args) => {
+    regionStartBlob.current = null
+
+    const video = videoElementRef.current
+    const outputWidth = THUMBNAIL_WIDTH
+    const outputHeight = video.videoHeight / (video.videoWidth / THUMBNAIL_WIDTH)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = THUMBNAIL_WIDTH
+    canvas.height = Math.floor(outputHeight)
+
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, outputWidth, outputHeight)
+    canvas.toBlob(
+      (blob) => {
+        regionStartBlob.current = blob
+      },
+      'image/jpeg',
+      0.8
+    )
+
+    setRegionStart(...args)
+  }
+
+  const _saveAssociation = () => {
+    saveAssociation(regionStartBlob.current)
+  }
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
@@ -84,7 +114,7 @@ const AssociationsCreateWorkspace = ({
             hasOverlap={hasOverlap}
             regionStart={regionStart}
             regionEnd={regionEnd}
-            setStart={() => setRegionStart(videoFrameNumber)}
+            setStart={() => _setRegionStart(videoFrameNumber)}
             setEnd={() => setRegionEnd(videoFrameNumber)}
             sightingName={sightingName}
             annotations={annotations}
@@ -105,7 +135,7 @@ const AssociationsCreateWorkspace = ({
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
           <StyledButton
-            onClick={saveAssociation}
+            onClick={_saveAssociation}
             variant="contained"
             color="tertiary"
             disabled={!saveable}
