@@ -18,10 +18,6 @@ import BlankSlate from '../components/BlankSlate'
 import SightingsDialog from '../components/SightingsDialog'
 
 const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName }) => {
-  useEffect(() => {
-    window.api.setTitle('Associate & Annotate')
-  }, [])
-
   const [videoFiles, setVideoFiles] = useState([])
   const [completedVideoFiles, setCompletedVideoFiles] = useState([])
   const [allDone, setAllDone] = useState(false)

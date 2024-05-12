@@ -1,7 +1,6 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain } from 'electron'
 
-ipcMain.on('set-title', (event, title) => {
+ipcMain.on('reload-window', (event) => {
   const webContents = event.sender
-  const win = BrowserWindow.fromWebContents(webContents)
-  win.setTitle(title)
+  webContents.reload()
 })

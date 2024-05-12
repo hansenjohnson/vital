@@ -3,14 +3,17 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
+import CloseIcon from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import IconButton from '@mui/material/IconButton'
 import Skeleton from '@mui/material/Skeleton'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
@@ -23,7 +26,7 @@ const VISIBLE_SETTINGS = [
   SETTING_KEYS.THUMBNAIL_DIR_PATH,
 ]
 
-const SettingsContainer = ({ open, handleClose }) => {
+const SettingsContainer = ({ open, handleClose, initialSettingsComplete }) => {
   const [settings, setSettings] = useState(
     Object.fromEntries(VISIBLE_SETTINGS.map((key) => [key, '']))
   )
@@ -37,8 +40,11 @@ const SettingsContainer = ({ open, handleClose }) => {
   const handleSubmit = async () => {
     setSubmitting(true)
     const successful = await settingsAPI.save(settings)
-    if (successful) {
+    if (successful && initialSettingsComplete) {
+      return window.api.reloadWindow()
+    } else if (successful) {
       handleClose()
+      setSubmitting(false)
     } else {
       setSubmitting(false)
       alert('Failed to save settings. Please adjust them and try again.')
@@ -59,13 +65,51 @@ const SettingsContainer = ({ open, handleClose }) => {
     })
   }, [])
 
+  const _handleClose = (event, reason) => {
+    if (!initialSettingsComplete && reason === 'backdropClick') return
+    handleClose()
+  }
+
   return (
-    <Dialog open={open} onClose={handleClose} disableEscapeKeyDown fullWidth maxWidth="md">
+    <Dialog
+      open={open}
+      onClose={_handleClose}
+      fullWidth
+      maxWidth="md"
+      disablePortal
+      disableEscapeKeyDown={!initialSettingsComplete}
+      sx={{
+        position: 'aboslute',
+        top: `${TITLEBAR_HEIGHT}px`,
+      }}
+      slotProps={{
+        backdrop: {
+          sx: { top: `${TITLEBAR_HEIGHT}px` },
+        },
+      }}
+    >
       <DialogTitle>Settings</DialogTitle>
+
+      {initialSettingsComplete && (
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={(theme) => ({
+            position: 'absolute',
+            right: theme.spacing(1),
+            top: theme.spacing(1),
+          })}
+        >
+          <CloseIcon sx={{ fontSize: '30px' }} />
+        </IconButton>
+      )}
+
       <DialogContent>
-        <Alert severity="warning" sx={{ marginBottom: 1 }}>
-          You must populate these settings in order to use the Application.
-        </Alert>
+        {!initialSettingsComplete && (
+          <Alert severity="warning" sx={{ marginBottom: 1 }}>
+            You must initially populate these settings in order to use the Application.
+          </Alert>
+        )}
 
         {initialLoading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -74,6 +118,7 @@ const SettingsContainer = ({ open, handleClose }) => {
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
             <Box mb={1} />
+            <Skeleton variant="rounded" animation="wave" height={40} />
             <Skeleton variant="rounded" animation="wave" height={40} />
           </Box>
         ) : (
@@ -157,7 +202,7 @@ const SettingsContainer = ({ open, handleClose }) => {
           }
           sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
         >
-          Save
+          {initialSettingsComplete ? 'Save & Reload' : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
