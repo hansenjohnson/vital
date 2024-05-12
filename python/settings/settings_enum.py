@@ -12,7 +12,6 @@ class SettingsEnum(Enum):
 
     BASE_FOLDER_OF_VIDEOS = 'base_folder_of_videos'
     FOLDER_OF_VIDEOS = 'folder_of_videos'
-    CURRENT_VIDEO = 'current_video'
 
     @classmethod
     def has_value(cls, value):
