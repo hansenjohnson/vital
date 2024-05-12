@@ -5,12 +5,10 @@ import Button from '@mui/material/Button'
 import linkagesAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
-import settingsAPI from '../api/settings'
 import { baseURL } from '../api/config'
 import { transformSightingData, sortSightingData } from '../utilities/transformers'
 import { doRegionsOverlap } from '../utilities/numbers'
 import ROUTES from '../constants/routes'
-import SETTING_KEYS from '../constants/settingKeys'
 
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
 import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
@@ -28,13 +26,13 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
 
   const [changingActiveVideo, setChangingActiveVideo] = useState(true)
   const [activeVideoFile, setActiveVideoFileString] = useState('')
+  const activeVideoURL = activeVideoFile
+    ? `${baseURL}/videos/${videoFolderId}/${activeVideoFile}`
+    : ''
   const setActiveVideoFile = async (videoFile) => {
-    const fileParts = videoFile.split('\\')
-    const videoFileName = fileParts.pop()
     setChangingActiveVideo(true)
-    await settingsAPI.save({ [SETTING_KEYS.CURRENT_VIDEO]: fileParts.join('\\') })
     setChangingActiveVideo(false)
-    setActiveVideoFileString(videoFileName)
+    setActiveVideoFileString(videoFile)
   }
   useEffect(() => {
     if (!videoFolderId) return
@@ -157,7 +155,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
         />
       ) : (
         <AssociationsCreateWorkspace
-          activeVideoURL={activeVideoFile ? `${baseURL}/videos/static/${activeVideoFile}` : ''}
+          activeVideoURL={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}

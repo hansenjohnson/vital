@@ -19,10 +19,3 @@ class SettingsService:
             self.model.set_setting(key, value)
         else:
             raise ValueError(f"Invalid setting key: {key}")
-
-    def clear_file_settings(self):
-        self.model.set_setting(SettingsEnum.LINKAGE_FILE_PATH.value, None)
-        self.model.set_setting(SettingsEnum.LINKAGE_SHEET_NAME.value, None)
-
-        self.model.set_setting(SettingsEnum.SIGHTING_FILE_PATH.value, None)
-        self.model.set_setting(SettingsEnum.SIGHTING_SHEET_NAME.value, None)

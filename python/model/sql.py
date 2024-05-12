@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import sqlite3
 import os
-from pathlib import Path
 
 from settings.settings_service import SettingsService
 
@@ -19,18 +18,19 @@ class SQL:
         self.df = pd.DataFrame()
         self.conn = sqlite3.connect('video_catalog.db', check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
+        self.worksheet_name = None
 
         self.settings = SettingsService()
 
     def load_table(self, table_name, create_table_statement, file_path, index_col):
         try:
             base_name = os.path.basename(file_path)
-            worksheet_name = os.path.splitext(base_name)[0]
+            self.worksheet_name = os.path.splitext(base_name)[0]
 
             cursor = self.conn.cursor()
             cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
             cursor.execute(create_table_statement)
-            self.df = pd.read_excel(file_path, worksheet_name, index_col=index_col, engine='openpyxl')
+            self.df = pd.read_excel(file_path, self.worksheet_name, index_col=index_col, engine='openpyxl')
             self.df.to_sql(table_name, self.conn, if_exists='append')
             self.conn.commit()
             cursor.close()

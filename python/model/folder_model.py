@@ -36,3 +36,14 @@ class FolderModel(SQL):
                        CreatedDate TEXT
                     )"""
         self.load_table('folder', folder_create, self.file_path,  'CatalogFolderId')
+
+    def get_folder_by_id(self, folder_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(f'SELECT * FROM folder WHERE CatalogFolderId = {folder_id}')
+            row = cursor.fetchone()
+            cursor.close()
+            return dict(row) if row else None
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query get_folder_by_id: {e}")
+        return None

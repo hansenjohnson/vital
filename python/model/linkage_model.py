@@ -19,7 +19,6 @@ class LinkageModel(SQL):
             super().__init__()
 
             self.file_path = None
-            self.worksheet_name = None
             self.refresh_table()
         except Exception as e:
             sys.stderr.write(f"Failed to initialize LinkageModel: {e}")
@@ -71,7 +70,7 @@ class LinkageModel(SQL):
             cursor.close()
             return lastrowid
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_linkages: {e}")
+            sys.stderr.write(f"Failed to execute SQL query create_linkage: {e}")
             raise
 
     def delete_linkage_by_id(self, linkage_id):

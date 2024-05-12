@@ -29,7 +29,7 @@ class SightingModel(SQL):
                     CREATE TABLE sighting  (
                        SightingId INTEGER PRIMARY KEY AUTOINCREMENT,
                        SightingEGNo INTEGER,
-                       LinkageId INTEGER,
+                       AssociationId INTEGER,
                        SightingYear INTEGER,
                        SightingMonth INTEGER,
                        SightingDay INTEGER,
