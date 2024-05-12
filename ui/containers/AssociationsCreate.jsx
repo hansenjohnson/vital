@@ -25,7 +25,9 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
 
   const [changingActiveVideo, setChangingActiveVideo] = useState(true)
   const [activeVideoFile, setActiveVideoFileString] = useState('')
-  const [activeVideoFileId, setActiveVideoFileId] = useState('')
+  const activeVideoURL = activeVideoFile
+    ? `${baseURL}/videos/${videoFolderId}/${activeVideoFile}`
+    : ''
   const setActiveVideoFile = async (videoFile) => {
     setChangingActiveVideo(true)
     setChangingActiveVideo(false)
@@ -35,12 +37,9 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
     if (!videoFolderId) return
     videosAPI.getList(videoFolderId).then((videos) => {
       const videoFileNames = videos.map((video) => video.OptimizedFileName)
-      const videoFileIds = videos.map((video) => video.CatalogVideoId)
       const [firstVideo, ...nonFirstVideos] = videoFileNames
-      const [firstVideoId, ...nonFirstVideoIds] = videoFileIds
       setActiveVideoFile(firstVideo)
       setVideoFiles(nonFirstVideos)
-      setActiveVideoFileId(firstVideoId)
     })
   }, [videoFolderId])
 
@@ -136,9 +135,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
         />
       ) : (
         <AssociationsCreateWorkspace
-          activeVideoURL={
-            activeVideoFile ? `${baseURL}/videos/${activeVideoFileId}/${activeVideoFile}` : ''
-          }
+          activeVideoURL={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}

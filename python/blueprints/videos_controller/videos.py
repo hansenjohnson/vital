@@ -9,11 +9,9 @@ settings_service = SettingsService()
 video_model = VideoModel()
 folder_model = FolderModel()
 
-@bp.route('/<int:catalog_video_id>/<path:file>', methods=['GET'])
-def get_video_by_id(catalog_video_id, file):
-    video = video_model.get_video_by_id(catalog_video_id)
-    folder_path = catalog_folder_path(video['CatalogFolderId'])
-
+@bp.route('/<int:catalog_folder_id>/<path:file>', methods=['GET'])
+def get_video_by_id(catalog_folder_id, file):
+    folder_path = catalog_folder_path(catalog_folder_id)
     return send_from_directory(folder_path, file, as_attachment=False, mimetype='application/dash+xml')
 
 
