@@ -26,14 +26,17 @@ const App = () => {
     return () => clearInterval(intervalId)
   }, [])
 
+  const [videoFolderId, setVideoFolderId] = useState(null)
+  const [videoFolderName, setVideoFolderName] = useState(null)
+
   const [ActiveRoute, routeSpecificProps] = (() => {
     switch (route) {
       case ROUTES.TOOLS:
-        return [Tools, {}]
+        return [Tools, { setVideoFolderId, setVideoFolderName }]
       case ROUTES.ASSOCIATIONS_VIEW:
         return [AssociationsView, {}]
       case ROUTES.ASSOCIATIONS_CREATE:
-        return [AssociationsCreate, {}]
+        return [AssociationsCreate, { videoFolderId, videoFolderName }]
       default:
         return [null, {}]
     }
