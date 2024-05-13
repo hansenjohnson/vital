@@ -5,14 +5,7 @@ import ROUTES from '../constants/routes'
 import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
-const Navbar = ({
-  width,
-  route,
-  setRoute,
-  settingsOpen,
-  setSettingsOpen,
-  initialSettingsComplete,
-}) => {
+const Navbar = ({ width, route, setRoute, settingsOpen, setSettingsOpen, settingsInitialized }) => {
   const title = TITLES[route]
 
   const handleToolsClick = () => {
@@ -34,7 +27,7 @@ const Navbar = ({
     >
       <NavbarButton
         selected={route === ROUTES.TOOLS && !settingsOpen}
-        disabled={!initialSettingsComplete}
+        disabled={!settingsInitialized}
         onClick={handleToolsClick}
       >
         Tools
@@ -42,7 +35,7 @@ const Navbar = ({
       <NavbarButton selected={settingsOpen} onClick={() => setSettingsOpen(true)}>
         Settings
       </NavbarButton>
-      <NavbarButton disabled={!initialSettingsComplete}>Work Queue (0)</NavbarButton>
+      <NavbarButton disabled={!settingsInitialized}>Work Queue (0)</NavbarButton>
       <Box
         sx={{
           flexGrow: 1,
