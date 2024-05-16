@@ -45,7 +45,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
 
   const [sightingData, setSightingData] = useState([])
   useEffect(() => {
-    sightingsAPI.get().then((data) => {
+    sightingsAPI.get(videoFolderName).then((data) => {
       const transformedData = data.map(transformSightingData)
       const sortedData = sortSightingData(transformedData)
       setSightingData(sortedData)

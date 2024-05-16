@@ -71,7 +71,7 @@ class LinkageModel(SQL):
             return lastrowid
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query create_linkage: {e}")
-            raise
+            raise e
 
     def delete_linkage_by_id(self, linkage_id):
         try:
@@ -84,3 +84,23 @@ class LinkageModel(SQL):
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e
+
+    def get_linkages_by_sighting(self, year, month, day, observer_code):
+        try:
+            sighting_query = ""
+            if month:
+                sighting_query += f" AND SightingMonth = {month}"
+            if day:
+                sighting_query += f" AND SightingDay = {day}"
+            if observer_code:
+                sighting_query += f" AND ObserverCode = '{observer_code}'"
+
+            cursor = self.conn.cursor()
+            cursor.execute(f"""SELECT l.*, s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode FROM Linkage l 
+                           JOIN Sighting s ON l.SightingId = s.SightingId where s.SightingYear = {year}{sighting_query}""")
+            rows = cursor.fetchall()
+            cursor.close()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query get_linkages_by_sighting: {e}")
+        return None

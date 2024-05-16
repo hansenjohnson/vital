@@ -60,3 +60,15 @@ class SightingModel(SQL):
         except Exception as e:
             sys.stderr.write(f"Failed to execute SQL query get_sighting_by_id: {e}")
         return None
+
+    def get_sightings_by_date(self, year, month, day, observer_code):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(f"SELECT * FROM sighting WHERE SightingYear = {year} AND SightingMonth = {month} AND SightingDay = {day} AND ObserverCode = '{observer_code}'")
+            rows = cursor.fetchall()
+            cursor.close()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            sys.stderr.write(f"Failed to execute SQL query get_sightings_by_date: {e}")
+        return None
+
