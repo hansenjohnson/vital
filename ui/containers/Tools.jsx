@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
 
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
@@ -11,11 +10,12 @@ import CatalogFolderDialog from '../components/CatalogFolderDialog'
 import catalogFoldersAPI from '../api/catalogFolders'
 import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
-const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
-  useEffect(() => {
-    window.api.setTitle('Video Catalog Suite')
-  }, [])
-
+const ToolsContainer = ({
+  setRoute,
+  setVideoFolderId,
+  setVideoFolderName,
+  reloadFromSettingsChange,
+}) => {
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
 
   const [catalogFolders, setCatalogFolders] = useState([])
@@ -28,7 +28,7 @@ const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
       const sortedFolders = sortCatalogFolderData(transformedData)
       setCatalogFolders(sortedFolders)
     })
-  }, [])
+  }, [reloadFromSettingsChange])
 
   const handleClickViewAssociations = () => {
     alert('not implemented yet!')
@@ -50,9 +50,6 @@ const ToolsContainer = ({ setRoute, setVideoFolderId, setVideoFolderName }) => {
     <Box sx={{ display: 'flex', height: '100%' }}>
       {/* Tool Selector */}
       <Sidebar>
-        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 300 }}>
-          TOOLS
-        </Typography>
         <ToolButton
           name="Associate & Annotate"
           selected={tool === TOOLS.ASSOCIATE_ANNOTATE}

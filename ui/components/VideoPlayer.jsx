@@ -13,7 +13,7 @@ import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilitie
 
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
-const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.5)'
+const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.7)'
 const VIDEO_STATES = {
   LOADING: 'LOADING',
   PLAYING: 'PLAYING',
@@ -31,8 +31,10 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     changingActiveVideo,
     siblingHeights,
     setVideoDuration,
-    setVideoFrameRate,
-    setVideoCurrentTime,
+    frameRate,
+    setFrameRate,
+    currentFrameNumber,
+    setCurrentFrameNumber,
     setVideoRangesBuffered,
   } = props
   const theme = useTheme()
@@ -69,10 +71,8 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setVideoIs(VIDEO_STATES.PLAYING)
   }
 
-  const [frameRate, setFrameRate] = useState(null)
   const videoStreamInitialized = () => {
     const _frameRate = getFrameRateFromDashPlayer(playerRef.current)
-    setVideoFrameRate(_frameRate)
     setFrameRate(_frameRate)
   }
 
@@ -131,14 +131,18 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setVideoIs(VIDEO_STATES.PAUSED)
   }
 
-  // Sync Video Element state with UI components
-  const [currentTime, setCurrentTime] = useState(0)
+  // Cached duration explained below in reportOnDuration function
   const [cachedDuration, setCachedDuration] = useState(null)
+  useEffect(() => {
+    setCachedDuration(null)
+  }, [url])
+
+  // Sync Video Element state with UI components
   useEffect(() => {
     if (!videoElementRef.current) return
 
     if (!!cachedDuration && frameRate) {
-      setVideoDuration(cachedDuration * frameRate)
+      setVideoDuration(Math.floor(cachedDuration * frameRate))
     }
 
     const reportOnDuration = () => {
@@ -151,13 +155,6 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
       }
       const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
       setVideoDuration(durationAsFrames)
-    }
-
-    const reportOnTime = () => {
-      if (!frameRate) return
-      const currentTimeAsFrameNum = Math.floor(videoElementRef.current?.currentTime * frameRate)
-      setVideoCurrentTime(currentTimeAsFrameNum)
-      setCurrentTime(currentTimeAsFrameNum)
     }
 
     const reportOnBuffer = () => {
@@ -177,16 +174,29 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     }
 
     videoElementRef.current?.addEventListener('durationchange', reportOnDuration)
-    videoElementRef.current?.addEventListener('timeupdate', reportOnTime)
     videoElementRef.current?.addEventListener('progress', reportOnBuffer)
     videoElementRef.current?.addEventListener('ended', handleVideoEnded)
 
     return () => {
       videoElementRef.current?.removeEventListener('durationchange', reportOnDuration)
-      videoElementRef.current?.removeEventListener('timeupdate', reportOnTime)
       videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
       videoElementRef.current?.removeEventListener('ended', handleVideoEnded)
     }
+  }, [frameRate, url])
+
+  // High-Frequency Timestamp Reporting
+  useEffect(() => {
+    const video = videoElementRef.current
+    let callbackId
+    const videoFrameCallback = (now, metadata) => {
+      const timeInSeconds = metadata.mediaTime
+      const frameNumber = Math.floor(timeInSeconds * frameRate)
+      setCurrentFrameNumber(frameNumber)
+      callbackId = video.requestVideoFrameCallback(videoFrameCallback)
+    }
+    // Initial spawn
+    callbackId = video.requestVideoFrameCallback(videoFrameCallback)
+    return () => video.cancelVideoFrameCallback(callbackId)
   }, [frameRate])
 
   // Fullscreen Controls
@@ -249,7 +259,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
             position: 'absolute',
             width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(1)})`,
             height: `calc(${PLAYER_CONTROLS_HEIGHT}px + ${theme.spacing(1)})`,
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 90%)',
+            background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 90%)',
             filter: 'blur(6px)',
           }}
         />
@@ -290,7 +300,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
                 <FullscreenIcon sx={controlIconStyle} />
               </IconButton>
               <Box sx={{ marginLeft: 0.25, textShadow: CONTENT_SHADOW }}>
-                {timecodeFromFrameNumber(currentTime, frameRate)}
+                {timecodeFromFrameNumber(currentFrameNumber, frameRate)}
               </Box>
             </>
           )}

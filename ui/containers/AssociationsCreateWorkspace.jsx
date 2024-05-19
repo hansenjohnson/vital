@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -8,12 +8,14 @@ import StyledButton from '../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
+const THUMBNAIL_WIDTH = 200
 
 const AssociationsCreateWorkspace = ({
   activeVideoURL,
   changingActiveVideo,
   handleNext,
   existingRegions,
+  hasOverlap,
   regionStart,
   regionEnd,
   sightingName,
@@ -28,15 +30,52 @@ const AssociationsCreateWorkspace = ({
   const videoElementRef = useRef(null)
 
   const [videoDuration, setVideoDuration] = useState(0)
-  const [videoFrameRate, setVideoFrameRate] = useState(1)
-  const [videoCurrentTime, setVideoCurrentTime] = useState(0)
+  const [videoFrameRate, setVideoFrameRate] = useState(null)
+  const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
   const nextable = existingRegions.length > 0 || saveable
+
+  // Reset state when video changes
+  useEffect(() => {
+    setVideoDuration(0)
+    setVideoFrameRate(null)
+    setVideoFrameNumber(0)
+    setVideoRangesBuffered([])
+  }, [activeVideoURL])
 
   const seekToFrame = (frame) => {
     if (videoElementRef.current) {
       videoElementRef.current.currentTime = frame / videoFrameRate
     }
+  }
+
+  const regionStartBlob = useRef(null)
+  const _setRegionStart = (...args) => {
+    regionStartBlob.current = null
+
+    const video = videoElementRef.current
+    const outputWidth = THUMBNAIL_WIDTH
+    const outputHeight = video.videoHeight / (video.videoWidth / THUMBNAIL_WIDTH)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = THUMBNAIL_WIDTH
+    canvas.height = Math.floor(outputHeight)
+
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, outputWidth, outputHeight)
+    canvas.toBlob(
+      (blob) => {
+        regionStartBlob.current = blob
+      },
+      'image/jpeg',
+      0.8
+    )
+
+    setRegionStart(...args)
+  }
+
+  const _saveAssociation = () => {
+    saveAssociation(regionStartBlob.current)
   }
 
   return (
@@ -48,8 +87,10 @@ const AssociationsCreateWorkspace = ({
           changingActiveVideo={changingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
-          setVideoFrameRate={setVideoFrameRate}
-          setVideoCurrentTime={setVideoCurrentTime}
+          frameRate={videoFrameRate}
+          setFrameRate={setVideoFrameRate}
+          currentFrameNumber={videoFrameNumber}
+          setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
         />
       </Box>
@@ -61,7 +102,7 @@ const AssociationsCreateWorkspace = ({
           regionStart={regionStart}
           regionEnd={regionEnd}
           videoDuration={videoDuration}
-          currentTime={videoCurrentTime}
+          currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
         />
       </Box>
@@ -70,10 +111,11 @@ const AssociationsCreateWorkspace = ({
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
           <AssociationsDetailsBox
             frameRate={videoFrameRate}
+            hasOverlap={hasOverlap}
             regionStart={regionStart}
             regionEnd={regionEnd}
-            setStart={() => setRegionStart(videoCurrentTime)}
-            setEnd={() => setRegionEnd(videoCurrentTime)}
+            setStart={() => _setRegionStart(videoFrameNumber)}
+            setEnd={() => setRegionEnd(videoFrameNumber)}
             sightingName={sightingName}
             annotations={annotations}
             openSightingDialog={() => setSightingsDialogOpen(true)}
@@ -93,12 +135,12 @@ const AssociationsCreateWorkspace = ({
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
           <StyledButton
-            onClick={saveAssociation}
+            onClick={_saveAssociation}
             variant="contained"
             color="tertiary"
             disabled={!saveable}
           >
-            Save Association
+            Save Linkage
           </StyledButton>
           <StyledButton
             onClick={handleNext}
