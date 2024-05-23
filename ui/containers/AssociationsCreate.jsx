@@ -49,7 +49,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
       const sortedData = sortSightingData(transformedData)
       setSightingData(sortedData)
     })
-  }, [])
+  }, [videoFolderName])
 
   const [existingRegions, setExistingRegions] = useState([])
 
