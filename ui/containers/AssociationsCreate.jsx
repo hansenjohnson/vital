@@ -27,9 +27,8 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   const activeVideoURL = activeVideoFile
     ? `${baseURL}/videos/${videoFolderId}/${activeVideoFile}`
     : ''
-  const setActiveVideoFile = async (videoFile) => {
+  const setActiveVideoFile = (videoFile) => {
     setChangingActiveVideo(true)
-    setChangingActiveVideo(false)
     setActiveVideoFileString(videoFile)
   }
   useEffect(() => {
@@ -164,6 +163,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
         <AssociationsCreateWorkspace
           activeVideoURL={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
+          setChangingActiveVideo={setChangingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}
           hasOverlap={overlapsAnotherRegionForThisLetter}
