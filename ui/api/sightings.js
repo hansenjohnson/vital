@@ -3,12 +3,14 @@ import { getJSON } from './fetchers'
 
 const get = (videoFolderName) => {
   const videoFolderNameParts = videoFolderName.split('-')
-  const year = videoFolderNameParts[0]
-  const month = videoFolderNameParts[1]
-  const day = videoFolderNameParts[2]
-  const observerCode = videoFolderNameParts[3]
+  const year = videoFolderNameParts.shift()
+  const month = videoFolderNameParts.shift()
+  const day = videoFolderNameParts.shift()
+  const observerCode = videoFolderNameParts.join('-')
 
-  return getJSON(`${baseURL}/sightings/date?year=${year}&month=${month}&day=${day}&observer_code=${observerCode}`)
+  return getJSON(
+    `${baseURL}/sightings/date?year=${year}&month=${month}&day=${day}&observer_code=${observerCode}`
+  )
 }
 
 export default {
