@@ -58,8 +58,8 @@ class LinkageModel(SQL):
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO linkage
-                (SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
+                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
+                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
             """
             cursor.execute(query, payload)
             self.conn.commit()

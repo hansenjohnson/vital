@@ -8,7 +8,11 @@ import videosAPI from '../api/videos'
 import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
 
-import { transformSightingData, sortSightingData } from '../utilities/transformers'
+import {
+  transformVideoData,
+  transformSightingData,
+  sortSightingData,
+} from '../utilities/transformers'
 import { doRegionsOverlap } from '../utilities/numbers'
 import ROUTES from '../constants/routes'
 
@@ -18,26 +22,28 @@ import BlankSlate from '../components/BlankSlate'
 import SightingsDialog from '../components/SightingsDialog'
 
 const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName }) => {
-  const [videoFiles, setVideoFiles] = useState([])
-  const [completedVideoFiles, setCompletedVideoFiles] = useState([])
+  const [remainingVideos, setRemainingVideos] = useState([])
+  const [completedVideos, setCompletedVideos] = useState([])
   const [allDone, setAllDone] = useState(false)
 
   const [changingActiveVideo, setChangingActiveVideo] = useState(true)
-  const [activeVideoFile, setActiveVideoFileString] = useState('')
-  const activeVideoURL = activeVideoFile
-    ? `${baseURL}/videos/${videoFolderId}/${activeVideoFile}`
-    : ''
-  const setActiveVideoFile = (videoFile) => {
+  const [activeVideo, setActiveVideoObj] = useState(null)
+  const setActiveVideo = (videoObj) => {
     setChangingActiveVideo(true)
-    setActiveVideoFileString(videoFile)
+    setActiveVideoObj(videoObj)
   }
+  const activeVideoFileName = activeVideo ? activeVideo.fileName : ''
+  const activeVideoURL = activeVideo
+    ? `${baseURL}/videos/${videoFolderId}/${activeVideoFileName}`
+    : ''
+
   useEffect(() => {
     if (!videoFolderId) return
-    videosAPI.getList(videoFolderId).then((videos) => {
-      const videoFileNames = videos.map((video) => video.OptimizedFileName)
-      const [firstVideo, ...nonFirstVideos] = videoFileNames
-      setActiveVideoFile(firstVideo)
-      setVideoFiles(nonFirstVideos)
+    videosAPI.getList(videoFolderId).then((videoRows) => {
+      const videos = videoRows.map(transformVideoData)
+      const [firstVideo, ...nonFirstVideos] = videos
+      setActiveVideo(firstVideo)
+      setRemainingVideos(nonFirstVideos)
     })
   }, [videoFolderId])
 
@@ -96,7 +102,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
     const thumbnailPartialPath = thumbnailsAPI.formulatePath(
       sightingId,
       selectedSighting.date,
-      activeVideoFile,
+      activeVideoFileName,
       regionStart
     )
     const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, thumbnailBlob)
@@ -104,6 +110,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
     const status =
       thumbnailStatus &&
       (await linkagesAPI.create({
+        CatalogVideoId: activeVideo.id,
         StartTime: regionStart,
         EndTime: regionEnd,
         SightingId: sightingId,
@@ -124,29 +131,29 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   }
 
   const nextVideo = () => {
-    if (activeVideoFile) {
-      setCompletedVideoFiles([...completedVideoFiles, activeVideoFile])
+    if (activeVideo) {
+      setCompletedVideos([...completedVideos, activeVideo])
     }
-    if (videoFiles.length === 0) {
-      setActiveVideoFile('')
+    if (remainingVideos.length === 0) {
+      setActiveVideo(null)
       setAllDone(true)
       return
     }
     setExistingRegions([])
     clearAssociation(true)
-    setActiveVideoFile(videoFiles[0])
-    setVideoFiles(videoFiles.slice(1))
+    setActiveVideo(remainingVideos[0])
+    setRemainingVideos(remainingVideos.slice(1))
   }
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <AssociationsCreateSidebar
         videoFolderName={videoFolderName}
-        videoFiles={videoFiles}
-        activeVideoFile={activeVideoFile}
+        videoFiles={remainingVideos.map((video) => video.fileName)}
+        activeVideoFile={activeVideoFileName}
         associationsAdded={existingRegions.length}
         associationIsPending={saveable}
-        completedVideoFiles={completedVideoFiles}
+        completedVideoFiles={completedVideos.map((video) => video.fileName)}
       />
 
       {allDone ? (

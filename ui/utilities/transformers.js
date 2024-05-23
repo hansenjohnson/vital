@@ -25,6 +25,13 @@ export const sortCatalogFolderData = (original) => {
   })
 }
 
+export const transformVideoData = (videoRow) => {
+  return {
+    id: videoRow.CatalogVideoId,
+    fileName: videoRow.OptimizedFileName,
+  }
+}
+
 export const transformSightingData = (sightingRow) => {
   const timeStr = `${sightingRow.SightingTime}`
   const timeStrLen4 = timeStr.length === 3 ? `0${timeStr}` : timeStr
