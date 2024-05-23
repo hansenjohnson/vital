@@ -62,10 +62,6 @@ class SightingModel(SQL):
 
     def get_sightings_by_date(self, year, month, day, observer_code):
         try:
-            # cast month and day to non-padded strings
-            month = str(int(month))
-            day = str(int(day))
-
             cursor = self.conn.cursor()
             cursor.execute(f"SELECT * FROM sighting WHERE SightingYear = {year} AND SightingMonth = {month} AND SightingDay = {day} AND ObserverCode = '{observer_code}'")
             rows = cursor.fetchall()
