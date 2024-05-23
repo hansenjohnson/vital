@@ -1,8 +1,8 @@
-import sys
 import json
 
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
+from utils.prints import print_err
 
 
 class LinkageModel(SQL):
@@ -21,7 +21,7 @@ class LinkageModel(SQL):
             self.file_path = None
             self.refresh_table()
         except Exception as e:
-            sys.stderr.write(f"Failed to initialize LinkageModel: {e}")
+            print_err(f"Failed to initialize LinkageModel: {e}")
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.LINKAGE_FILE_PATH.value)
@@ -49,7 +49,7 @@ class LinkageModel(SQL):
             cursor.close()
             return dict(row) if row else None
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_linkage_by_id: {e}")
+            print_err(f"Failed to execute SQL query get_linkage_by_id: {e}")
         return None
 
     def create_linkage(self, payload):
@@ -70,7 +70,7 @@ class LinkageModel(SQL):
             cursor.close()
             return lastrowid
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_linkage: {e}")
+            print_err(f"Failed to execute SQL query create_linkage: {e}")
             raise e
 
     def delete_linkage_by_id(self, linkage_id):
@@ -82,7 +82,7 @@ class LinkageModel(SQL):
             self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
             cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query delete_linkage_by_id: {e}")
+            print_err(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e
 
     def get_linkages_by_sighting(self, year, month, day, observer_code):
@@ -102,5 +102,5 @@ class LinkageModel(SQL):
             cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_linkages_by_sighting: {e}")
+            print_err(f"Failed to execute SQL query get_linkages_by_sighting: {e}")
         return None

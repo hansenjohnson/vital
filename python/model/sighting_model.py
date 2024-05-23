@@ -1,7 +1,6 @@
-import sys
-
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
+from utils.prints import print_err
 
 
 class SightingModel(SQL):
@@ -21,7 +20,7 @@ class SightingModel(SQL):
 
             self.refresh_table()
         except Exception as e:
-            sys.stderr.write(f"Failed to initialize SightingModel: {e}")
+            print_err(f"Failed to initialize SightingModel: {e}")
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.SIGHTING_FILE_PATH.value)
@@ -47,7 +46,7 @@ class SightingModel(SQL):
             cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_all_sightings: {e}")
+            print_err(f"Failed to execute SQL query get_all_sightings: {e}")
         return None
 
     def get_sighting_by_id(self, sighting_id):
@@ -58,7 +57,7 @@ class SightingModel(SQL):
             cursor.close()
             return dict(row) if row else None
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_sighting_by_id: {e}")
+            print_err(f"Failed to execute SQL query get_sighting_by_id: {e}")
         return None
 
     def get_sightings_by_date(self, year, month, day, observer_code):
@@ -69,6 +68,6 @@ class SightingModel(SQL):
             cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_sightings_by_date: {e}")
+            print_err(f"Failed to execute SQL query get_sightings_by_date: {e}")
         return None
 
