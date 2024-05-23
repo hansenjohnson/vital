@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
-import associationsAPI from '../api/linkages'
+import linkagesAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
+import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
+
 import { transformSightingData, sortSightingData } from '../utilities/transformers'
+import { doRegionsOverlap } from '../utilities/numbers'
 import ROUTES from '../constants/routes'
 
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
@@ -15,10 +18,6 @@ import BlankSlate from '../components/BlankSlate'
 import SightingsDialog from '../components/SightingsDialog'
 
 const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName }) => {
-  useEffect(() => {
-    window.api.setTitle('Associate & Annotate')
-  }, [])
-
   const [videoFiles, setVideoFiles] = useState([])
   const [completedVideoFiles, setCompletedVideoFiles] = useState([])
   const [allDone, setAllDone] = useState(false)
@@ -52,6 +51,8 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
     })
   }, [])
 
+  const [existingRegions, setExistingRegions] = useState([])
+
   const [regionStart, setRegionStart] = useState(null)
   const [regionEnd, setRegionEnd] = useState(null)
   const [sightingId, setSightingId] = useState(null)
@@ -60,7 +61,17 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   const sightingName = selectedSighting
     ? `${selectedSighting.date} ${selectedSighting.observer} ${selectedSighting.letter}`
     : null
-  const saveable = regionStart != null && regionEnd != null && sightingName != null
+
+  const overlapsAnotherRegionForThisLetter = existingRegions
+    .filter((region) => region.letter === selectedSighting.letter)
+    .some((region) => doRegionsOverlap(region.start, region.end, regionStart, regionEnd))
+  const saveable = (() => {
+    if (regionStart == null) return false
+    if (regionEnd == null) return false
+    if (sightingName == null) return false
+    if (overlapsAnotherRegionForThisLetter) return false
+    return true
+  })()
 
   const [sightingsDialogOpen, setSightingsDialogOpen] = useState(false)
   const selectSighting = (id) => {
@@ -71,28 +82,44 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
   const [annotations, setAnnotations] = useState([])
   const deleteAnnotation = () => {}
 
-  const [existingRegions, setExistingRegions] = useState([])
-
-  const clearAssociation = () => {
+  const clearAssociation = (clearAll = false) => {
     setRegionStart(null)
     setRegionEnd(null)
-    setSightingId(null)
     setAnnotations([])
+    // NOTE: we do not clear sightingId. This enables the user to more quickly tag the same mammal
+    // within the current video. They only need to set a new region.
+    if (clearAll) {
+      setSightingId(null)
+    }
   }
-  const saveAssociation = async () => {
-    const status = await associationsAPI.create({
-      StartTime: regionStart,
-      EndTime: regionEnd,
-      SightingId: sightingId,
-      Annotation: annotations,
-      VideoFilePath: '',
-      ThumbnailFilePath: '',
-      CreatedBy: '',
-      CreatedDate: `${new Date()}`,
-    })
+
+  const saveAssociation = async (thumbnailBlob) => {
+    const thumbnailPartialPath = thumbnailsAPI.formulatePath(
+      sightingId,
+      selectedSighting.date,
+      activeVideoFile,
+      regionStart
+    )
+    const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, thumbnailBlob)
+
+    const status =
+      thumbnailStatus &&
+      (await linkagesAPI.create({
+        StartTime: regionStart,
+        EndTime: regionEnd,
+        SightingId: sightingId,
+        Annotation: annotations,
+        ThumbnailFilePath: thumbnailPartialPath,
+        CreatedDate: `${new Date()}`,
+      }))
 
     if (status === true) {
-      setExistingRegions([...existingRegions, [regionStart, regionEnd]])
+      const newRegion = {
+        letter: selectedSighting.letter,
+        start: regionStart,
+        end: regionEnd,
+      }
+      setExistingRegions([...existingRegions, newRegion])
       clearAssociation()
     }
   }
@@ -107,7 +134,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
       return
     }
     setExistingRegions([])
-    clearAssociation()
+    clearAssociation(true)
     setActiveVideoFile(videoFiles[0])
     setVideoFiles(videoFiles.slice(1))
   }
@@ -139,6 +166,7 @@ const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName 
           changingActiveVideo={changingActiveVideo}
           handleNext={nextVideo}
           existingRegions={existingRegions}
+          hasOverlap={overlapsAnotherRegionForThisLetter}
           regionStart={regionStart}
           regionEnd={regionEnd}
           sightingName={sightingName}

@@ -16,6 +16,7 @@
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-prettier": "^2.0.0",
+    "@electron/packager": "^18.3.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@fontsource-variable/sometype-mono": "^5.0.2",
@@ -27,7 +28,6 @@
     "dashjs": "^4.7.4",
     "electron": "^29.1.5",
     "electron-builder": "^24.9.1",
-    "electron-packager": "^17.1.2",
     "electron-vite": "^2.1.0",
     "electron-winstaller": "^5.3.0",
     "eslint": "^8.56.0",

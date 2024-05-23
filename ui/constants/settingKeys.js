@@ -1,4 +1,4 @@
-export default {
+const SETTING_KEYS = {
   CATALOG_FOLDER_FILE_PATH: 'folder_file_path',
   CATALOG_VIDEO_FILE_PATH: 'video_file_path',
   LINKAGE_FILE_PATH: 'linkage_file_path',
@@ -8,3 +8,15 @@ export default {
   BASE_FOLDER_OF_VIDEOS: 'base_folder_of_videos',
   FOLDER_OF_VIDEOS: 'folder_of_videos',
 }
+
+const REQUIRED_SETTINGS = [
+  SETTING_KEYS.CATALOG_FOLDER_FILE_PATH,
+  SETTING_KEYS.CATALOG_VIDEO_FILE_PATH,
+  SETTING_KEYS.LINKAGE_FILE_PATH,
+  SETTING_KEYS.SIGHTING_FILE_PATH,
+  SETTING_KEYS.BASE_FOLDER_OF_VIDEOS,
+  SETTING_KEYS.THUMBNAIL_DIR_PATH,
+]
+
+export { REQUIRED_SETTINGS }
+export default SETTING_KEYS

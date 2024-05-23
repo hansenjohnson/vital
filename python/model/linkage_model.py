@@ -59,7 +59,7 @@ class LinkageModel(SQL):
             query = """
                 INSERT INTO linkage
                 (SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, :CreatedBy, :CreatedDate)
+                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
             """
             cursor.execute(query, payload)
             self.conn.commit()

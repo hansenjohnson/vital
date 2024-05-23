@@ -40,3 +40,16 @@ export const postJSONWithResponse = async (url, data) => {
     return null
   }
 }
+
+export const postBlob = async (url, blob) => {
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: blob,
+    })
+    return response.ok
+  } catch (error) {
+    console.error(`Error with POST to ${url}:`, error?.message || error)
+    return false
+  }
+}
