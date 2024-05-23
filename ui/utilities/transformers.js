@@ -27,6 +27,7 @@ export const sortCatalogFolderData = (original) => {
 
 export const transformSightingData = (sightingRow) => {
   const timeStr = `${sightingRow.SightingTime}`
+  const timeStrLen4 = timeStr.length === 3 ? `0${timeStr}` : timeStr
   return {
     id: sightingRow.SightingId,
     date: yearMonthDayString(
@@ -35,7 +36,7 @@ export const transformSightingData = (sightingRow) => {
       sightingRow.SightingDay
     ),
     observer: sightingRow.ObserverCode,
-    time: `${timeStr.slice(0, 2)}:${timeStr.slice(2, 4)}`,
+    time: `${timeStrLen4.slice(0, 2)}:${timeStrLen4.slice(2, 4)}`,
     letter: sightingRow.SightingLetter,
   }
 }
