@@ -31,7 +31,7 @@ const ToolsContainer = ({
   }, [reloadFromSettingsChange])
 
   const handleClickViewAssociations = () => {
-    alert('not implemented yet!')
+    setRoute(ROUTES.ASSOCIATIONS_VIEW)
   }
 
   const handleClickCreateAssociations = () => {
@@ -39,7 +39,7 @@ const ToolsContainer = ({
     setCatalogFoldersDialog(true)
   }
 
-  const handleSelectCatalogFolder = async (catalogFolderId) => {
+  const handleSelectCatalogFolder = (catalogFolderId) => {
     const catalogFolder = catalogFolders.find((entry) => entry.id === catalogFolderId)
     setVideoFolderId(catalogFolderId)
     setVideoFolderName(`${catalogFolder.date}-${catalogFolder.observer}`)

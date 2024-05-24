@@ -63,7 +63,7 @@ const App = () => {
     )
 
     // This captures the case where they are all initialized on app launch
-    // and additionally when they become initialized one the first closing of the Settings dialog
+    // or become initialized on the first closing of the Settings dialog
     if (settingsOpen === false && areSettingsInitialized) {
       setSettingsInitialized(true)
       return

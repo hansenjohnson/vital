@@ -6,8 +6,8 @@ const ROUTES = {
 
 const TITLES = {
   [ROUTES.TOOLS]: 'Video Catalog Suite',
-  [ROUTES.ASSOCIATIONS_VIEW]: 'Associate & Annotate',
-  [ROUTES.ASSOCIATIONS_CREATE]: 'Associate & Annotate',
+  [ROUTES.ASSOCIATIONS_VIEW]: 'Associate & Annotate - View',
+  [ROUTES.ASSOCIATIONS_CREATE]: 'Associate & Annotate - Create',
 }
 
 export { TITLES }
