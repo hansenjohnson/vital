@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
+import useStore from '../store'
 import linkagesAPI from '../api/linkages'
 import sightingsAPI from '../api/sightings'
 import videosAPI from '../api/videos'
@@ -21,7 +23,12 @@ import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
 import BlankSlate from '../components/BlankSlate'
 import SightingsDialog from '../components/SightingsDialog'
 
-const AssociationsCreateContainer = ({ setRoute, videoFolderId, videoFolderName }) => {
+const AssociationsCreateContainer = () => {
+  const setRoute = useStore((state) => state.setRoute)
+  const [videoFolderId, videoFolderName] = useStore(
+    useShallow((state) => [state.videoFolderId, state.videoFolderName])
+  )
+
   const [remainingVideos, setRemainingVideos] = useState([])
   const [completedVideos, setCompletedVideos] = useState([])
   const [allDone, setAllDone] = useState(false)

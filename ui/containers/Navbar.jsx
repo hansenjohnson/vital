@@ -1,11 +1,19 @@
+import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 
-import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+import useStore from '../store'
+import useSettingsStore from '../store/settings'
 import ROUTES from '../constants/routes'
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
-const Navbar = ({ width, route, setRoute, settingsOpen, setSettingsOpen, settingsInitialized }) => {
+const Navbar = ({ width }) => {
+  const [route, setRoute] = useStore(useShallow((state) => [state.route, state.setRoute]))
+  const [settingsInitialized, settingsOpen, setSettingsOpen] = useSettingsStore(
+    useShallow((state) => [state.initialized, state.open, state.setOpen])
+  )
+
   const title = TITLES[route]
 
   const handleToolsClick = () => {
