@@ -1,7 +1,6 @@
-import sys
-
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
+from utils.prints import print_err
 
 
 class FolderModel(SQL):
@@ -20,7 +19,7 @@ class FolderModel(SQL):
 
             self.refresh_table()
         except Exception as e:
-            (sys.stderr.write
+            (print_err
              (f"Failed to initialize  FolderModel: {e}"))
 
     def refresh_table(self):
@@ -45,5 +44,5 @@ class FolderModel(SQL):
             cursor.close()
             return dict(row) if row else None
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_folder_by_id: {e}")
+            print_err(f"Failed to execute SQL query get_folder_by_id: {e}")
         return None

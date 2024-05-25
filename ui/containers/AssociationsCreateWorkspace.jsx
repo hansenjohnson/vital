@@ -13,6 +13,7 @@ const THUMBNAIL_WIDTH = 200
 const AssociationsCreateWorkspace = ({
   activeVideoURL,
   changingActiveVideo,
+  setChangingActiveVideo,
   handleNext,
   existingRegions,
   hasOverlap,
@@ -85,6 +86,7 @@ const AssociationsCreateWorkspace = ({
           ref={videoElementRef}
           url={activeVideoURL}
           changingActiveVideo={changingActiveVideo}
+          setChangingActiveVideo={setChangingActiveVideo}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
           frameRate={videoFrameRate}

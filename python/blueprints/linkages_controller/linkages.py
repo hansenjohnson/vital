@@ -41,3 +41,16 @@ def delete_linkage_by_id(linkage_id):
         return jsonify({"message": "Linkage deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@bp.route('/sighting', methods=['GET'])
+def get_linkages_by_sighting():
+    try:
+        year = request.args.get('year')
+        month = request.args.get('month')
+        day = request.args.get('day')
+        observer_code = request.args.get('observer_code')
+
+        return jsonify(linkage_model.get_linkages_by_sighting(year, month, day, observer_code)), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

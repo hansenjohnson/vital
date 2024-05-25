@@ -1,8 +1,8 @@
-import sys
 import json
 
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
+from utils.prints import print_err
 
 
 class LinkageModel(SQL):
@@ -21,7 +21,7 @@ class LinkageModel(SQL):
             self.file_path = None
             self.refresh_table()
         except Exception as e:
-            sys.stderr.write(f"Failed to initialize LinkageModel: {e}")
+            print_err(f"Failed to initialize LinkageModel: {e}")
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.LINKAGE_FILE_PATH.value)
@@ -49,7 +49,7 @@ class LinkageModel(SQL):
             cursor.close()
             return dict(row) if row else None
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query get_linkage_by_id: {e}")
+            print_err(f"Failed to execute SQL query get_linkage_by_id: {e}")
         return None
 
     def create_linkage(self, payload):
@@ -58,8 +58,8 @@ class LinkageModel(SQL):
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO linkage
-                (SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
+                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
+                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
             """
             cursor.execute(query, payload)
             self.conn.commit()
@@ -70,8 +70,8 @@ class LinkageModel(SQL):
             cursor.close()
             return lastrowid
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_linkage: {e}")
-            raise
+            print_err(f"Failed to execute SQL query create_linkage: {e}")
+            raise e
 
     def delete_linkage_by_id(self, linkage_id):
         try:
@@ -82,5 +82,25 @@ class LinkageModel(SQL):
             self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
             cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query delete_linkage_by_id: {e}")
+            print_err(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e
+
+    def get_linkages_by_sighting(self, year, month, day, observer_code):
+        try:
+            sighting_query = ""
+            if month:
+                sighting_query += f" AND SightingMonth = {month}"
+            if day:
+                sighting_query += f" AND SightingDay = {day}"
+            if observer_code:
+                sighting_query += f" AND ObserverCode = '{observer_code}'"
+
+            cursor = self.conn.cursor()
+            cursor.execute(f"""SELECT l.*, s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode FROM Linkage l 
+                           JOIN Sighting s ON l.SightingId = s.SightingId where s.SightingYear = {year}{sighting_query}""")
+            rows = cursor.fetchall()
+            cursor.close()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            print_err(f"Failed to execute SQL query get_linkages_by_sighting: {e}")
+        return None

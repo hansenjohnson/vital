@@ -29,6 +29,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   const {
     url,
     changingActiveVideo,
+    setChangingActiveVideo,
     siblingHeights,
     setVideoDuration,
     frameRate,
@@ -69,6 +70,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   const loadingFinished = () => {
     // move immediatley from Loading to Playing because of Auto-Play
     setVideoIs(VIDEO_STATES.PLAYING)
+    setChangingActiveVideo(false)
   }
 
   const videoStreamInitialized = () => {
