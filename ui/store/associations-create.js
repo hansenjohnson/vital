@@ -1,8 +1,10 @@
+import { valueSetter } from './utils'
+
 const createAssociationsCreateStore = (set) => ({
   videoFolderId: null,
   videoFolderName: null,
-  setVideoFolderId: (val) => set(() => ({ videoFolderId: val })),
-  setVideoFolderName: (val) => set(() => ({ videoFolderName: val })),
+  setVideoFolderId: valueSetter(set, 'videoFolderId'),
+  setVideoFolderName: valueSetter(set, 'videoFolderName'),
 })
 
 export default createAssociationsCreateStore

@@ -3,13 +3,14 @@ import { create } from 'zustand'
 import ping from '../api/ping'
 import ROUTES from '../constants/routes'
 import createAssociationsCreateStore from './associations-create'
+import { valueSetter } from './utils'
 
 const useStore = create((set) => ({
   serverReachable: 0,
-  setServerReachable: (val) => set(() => ({ serverReachable: val })),
+  setServerReachable: valueSetter(set, 'serverReachable'),
 
   route: ROUTES.TOOLS,
-  setRoute: (val) => set(() => ({ route: val })),
+  setRoute: valueSetter(set, 'route'),
 
   ...createAssociationsCreateStore(set),
 }))
