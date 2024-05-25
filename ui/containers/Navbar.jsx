@@ -59,6 +59,18 @@ const Navbar = ({ width }) => {
       >
         {title}
       </Box>
+
+      {/* Extra box behind navbar to hide window resizing artifacts */}
+      <Box
+        sx={{
+          position: 'fixed',
+          width: `400px`,
+          height: `${TITLEBAR_HEIGHT}px`,
+          right: 0,
+          backgroundColor: 'primary.dark',
+          zIndex: -1,
+        }}
+      />
     </Box>
   )
 }
