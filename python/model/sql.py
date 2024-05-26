@@ -1,9 +1,9 @@
-import sys
 import pandas as pd
 import sqlite3
 import os
 
 from settings.settings_service import SettingsService
+from utils.prints import print_err
 
 
 class SQL:
@@ -35,7 +35,7 @@ class SQL:
             self.conn.commit()
             cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to load sql for {table_name}: {e}")
+            print_err(f"Failed to load sql for {table_name}: {e}")
             raise e
 
     def get_all_rows(self, table_name):
@@ -46,7 +46,7 @@ class SQL:
             cursor.close()
             return [dict(row) for row in rows]
         except Exception as e:
-            sys.stderr.write(f"Failed to get all rows from {table_name}: {e}")
+            print_err(f"Failed to get all rows from {table_name}: {e}")
             raise e
 
     def flush_to_excel(self, table_name, file_path, sheet_name):
@@ -54,5 +54,5 @@ class SQL:
             self.df = pd.read_sql_query(f"SELECT * FROM {table_name}", self.conn)
             self.df.to_excel(excel_writer=file_path, sheet_name=sheet_name, index=False)
         except Exception as e:
-            sys.stderr.write(f"Failed to flush SQL to excel: {e}")
+            print_err(f"Failed to flush SQL to excel: {e}")
             raise e

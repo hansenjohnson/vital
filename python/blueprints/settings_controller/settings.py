@@ -1,5 +1,3 @@
-import sys
-
 from flask import Blueprint, jsonify, request
 
 from model.folder_model import FolderModel
@@ -8,6 +6,7 @@ from model.linkage_model import LinkageModel
 from model.sighting_model import SightingModel
 from model.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
+from utils.prints import print_err
 
 bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
@@ -33,7 +32,7 @@ def create_or_update_settings():
         response = jsonify({"message": "Setting saved Successfully"})
         status = 200
     except Exception as e:
-        sys.stderr.write(f"Failed to save settings: {e}")
+        print_err(f"Failed to save settings: {e}")
         response = jsonify({"Setting save failed ": str(e)})
         status = 500
     finally:
