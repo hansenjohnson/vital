@@ -29,6 +29,7 @@ export const transformVideoData = (videoRow) => {
   return {
     id: videoRow.CatalogVideoId,
     fileName: videoRow.OptimizedFileName,
+    frameRate: videoRow.FrameRate,
   }
 }
 
@@ -70,12 +71,12 @@ export const sortSightingData = (original) => {
 
 export const transformLinkageData = (linkageRow) => ({
   id: linkageRow.LinkageId,
-  videoId: linkageRow.CatalogVideoId,
   regionStart: linkageRow.StartTime,
   regionEnd: linkageRow.EndTime,
   annotations: JSON.parse(linkageRow.Annotation),
   thumbnailPartialPath: linkageRow.ThumbnailFilePath,
   sighting: transformSightingData(linkageRow),
+  video: transformVideoData(linkageRow),
 })
 
 export const sortLinkageData = (original) => {
