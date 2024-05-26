@@ -1,13 +1,8 @@
 import { valueSetter } from './utils'
-import {
-  transformVideoData,
-  transformSightingData,
-  sortSightingData,
-} from '../utilities/transformers'
-import { doRegionsOverlap } from '../utilities/numbers'
+import { transformVideoData } from '../utilities/transformers'
+import { getSelectedSighting, selectedSightingHasOverlap } from './sightings'
 
 import videosAPI from '../api/videos'
-import sightingsAPI from '../api/sightings'
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
@@ -22,9 +17,6 @@ const initialState = {
   existingRegions: [],
   regionStart: null,
   regionEnd: null,
-  sightings: [],
-  selectedSightingId: null,
-  sightingsDialogOpen: false,
   annotations: [],
 }
 
@@ -72,18 +64,6 @@ const createAssociationsCreateStore = (set, get) => ({
   setExistingRegions: valueSetter(set, 'existingRegions'),
   setRegionStart: valueSetter(set, 'regionStart'),
   setRegionEnd: valueSetter(set, 'regionEnd'),
-
-  // == Sighting Actions ==
-  setSightings: valueSetter(set, 'sightings'),
-  loadSightings: async (videoFolderName) => {
-    const sightingData = await sightingsAPI.get(videoFolderName)
-    const transformedData = sightingData.map(transformSightingData)
-    const sortedData = sortSightingData(transformedData)
-    set({ sightings: sortedData })
-  },
-  setSightingId: valueSetter(set, 'selectedSightingId'),
-  selectSighting: (id) => set({ selectedSightingId: id, sightingsDialogOpen: false }),
-  setSightingsDialogOpen: valueSetter(set, 'sightingsDialogOpen'),
 
   // == Annotation Actions ==
   setAnnotations: valueSetter(set, 'annotations'),
@@ -137,25 +117,6 @@ const createAssociationsCreateStore = (set, get) => ({
 const getActiveVideoURL = (state) =>
   state.activeVideo ? `${baseURL}/videos/${state.videoFolderId}/${state.activeVideo.fileName}` : ''
 
-const getSelectedSighting = (state) =>
-  state.sightings.find((sighting) => sighting.id === state.selectedSightingId)
-
-const selectedSightingName = (state) => {
-  const selectedSighting = getSelectedSighting(state)
-  return selectedSighting
-    ? `${selectedSighting.date} ${selectedSighting.observer} ${selectedSighting.letter}`
-    : ''
-}
-
-const selectedSightingHasOverlap = (state) => {
-  const selectedSighting = getSelectedSighting(state)
-  return state.existingRegions
-    .filter((region) => region.letter === selectedSighting?.letter)
-    .some((region) =>
-      doRegionsOverlap(region.start, region.end, state.regionStart, state.regionEnd)
-    )
-}
-
 const isSaveable = (state) => {
   if (state.regionStart == null) return false
   if (state.regionEnd == null) return false
@@ -164,11 +125,5 @@ const isSaveable = (state) => {
   return true
 }
 
-export {
-  getActiveVideoURL,
-  getSelectedSighting,
-  selectedSightingName,
-  selectedSightingHasOverlap,
-  isSaveable,
-}
+export { getActiveVideoURL, isSaveable }
 export default createAssociationsCreateStore

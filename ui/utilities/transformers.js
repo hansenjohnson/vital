@@ -42,6 +42,9 @@ export const transformSightingData = (sightingRow) => {
       sightingRow.SightingMonth,
       sightingRow.SightingDay
     ),
+    year: sightingRow.SightingYear.toString(),
+    month: sightingRow.SightingMonth.toString().padStart(2, '0'),
+    day: sightingRow.SightingDay.toString().padStart(2, '0'),
     observer: sightingRow.ObserverCode,
     time: `${timeStrLen4.slice(0, 2)}:${timeStrLen4.slice(2, 4)}`,
     letter: sightingRow.SightingLetter,

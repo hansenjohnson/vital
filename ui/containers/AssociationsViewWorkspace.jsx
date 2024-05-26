@@ -2,12 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import {
-  getActiveVideoURL,
-  isSaveable,
-  selectedSightingName,
-  selectedSightingHasOverlap,
-} from '../store/associations-create'
+import { getActiveVideoURL, isSaveable } from '../store/associations-create'
+import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
@@ -37,7 +33,7 @@ const AssociationsViewWorkspace = () => {
   const hasOverlap = useStore(selectedSightingHasOverlap)
   const annotations = useStore((state) => state.annotations)
   const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
-  const sightingName = useStore(selectedSightingName)
+  const sightingName = useStore(getSelectedSightingName)
   const saveAssociation = useStore((state) => state.saveAssociation)
 
   // Video State that we imperatively subscribe to

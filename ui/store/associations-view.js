@@ -1,10 +1,8 @@
 import { valueSetter } from './utils'
 
 const initialState = {
-  // viewYear: null,
-  viewYear: '2021',
-  // viewSuffix: null,
-  viewSuffix: '07-18 CWR',
+  viewYear: null,
+  viewSuffix: null,
 }
 
 const createAssociationsViewStore = (set) => ({
@@ -15,4 +13,7 @@ const createAssociationsViewStore = (set) => ({
   setViewSuffix: valueSetter(set, 'viewSuffix'),
 })
 
+const getViewSuffix = (sighting) => `${sighting.month}-${sighting.day} ${sighting.observer}`
+
+export { getViewSuffix }
 export default createAssociationsViewStore

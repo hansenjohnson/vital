@@ -6,12 +6,13 @@ import useStore from '../store'
 import useSettingsStore from '../store/settings'
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
+import catalogFoldersAPI from '../api/catalogFolders'
+import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
+
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import CatalogFolderDialog from '../components/CatalogFolderDialog'
-import catalogFoldersAPI from '../api/catalogFolders'
-import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
 const ToolsContainer = () => {
   const setRoute = useStore((state) => state.setRoute)
@@ -34,7 +35,9 @@ const ToolsContainer = () => {
     })
   }, [settingsInitialized])
 
-  const handleClickViewAssociations = () => {
+  const loadSightings = useStore((state) => state.loadSightings)
+  const handleClickViewAssociations = async () => {
+    await loadSightings()
     setRoute(ROUTES.ASSOCIATIONS_VIEW)
   }
 

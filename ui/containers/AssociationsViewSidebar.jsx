@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
+import { getViewSuffix } from '../store/associations-view'
 import Sidebar from '../components/Sidebar'
 import StyledSelect from '../components/StyledSelect'
 
@@ -13,6 +14,21 @@ const AssociationsViewSidebar = () => {
   const [viewSuffix, setViewSuffix] = useStore(
     useShallow((state) => [state.viewSuffix, state.setViewSuffix])
   )
+
+  const sightings = useStore((state) => state.sightings)
+  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year))]
+  const sightingSuffixes = [...new Set(sightings.map(getViewSuffix))]
+  sightingSuffixes.sort((a, b) => a.localeCompare(b))
+
+  // Set Default Options as initial reaction to them being available
+  useEffect(() => {
+    if (viewYear == null) {
+      setViewYear(sightingYears[0])
+    }
+    if (viewSuffix == null) {
+      setViewSuffix(sightingSuffixes[0])
+    }
+  }, [viewYear, viewSuffix])
 
   return (
     <Sidebar>
@@ -28,20 +44,24 @@ const AssociationsViewSidebar = () => {
         })}
       >
         <Box sx={{ width: '90px' }}>
-          <StyledSelect
-            label="Year"
-            value={viewYear}
-            handleChange={(event) => setViewYear(event.target.value)}
-            options={['2021', '2022', '2023', '2024']}
-          />
+          {viewYear && (
+            <StyledSelect
+              label="Year"
+              value={viewYear}
+              handleChange={(event) => setViewYear(event.target.value)}
+              options={sightingYears}
+            />
+          )}
         </Box>
         <Box sx={{ flex: 1 }}>
-          <StyledSelect
-            label="Viewing"
-            value={viewSuffix}
-            handleChange={(event) => setViewSuffix(event.target.value)}
-            options={['07-18 CWR', '07-19 GLL-DR', '10-13 TC-DASH8']}
-          />
+          {viewSuffix && (
+            <StyledSelect
+              label="Viewing"
+              value={viewSuffix}
+              handleChange={(event) => setViewSuffix(event.target.value)}
+              options={sightingSuffixes}
+            />
+          )}
         </Box>
       </Box>
 
