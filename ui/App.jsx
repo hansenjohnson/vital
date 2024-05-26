@@ -47,17 +47,18 @@ const App = () => {
     [JSON.stringify(_titlebarRect), JSON.stringify(windowSize)]
   )
 
-  // Prevent app from rendering until server is reachable
-  // or if settings are not available yet
-  if (!serverReachable || settingsLoading) return <CenteredLoadingCircle />
-
+  // Prevent app from rendering until server is reachable or if settings are not available yet
   return (
     <>
       <Navbar width={titlebarRect.width} />
-      <Box sx={{ height: `calc(100vh - ${TITLEBAR_HEIGHT}px)` }}>
-        <SettingsContainer />
-        <ActiveRouteComponent />
-      </Box>
+      {!serverReachable || settingsLoading ? (
+        <CenteredLoadingCircle />
+      ) : (
+        <Box sx={{ height: `calc(100vh - ${TITLEBAR_HEIGHT}px)` }}>
+          <SettingsContainer />
+          <ActiveRouteComponent />
+        </Box>
+      )}
     </>
   )
 }
