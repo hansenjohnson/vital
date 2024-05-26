@@ -74,7 +74,7 @@ export const transformLinkageData = (linkageRow) => ({
   regionStart: linkageRow.StartTime,
   regionEnd: linkageRow.EndTime,
   annotations: JSON.parse(linkageRow.Annotation),
-  thumbnailPartialPath: linkageRow.ThumbnailFilePath,
+  thumbnail: linkageRow.ThumbnailFilePath,
   sighting: transformSightingData(linkageRow),
   video: transformVideoData(linkageRow),
 })
