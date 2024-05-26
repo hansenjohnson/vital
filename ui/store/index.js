@@ -3,11 +3,13 @@ import { create } from 'zustand'
 import ping from '../api/ping'
 import ROUTES from '../constants/routes'
 import createAssociationsCreateStore from './associations-create'
+import createAssociationsViewStore from './associations-view'
 import { valueSetter } from './utils'
 
 const useStore = create((set, get) => ({
   resetStore: () => {
     get().resetAssociationsCreateStore()
+    get().resetAssociationsViewStore()
   },
 
   serverReachable: 0,
@@ -17,6 +19,7 @@ const useStore = create((set, get) => ({
   setRoute: valueSetter(set, 'route'),
 
   ...createAssociationsCreateStore(set, get),
+  ...createAssociationsViewStore(set, get),
 }))
 
 // We don't need to check for this from React since the app is unusable without it

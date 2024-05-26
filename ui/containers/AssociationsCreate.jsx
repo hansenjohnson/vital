@@ -5,9 +5,7 @@ import Button from '@mui/material/Button'
 
 import useStore from '../store'
 import { useValueAndSetter } from '../store/utils'
-
 import ROUTES from '../constants/routes'
-
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
 import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
 import BlankSlate from '../components/BlankSlate'
