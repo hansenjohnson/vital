@@ -39,17 +39,17 @@ const AssociationsViewSidebar = () => {
   }, [viewYear, viewSuffix])
 
   return (
-    <Sidebar>
+    <Sidebar noPadding noGap>
       <Box
-        sx={(theme) => ({
-          width: `calc(100% + ${theme.spacing(2)})`,
-          margin: -1,
-          padding: `${theme.spacing(1)} ${theme.spacing(1)} ${theme.spacing(0)} ${theme.spacing(1)}`,
+        sx={{
+          width: '100%',
+          padding: 1,
+          paddingBottom: 0,
           color: 'black',
           backgroundColor: 'background.headerPaper',
           display: 'flex',
           flexDirection: 'column',
-        })}
+        }}
       >
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Box sx={{ width: '90px' }}>
@@ -86,7 +86,8 @@ const AssociationsViewSidebar = () => {
         </Box>
       </Box>
 
-      <Box sx={{ marginRight: -1, overflowY: 'scroll' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'scroll' }}>
+        <Box sx={{ marginTop: '2px' }} />
         {linkages.map((linkage) => (
           <LinkageListItem
             key={linkage.id}

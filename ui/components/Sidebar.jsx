@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 
-const Sidebar = ({ children }) => (
+const Sidebar = ({ children, noPadding = false, noGap = false }) => (
   <Box
     sx={{
       flex: '0 0 400px',
@@ -8,8 +8,8 @@ const Sidebar = ({ children }) => (
       backgroundColor: 'rgba(255, 255, 255, 0.1)',
       display: 'flex',
       flexDirection: 'column',
-      padding: 1,
-      gap: 1,
+      padding: noPadding ? 0 : 1,
+      gap: noGap ? 0 : 1,
     }}
   >
     {children}
