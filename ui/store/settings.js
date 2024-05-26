@@ -12,8 +12,8 @@ const useSettingsStore = create((set) => ({
 
   open: false,
   setOpen: valueSetter(set, 'open'),
-  openDialog: () => set(() => ({ open: true })),
-  closeDialog: () => set(() => ({ open: false })),
+  openDialog: () => set({ open: true }),
+  closeDialog: () => set({ open: false }),
 
   settings: Object.fromEntries(REQUIRED_SETTINGS.map((key) => [key, ''])),
   setSettings: valueSetter(set, 'settings'),
