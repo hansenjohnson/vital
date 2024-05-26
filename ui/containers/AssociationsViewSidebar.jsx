@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 
@@ -20,14 +20,19 @@ const AssociationsViewSidebar = () => {
   const sightingSuffixes = [...new Set(sightings.map(getViewSuffix))]
   sightingSuffixes.sort((a, b) => a.localeCompare(b))
 
-  // Set Default Options as initial reaction to them being available
+  // Linkage Data Handling
+  const linkages = useStore((state) => state.linkages)
+  const loadLinkages = useStore((state) => state.loadLinkages)
   useEffect(() => {
+    // Set Default Options as initial reaction to them being available
     if (viewYear == null) {
       setViewYear(sightingYears[0])
     }
     if (viewSuffix == null) {
       setViewSuffix(sightingSuffixes[0])
     }
+
+    loadLinkages()
   }, [viewYear, viewSuffix])
 
   return (
@@ -66,10 +71,12 @@ const AssociationsViewSidebar = () => {
       </Box>
 
       <Box>
-        <Box>Sighting 1</Box>
-        <Box>Sighting 2</Box>
-        <Box>Sighting 3</Box>
-        <Box>Sighting 4</Box>
+        {linkages.map((linkage) => (
+          <Box key={linkage.id}>
+            {linkage.sighting.letter} @ {linkage.regionStart} -{' '}
+            {linkage.regionEnd - linkage.regionStart}
+          </Box>
+        ))}
       </Box>
     </Sidebar>
   )

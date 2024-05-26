@@ -8,12 +8,7 @@ import SightingsDialog from '../components/SightingsDialog'
 
 const AssociationsViewContainer = () => {
   // Sighting Data
-  // const sightings = useStore((state) => state.sightings)
-  // const loadSightings = useStore((state) => state.loadSightings)
-  // useEffect(() => {
-  //   loadSightings(videoFolderName)
-  // }, [videoFolderName])
-  const sightings = []
+  const sightings = useStore((state) => state.sightings)
   const selectSighting = useStore((state) => state.selectSighting)
   const [sightingsDialogOpen, setSightingsDialogOpen] = useValueAndSetter(
     useStore,

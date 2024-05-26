@@ -46,7 +46,7 @@ export const transformSightingData = (sightingRow) => {
     month: sightingRow.SightingMonth.toString().padStart(2, '0'),
     day: sightingRow.SightingDay.toString().padStart(2, '0'),
     observer: sightingRow.ObserverCode,
-    time: `${timeStrLen4.slice(0, 2)}:${timeStrLen4.slice(2, 4)}`,
+    time: sightingRow.SightingTime && `${timeStrLen4.slice(0, 2)}:${timeStrLen4.slice(2, 4)}`,
     letter: sightingRow.SightingLetter,
   }
 }
@@ -64,6 +64,22 @@ export const sortSightingData = (original) => {
     // Letter ASC
     if (a.letter > b.letter) return 1
     if (a.letter < b.letter) return -1
+    return 0
+  })
+}
+
+export const transformLinkageData = (linkageRow) => ({
+  id: linkageRow.LinkageId,
+  videoId: linkageRow.CatalogVideoId,
+  regionStart: linkageRow.StartTime,
+  regionEnd: linkageRow.EndTime,
+  annotations: JSON.parse(linkageRow.Annotation),
+  thumbnailPartialPath: linkageRow.ThumbnailFilePath,
+  sighting: transformSightingData(linkageRow),
+})
+
+export const sortLinkageData = (original) => {
+  return original.toSorted((a, b) => {
     return 0
   })
 }
