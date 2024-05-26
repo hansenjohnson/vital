@@ -4,8 +4,11 @@ import Box from '@mui/material/Box'
 
 import useStore from '../store'
 import { getViewSuffix } from '../store/associations-view'
+import { baseURL } from '../api/config'
+
 import Sidebar from '../components/Sidebar'
 import StyledSelect from '../components/StyledSelect'
+import LinkageListItem from '../components/LinkageListItem'
 
 const AssociationsViewSidebar = () => {
   const [viewYear, setViewYear] = useStore(
@@ -41,41 +44,59 @@ const AssociationsViewSidebar = () => {
         sx={(theme) => ({
           width: `calc(100% + ${theme.spacing(2)})`,
           margin: -1,
-          padding: 1,
+          padding: `${theme.spacing(1)} ${theme.spacing(1)} ${theme.spacing(0)} ${theme.spacing(1)}`,
           color: 'black',
           backgroundColor: 'background.headerPaper',
           display: 'flex',
-          gap: 1,
+          flexDirection: 'column',
         })}
       >
-        <Box sx={{ width: '90px' }}>
-          {viewYear && (
-            <StyledSelect
-              label="Year"
-              value={viewYear}
-              handleChange={(event) => setViewYear(event.target.value)}
-              options={sightingYears}
-            />
-          )}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ width: '90px' }}>
+            {viewYear && (
+              <StyledSelect
+                label="Year"
+                value={viewYear}
+                handleChange={(event) => setViewYear(event.target.value)}
+                options={sightingYears}
+              />
+            )}
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            {viewSuffix && (
+              <StyledSelect
+                label="Viewing"
+                value={viewSuffix}
+                handleChange={(event) => setViewSuffix(event.target.value)}
+                options={sightingSuffixes}
+              />
+            )}
+          </Box>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          {viewSuffix && (
-            <StyledSelect
-              label="Viewing"
-              value={viewSuffix}
-              handleChange={(event) => setViewSuffix(event.target.value)}
-              options={sightingSuffixes}
-            />
-          )}
+
+        <Box
+          sx={{
+            marginTop: '2px',
+            marginBottom: '2px',
+            alignSelf: 'flex-end',
+            opacity: '0.75',
+          }}
+        >
+          {linkages.length} Associations
         </Box>
       </Box>
 
-      <Box>
+      <Box sx={{ marginRight: -1, overflowY: 'scroll' }}>
         {linkages.map((linkage) => (
-          <Box key={linkage.id}>
-            {linkage.sighting.letter} @ {linkage.regionStart} -{' '}
-            {linkage.regionEnd - linkage.regionStart}
-          </Box>
+          <LinkageListItem
+            key={linkage.id}
+            id={linkage.id}
+            regionStart={linkage.regionStart}
+            regionEnd={linkage.regionEnd}
+            sighting={linkage.sighting}
+            frameRate={linkage.video.frameRate}
+            thumbnail={`${baseURL}/thumbnails/${encodeURIComponent(linkage.thumbnail)}`}
+          />
         ))}
       </Box>
     </Sidebar>

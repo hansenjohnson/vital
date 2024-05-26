@@ -81,6 +81,18 @@ export const transformLinkageData = (linkageRow) => ({
 
 export const sortLinkageData = (original) => {
   return original.toSorted((a, b) => {
+    // Letter ASC
+    if (a.sighting.letter > b.sighting.letter) return 1
+    if (a.sighting.letter < b.sighting.letter) return -1
+
+    // Video ASC
+    if (a.video.id > b.video.id) return 1
+    if (a.video.id < b.video.id) return -1
+
+    // Region Start Time ASC
+    if (a.regionStart > b.regionStart) return 1
+    if (a.regionStart < b.regionStart) return -1
+
     return 0
   })
 }
