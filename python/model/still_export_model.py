@@ -34,7 +34,6 @@ class StillExportModel(SQL):
                        CreatedBy TEXT,
                        CreatedDate TEXT
                     )"""
-        sys.stderr.write(f"{self.file_path}")
         self.load_table('still_export', still_export_create, self.file_path, 'StillExportId')
 
     def create_still_export(self, payload):

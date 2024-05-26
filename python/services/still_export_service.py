@@ -2,6 +2,8 @@ import subprocess
 import os
 import sys
 from model.video_model import VideoModel
+from utils import file_path
+from settings.settings_enum import SettingsEnum
 
 
 class StillExportService:
@@ -11,22 +13,27 @@ class StillExportService:
         current_dir = os.path.dirname(__file__)
         base_dir = os.path.abspath(os.path.join(current_dir, '..\\..'))
         self.ffmpeg_path = os.path.join(base_dir, 'ffmpeg', 'ffmpeg.exe')
-        sys.stderr.write('\n' + self.ffmpeg_path +  '\n')
 
-    def extract_frame(self, catalog_video_id, output_image_path, output_image_name, time):
-        # video = self.video_model.get_video_by_id(catalog_video_id)
-        # video_path = video['OriginalFileName']
-        output_file_path = str(os.path.join(output_image_path, output_image_name))
-
-        command = [
-            self.ffmpeg_path,
-            '-i', 'C:\\Users\\Matt\\video-catalog-suite\\test-files\\Ken.Burns.The.Civil.War.1of9.The.Cause.avi',
-            '-ss', time,
-            '-vframes', '1',
-            output_file_path
-        ]
-
+    def extract_frame(self, catalog_video_id, output_image_path, output_image_name, frame_number):
         try:
+            original_video_folder_path = file_path.catalog_folder_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
+
+            catalog_video = self.video_model.get_video_by_id(catalog_video_id)
+            original_video_name = catalog_video['OriginalFileName']
+
+            original_video_file_path = str(os.path.join(original_video_folder_path, original_video_name))
+            sys.stderr.write('\n' + original_video_file_path + '\n')
+
+            output_file_path = str(os.path.join(output_image_path, output_image_name))
+
+            command = [
+                self.ffmpeg_path,
+                '-y',
+                '-i', original_video_file_path,
+                '-vf', f'select=eq(n\\,{frame_number})',
+                '-vframes', '1',
+                output_file_path
+            ]
             subprocess.run(command, check=True)
             sys.stderr.write(f"Frame extracted successfully and saved to {output_image_path}")
         except Exception as e:

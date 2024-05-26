@@ -12,7 +12,7 @@ def create_still_export():
     payload = request.json
     try:
         still_export_model.create_still_export(payload)
-        still_frame_service.extract_frame(payload['CatalogVideoId'], payload['FileLocation'], payload['FileName'], payload['Timestamp'])
+        still_frame_service.extract_frame(payload['CatalogVideoId'], payload['FileLocation'], payload['FileName'], payload['FrameNumber'])
         return jsonify({"message": "Still export created successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
