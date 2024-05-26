@@ -9,7 +9,9 @@ import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
 const Navbar = ({ width }) => {
-  const [route, setRoute] = useStore(useShallow((state) => [state.route, state.setRoute]))
+  const [resetStore, route, setRoute] = useStore(
+    useShallow((state) => [state.resetStore, state.route, state.setRoute])
+  )
   const [settingsInitialized, settingsOpen, setSettingsOpen] = useSettingsStore(
     useShallow((state) => [state.initialized, state.open, state.setOpen])
   )
@@ -19,6 +21,7 @@ const Navbar = ({ width }) => {
   const handleToolsClick = () => {
     setSettingsOpen(false)
     setRoute(ROUTES.TOOLS)
+    resetStore()
   }
 
   if (width === 0) return null

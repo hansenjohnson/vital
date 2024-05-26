@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
+import useStore from '../store'
+import {
+  getActiveVideoURL,
+  isSaveable,
+  selectedSightingName,
+  selectedSightingHasOverlap,
+} from '../store/associations-create'
+import { useValueAndSetter } from '../store/utils'
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
@@ -10,31 +18,34 @@ const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 const THUMBNAIL_WIDTH = 200
 
-const AssociationsCreateWorkspace = ({
-  activeVideoURL,
-  changingActiveVideo,
-  setChangingActiveVideo,
-  handleNext,
-  existingRegions,
-  hasOverlap,
-  regionStart,
-  regionEnd,
-  sightingName,
-  annotations,
-  setRegionStart,
-  setRegionEnd,
-  setSightingsDialogOpen,
-  deleteAnnotation,
-  saveable,
-  saveAssociation,
-}) => {
-  const videoElementRef = useRef(null)
+const AssociationsCreateWorkspace = () => {
+  const existingRegions = useStore((state) => state.existingRegions)
+  const activeVideoURL = useStore(getActiveVideoURL)
+  const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
+    useStore,
+    'activeVideoLoading',
+    'setActiveVideoLoading'
+  )
 
+  const saveable = useStore(isSaveable)
+  const nextable = existingRegions.length > 0 || saveable
+  const nextVideo = useStore((state) => state.nextVideo)
+
+  // Active Association State
+  const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
+  const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
+  const hasOverlap = useStore(selectedSightingHasOverlap)
+  const annotations = useStore((state) => state.annotations)
+  const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
+  const sightingName = useStore(selectedSightingName)
+  const saveAssociation = useStore((state) => state.saveAssociation)
+
+  // Video State that we imperatively subscribe to
+  const videoElementRef = useRef(null)
   const [videoDuration, setVideoDuration] = useState(0)
   const [videoFrameRate, setVideoFrameRate] = useState(null)
   const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
-  const nextable = existingRegions.length > 0 || saveable
 
   // Reset state when video changes
   useEffect(() => {
@@ -50,6 +61,7 @@ const AssociationsCreateWorkspace = ({
     }
   }
 
+  // Thumbnail Generation
   const regionStartBlob = useRef(null)
   const _setRegionStart = (...args) => {
     regionStartBlob.current = null
@@ -85,8 +97,8 @@ const AssociationsCreateWorkspace = ({
         <VideoPlayer
           ref={videoElementRef}
           url={activeVideoURL}
-          changingActiveVideo={changingActiveVideo}
-          setChangingActiveVideo={setChangingActiveVideo}
+          changingActiveVideo={activeVideoLoading}
+          setChangingActiveVideo={setActiveVideoLoading}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
           frameRate={videoFrameRate}
@@ -121,7 +133,7 @@ const AssociationsCreateWorkspace = ({
             sightingName={sightingName}
             annotations={annotations}
             openSightingDialog={() => setSightingsDialogOpen(true)}
-            deleteAnnotation={deleteAnnotation}
+            deleteAnnotation={() => null}
           />
         </Box>
         <Box
@@ -145,10 +157,10 @@ const AssociationsCreateWorkspace = ({
             Save Linkage
           </StyledButton>
           <StyledButton
-            onClick={handleNext}
+            onClick={nextVideo}
             variant="contained"
             color={nextable ? 'secondary' : 'error'}
-            disabled={changingActiveVideo}
+            disabled={activeVideoLoading}
           >
             {nextable ? 'Next Video' : 'Skip Video'}
           </StyledButton>
