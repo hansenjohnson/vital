@@ -2,7 +2,6 @@ import sys
 
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
-from services.stillframe_service import StillFrameService
 
 
 class StillExportModel(SQL):
