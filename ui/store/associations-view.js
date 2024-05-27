@@ -6,6 +6,7 @@ const initialState = {
   viewYear: null,
   viewSuffix: null,
   linkages: [],
+  viewMode: 'by-sighting',
 }
 
 const createAssociationsViewStore = (set, get) => ({
@@ -25,6 +26,9 @@ const createAssociationsViewStore = (set, get) => ({
     const sortedData = sortLinkageData(transformedData)
     set({ linkages: sortedData })
   },
+
+  viewBySighting: () => set({ viewMode: 'by-sighting' }),
+  viewByVideo: () => set({ viewMode: 'by-video' }),
 })
 
 const getViewSuffix = (sighting) => `${sighting.month}-${sighting.day} ${sighting.observer}`
