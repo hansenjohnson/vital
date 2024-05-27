@@ -44,6 +44,9 @@ const StyledSelect = ({ label, value, handleChange, options }) => (
         MenuListProps: {
           dense: true,
         },
+        TransitionProps: {
+          onExited: () => document.activeElement.blur(),
+        },
       }}
     >
       {options.map((option) => (

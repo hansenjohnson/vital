@@ -86,7 +86,7 @@ const AssociationsViewSidebar = () => {
         </Box>
       </Box>
 
-      <Box sx={{ flexGrow: 1, overflowY: 'scroll' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <Box sx={{ marginTop: '2px' }} />
         {linkages.map((linkage) => (
           <LinkageListItem
@@ -99,6 +99,7 @@ const AssociationsViewSidebar = () => {
             thumbnail={`${baseURL}/thumbnails/${encodeURIComponent(linkage.thumbnail)}`}
           />
         ))}
+        <Box sx={{ marginBottom: '4px' }} />
       </Box>
     </Sidebar>
   )

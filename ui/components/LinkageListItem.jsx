@@ -55,9 +55,11 @@ const LinkageListItem = ({
           borderRadius: theme.spacing(0.5),
         }}
       />
-      {!thumbnailLoaded && <Skeleton variant="rectangular" width={100} height={56} />}
+      {!thumbnailLoaded && (
+        <Skeleton variant="rectangular" width={100} height={56} sx={{ flexShrink: 0 }} />
+      )}
 
-      <Box>
+      <Box sx={{ width: '100%' }}>
         <Box
           sx={{
             fontFamily: theme.typography.fontFamily,
@@ -75,10 +77,16 @@ const LinkageListItem = ({
             fontFamily: theme.typography.monoFamily,
             fontSize: '14px',
             lineHeight: '14px',
+            width: '100%',
+            paddingRight: 1,
+            display: 'flex',
+            justifyContent: 'space-between',
           })}
         >
-          @ {regionStartTimestamp} - {durationMin !== '00' ? `${durationMin} min` : ''}{' '}
-          {durationSec} sec
+          <Box>@ {regionStartTimestamp}</Box>
+          <Box>
+            {durationMin !== '00' ? `${durationMin} min` : ''} {durationSec} sec
+          </Box>
         </Box>
       </Box>
     </ButtonBase>
