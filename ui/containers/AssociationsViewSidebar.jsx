@@ -6,7 +6,7 @@ import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
 
 import useStore from '../store'
 import { getViewSuffix } from '../store/associations-view'
-import { baseURL } from '../api/config'
+import thumbnailsAPI from '../api/thumbnails'
 import { VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
 
@@ -60,6 +60,9 @@ const AssociationsViewSidebar = () => {
     return acc
   }, {})
 
+  // Linkage Item Handling
+  const setActiveLinkage = useStore((state) => state.setActiveLinkage)
+
   const makeLinkageItem = (linkage) => (
     <LinkageListItem
       key={linkage.id}
@@ -68,7 +71,8 @@ const AssociationsViewSidebar = () => {
       regionEnd={linkage.regionEnd}
       sighting={linkage.sighting}
       frameRate={linkage.video.frameRate}
-      thumbnail={`${baseURL}/thumbnails/${encodeURIComponent(linkage.thumbnail)}`}
+      thumbnail={thumbnailsAPI.formulateHostedPath(linkage.thumbnail)}
+      onClick={() => setActiveLinkage(linkage)}
     />
   )
 

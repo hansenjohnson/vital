@@ -2,39 +2,38 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import { getActiveVideoURL, isSaveable } from '../store/associations-create'
-import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
+import { getActiveVideoURL } from '../store/associations-create'
+import { getSelectedSightingName } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
+import { leafPath } from '../utilities/paths'
+
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
-import AssociationsDetailsBox from '../components/AssociationDetailsBox'
+import AssociationsEditBox from '../components/AssociationEditBox'
 import StyledButton from '../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
-const THUMBNAIL_WIDTH = 200
 
 const AssociationsViewWorkspace = () => {
   const existingRegions = useStore((state) => state.existingRegions)
+  const activeVideo = useStore((state) => state.activeVideo)
   const activeVideoURL = useStore(getActiveVideoURL)
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
     useStore,
     'activeVideoLoading',
     'setActiveVideoLoading'
   )
+  const activeVideoName = activeVideo ? leafPath(activeVideo.fileName) : ''
 
-  const saveable = useStore(isSaveable)
-  const nextable = existingRegions.length > 0 || saveable
-  const nextVideo = useStore((state) => state.nextVideo)
-
-  // Active Association State
+  // Active Linkage State
   const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
-  const hasOverlap = useStore(selectedSightingHasOverlap)
   const annotations = useStore((state) => state.annotations)
   const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
   const sightingName = useStore(getSelectedSightingName)
   const saveAssociation = useStore((state) => state.saveAssociation)
+  const linkageThumbnail = useStore((state) => state.linkageThumbnail)
 
   // Video State that we imperatively subscribe to
   const videoElementRef = useRef(null)
@@ -57,35 +56,8 @@ const AssociationsViewWorkspace = () => {
     }
   }
 
-  // Thumbnail Generation
-  const regionStartBlob = useRef(null)
-  const _setRegionStart = (...args) => {
-    regionStartBlob.current = null
-
-    const video = videoElementRef.current
-    const outputWidth = THUMBNAIL_WIDTH
-    const outputHeight = video.videoHeight / (video.videoWidth / THUMBNAIL_WIDTH)
-
-    const canvas = document.createElement('canvas')
-    canvas.width = THUMBNAIL_WIDTH
-    canvas.height = Math.floor(outputHeight)
-
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0, outputWidth, outputHeight)
-    canvas.toBlob(
-      (blob) => {
-        regionStartBlob.current = blob
-      },
-      'image/jpeg',
-      0.8
-    )
-
-    setRegionStart(...args)
-  }
-
-  const _saveAssociation = () => {
-    saveAssociation(regionStartBlob.current)
-  }
+  const enterAddMode = () => {}
+  const deleteAssociation = () => {}
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -119,17 +91,15 @@ const AssociationsViewWorkspace = () => {
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
-          <AssociationsDetailsBox
+          <AssociationsEditBox
+            videoName={activeVideoName}
             frameRate={videoFrameRate}
-            hasOverlap={hasOverlap}
             regionStart={regionStart}
             regionEnd={regionEnd}
-            setStart={() => _setRegionStart(videoFrameNumber)}
-            setEnd={() => setRegionEnd(videoFrameNumber)}
             sightingName={sightingName}
             annotations={annotations}
-            openSightingDialog={() => setSightingsDialogOpen(true)}
             deleteAnnotation={() => null}
+            thumbnail={linkageThumbnail}
           />
         </Box>
         <Box
@@ -144,21 +114,16 @@ const AssociationsViewWorkspace = () => {
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
-          <StyledButton
-            onClick={_saveAssociation}
-            variant="contained"
-            color="tertiary"
-            disabled={!saveable}
-          >
-            Save Linkage
+          <StyledButton onClick={enterAddMode} color="tertiary" disabled={activeVideoLoading}>
+            Add Association
           </StyledButton>
           <StyledButton
-            onClick={nextVideo}
+            onClick={deleteAssociation}
             variant="contained"
-            color={nextable ? 'secondary' : 'error'}
+            color="error"
             disabled={activeVideoLoading}
           >
-            {nextable ? 'Next Video' : 'Skip Video'}
+            Delete
           </StyledButton>
         </Box>
       </Box>

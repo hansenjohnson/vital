@@ -74,7 +74,7 @@ const createAssociationsCreateStore = (set, get) => ({
       get()
     const selectedSighting = getSelectedSighting({ sightings, selectedSightingId })
 
-    const thumbnailPartialPath = thumbnailsAPI.formulatePath(
+    const thumbnailPartialPath = thumbnailsAPI.formulateSavePath(
       selectedSightingId,
       selectedSighting.date,
       activeVideo.fileName,
