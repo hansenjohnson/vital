@@ -51,14 +51,16 @@ const App = () => {
   return (
     <>
       <Navbar width={titlebarRect.width} />
-      {!serverReachable || settingsLoading ? (
-        <CenteredLoadingCircle />
-      ) : (
-        <Box sx={{ height: `calc(100vh - ${TITLEBAR_HEIGHT}px)` }}>
-          <SettingsContainer />
-          <ActiveRouteComponent />
-        </Box>
-      )}
+      <Box sx={{ height: `calc(100vh - ${TITLEBAR_HEIGHT}px)` }}>
+        {!serverReachable || settingsLoading ? (
+          <CenteredLoadingCircle />
+        ) : (
+          <>
+            <SettingsContainer />
+            <ActiveRouteComponent />
+          </>
+        )}
+      </Box>
     </>
   )
 }
