@@ -6,7 +6,6 @@ const initialState = {
   viewYear: null,
   viewSuffix: null,
   linkages: [],
-  linkagesLoading: false,
 }
 
 const createAssociationsViewStore = (set, get) => ({
