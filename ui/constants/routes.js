@@ -10,5 +10,10 @@ const TITLES = {
   [ROUTES.ASSOCIATIONS_CREATE]: 'Associate & Annotate - Create',
 }
 
-export { TITLES }
+const VIEW_MODES = {
+  BY_SIGHTING: 'by-sighting',
+  BY_VIDEO: 'by-video',
+}
+
+export { TITLES, VIEW_MODES }
 export default ROUTES

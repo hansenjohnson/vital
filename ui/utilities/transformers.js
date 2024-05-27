@@ -30,6 +30,7 @@ export const transformVideoData = (videoRow) => {
     id: videoRow.CatalogVideoId,
     fileName: videoRow.OptimizedFileName,
     frameRate: videoRow.FrameRate,
+    folderId: videoRow.CatalogFolderId,
   }
 }
 

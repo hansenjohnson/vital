@@ -1,12 +1,13 @@
 import linkagesAPI from '../api/linkages'
 import { valueSetter } from './utils'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
+import { VIEW_MODES } from '../constants/routes'
 
 const initialState = {
   viewYear: null,
   viewSuffix: null,
   linkages: [],
-  viewMode: 'by-sighting',
+  viewMode: VIEW_MODES.BY_SIGHTING,
 }
 
 const createAssociationsViewStore = (set, get) => ({
@@ -27,8 +28,8 @@ const createAssociationsViewStore = (set, get) => ({
     set({ linkages: sortedData })
   },
 
-  viewBySighting: () => set({ viewMode: 'by-sighting' }),
-  viewByVideo: () => set({ viewMode: 'by-video' }),
+  viewBySighting: () => set({ viewMode: VIEW_MODES.BY_SIGHTING }),
+  viewByVideo: () => set({ viewMode: VIEW_MODES.BY_VIDEO }),
 })
 
 const getViewSuffix = (sighting) => `${sighting.month}-${sighting.day} ${sighting.observer}`

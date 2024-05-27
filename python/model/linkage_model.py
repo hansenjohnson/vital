@@ -97,7 +97,9 @@ class LinkageModel(SQL):
 
             cursor = self.conn.cursor()
             cursor.execute(f"""
-                           SELECT l.*, s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode, s.SightingLetter, v.FrameRate
+                           SELECT l.*,
+                           s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode, s.SightingLetter,
+                           v.OptimizedFileName, v.FrameRate, v.CatalogFolderId
                            FROM Linkage l
                            JOIN Sighting s ON l.SightingId = s.SightingId
                            JOIN Video v ON l.CatalogVideoId = v.CatalogVideoId

@@ -7,10 +7,13 @@ import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
 import useStore from '../store'
 import { getViewSuffix } from '../store/associations-view'
 import { baseURL } from '../api/config'
+import { VIEW_MODES } from '../constants/routes'
+import { leafPath } from '../utilities/paths'
 
 import Sidebar from '../components/Sidebar'
 import StyledSelect from '../components/StyledSelect'
 import LinkageListItem from '../components/LinkageListItem'
+import LinkageGroupHeader from '../components/LinkageGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
 const AssociationsViewSidebar = () => {
@@ -45,6 +48,29 @@ const AssociationsViewSidebar = () => {
 
     loadLinkages()
   }, [viewYear, viewSuffix])
+
+  // Make by-video groups available
+  const linkageGroups = linkages.reduce((acc, linkage) => {
+    const groupName = linkage.video.fileName
+    if (!(groupName in acc)) {
+      acc[groupName] = [linkage]
+    } else {
+      acc[groupName].push(linkage)
+    }
+    return acc
+  }, {})
+
+  const makeLinkageItem = (linkage) => (
+    <LinkageListItem
+      key={linkage.id}
+      id={linkage.id}
+      regionStart={linkage.regionStart}
+      regionEnd={linkage.regionEnd}
+      sighting={linkage.sighting}
+      frameRate={linkage.video.frameRate}
+      thumbnail={`${baseURL}/thumbnails/${encodeURIComponent(linkage.thumbnail)}`}
+    />
+  )
 
   return (
     <Sidebar noPadding noGap>
@@ -98,13 +124,13 @@ const AssociationsViewSidebar = () => {
           <ViewModeTab
             name="by sighting"
             icon={AccountTreeIcon}
-            selected={viewMode === 'by-sighting'}
+            selected={viewMode === VIEW_MODES.BY_SIGHTING}
             onClick={viewBySighting}
           />
           <ViewModeTab
             name="by video"
             icon={SmartDisplayIcon}
-            selected={viewMode === 'by-video'}
+            selected={viewMode === VIEW_MODES.BY_VIDEO}
             onClick={viewByVideo}
           />
         </Box>
@@ -112,17 +138,15 @@ const AssociationsViewSidebar = () => {
 
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <Box sx={{ marginTop: '2px' }} />
-        {linkages.map((linkage) => (
-          <LinkageListItem
-            key={linkage.id}
-            id={linkage.id}
-            regionStart={linkage.regionStart}
-            regionEnd={linkage.regionEnd}
-            sighting={linkage.sighting}
-            frameRate={linkage.video.frameRate}
-            thumbnail={`${baseURL}/thumbnails/${encodeURIComponent(linkage.thumbnail)}`}
-          />
-        ))}
+        {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
+        {viewMode === VIEW_MODES.BY_VIDEO &&
+          Object.entries(linkageGroups).map(([group, linkages], index) => (
+            <Box key={group} sx={{ marginTop: index > 0 ? 1 : 0 }}>
+              <LinkageGroupHeader name={leafPath(group).split('.')[0]} />
+              <Box sx={{ marginTop: '2px' }} />
+              {linkages.map(makeLinkageItem)}
+            </Box>
+          ))}
         <Box sx={{ marginBottom: '4px' }} />
       </Box>
     </Sidebar>
