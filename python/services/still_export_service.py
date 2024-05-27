@@ -16,7 +16,7 @@ class StillExportService:
         self.still_export_model = StillExportModel()
         current_dir = os.path.dirname(__file__)
         base_dir = os.path.abspath(os.path.join(current_dir, '..\\..'))
-        self.ffmpeg_path = os.path.join(base_dir, 'ffmpeg', 'ffmpeg.exe')
+        self.ffmpeg_path = os.path.join(base_dir, 'bin', 'ffmpeg.exe')
 
     def create_still(self, payload):
         try:

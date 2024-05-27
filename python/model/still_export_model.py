@@ -2,6 +2,7 @@ import sys
 
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
+from utils.prints import print_err
 
 
 class StillExportModel(SQL):
@@ -21,10 +22,10 @@ class StillExportModel(SQL):
 
             self.refresh_table()
         except Exception as e:
-            sys.stderr.write(f"Failed to initialize SightingModel: {e}")
+            print_err(f"Failed to initialize StillExportModel: {e}")
 
     def refresh_table(self):
-        self.file_path = self.settings.get_setting(SettingsEnum.STILLFRAME_DIR_NAME.value)
+        self.file_path = self.settings.get_setting(SettingsEnum.STILL_EXPORT_FILE_PATH.value)
         still_export_create = f"""
                     CREATE TABLE still_export  (
                        StillExportId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,5 +51,5 @@ class StillExportModel(SQL):
             self.flush_to_excel('still_export', self.file_path, self.worksheet_name)
             cursor.close()
         except Exception as e:
-            sys.stderr.write(f"Failed to execute SQL query create_still_export: {e}")
+            print_err(f"Failed to execute SQL query create_still_export: {e}")
             raise e
