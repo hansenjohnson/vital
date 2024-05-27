@@ -44,14 +44,16 @@ const createAssociationsViewStore = (set, get) => ({
       selectSighting,
       setActiveVideo,
       setLinkageThumbnail,
+      activeVideo,
     } = get()
-    setVideoFolderId(linkage.video.folderId)
     setRegionStart(linkage.regionStart)
     setRegionEnd(linkage.regionEnd)
     setAnnotations(linkage.annotations)
     selectSighting(linkage.sighting.id)
-    setActiveVideo(linkage.video)
     setLinkageThumbnail(thumbnailsAPI.formulateHostedPath(linkage.thumbnail))
+
+    setVideoFolderId(linkage.video.folderId)
+    setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
   },
 })
 

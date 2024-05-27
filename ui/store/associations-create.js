@@ -31,7 +31,13 @@ const createAssociationsCreateStore = (set, get) => ({
 
   // == Video Actions ==
   setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),
-  setActiveVideo: (nextVideo) => set({ activeVideo: nextVideo, activeVideoLoading: true }),
+  setActiveVideo: (nextVideo, noLoadingNeeded = false) => {
+    if (noLoadingNeeded) {
+      set({ activeVideo: nextVideo, activeVideoLoading: false })
+    } else {
+      set({ activeVideo: nextVideo, activeVideoLoading: true })
+    }
+  },
   setRemainingVideos: valueSetter(set, 'remainingVideos'),
   setCompletedVideos: valueSetter(set, 'completedVideos'),
   // TODO: store videos as state and eliminate remaining/completed concepts
