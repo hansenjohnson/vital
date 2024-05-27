@@ -7,6 +7,17 @@ import SectionHeading from './SectionHeading'
 import AnnotationChip from './AnnotationChip'
 import { timecodeFromFrameNumber } from '../utilities/video'
 
+const containerStyles = (theme) => ({
+  height: `calc(100% - ${theme.spacing(2)})`,
+  margin: 1,
+  padding: 1.5,
+  paddingTop: 1,
+  borderRadius: 1,
+  backgroundColor: 'background.paper',
+  display: 'flex',
+  gap: 1,
+})
+
 const AssociationsEditBox = ({
   videoName,
   frameRate,
@@ -18,20 +29,13 @@ const AssociationsEditBox = ({
   thumbnail,
 }) => {
   const theme = useTheme()
-  return (
-    <Box
-      sx={{
-        height: `calc(100% - ${theme.spacing(2)})`,
-        margin: 1,
-        padding: 1.5,
-        paddingTop: 1,
-        borderRadius: 1,
-        backgroundColor: 'background.paper',
 
-        display: 'flex',
-        gap: 1,
-      }}
-    >
+  if (!videoName) {
+    return <Box sx={containerStyles(theme)} />
+  }
+
+  return (
+    <Box sx={containerStyles(theme)}>
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box>
           <SectionHeading size={16}>Video</SectionHeading>

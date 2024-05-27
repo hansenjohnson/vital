@@ -114,14 +114,18 @@ const AssociationsViewWorkspace = () => {
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
           <StyledButton disabled>Export Still Frame</StyledButton>
-          <StyledButton onClick={enterAddMode} color="tertiary" disabled={activeVideoLoading}>
+          <StyledButton
+            onClick={enterAddMode}
+            color="tertiary"
+            disabled={!activeVideo || activeVideoLoading}
+          >
             Add Association
           </StyledButton>
           <StyledButton
             onClick={deleteAssociation}
             variant="contained"
             color="error"
-            disabled={activeVideoLoading}
+            disabled={!activeVideo || activeVideoLoading}
           >
             Delete
           </StyledButton>
