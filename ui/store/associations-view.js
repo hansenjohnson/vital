@@ -9,6 +9,7 @@ const initialState = {
   viewSuffix: null,
   linkages: [],
   viewMode: VIEW_MODES.BY_SIGHTING,
+  activeLinkageId: null,
   linkageThumbnail: null,
   linkageVideoFrameRate: null,
 }
@@ -34,11 +35,13 @@ const createAssociationsViewStore = (set, get) => ({
   viewBySighting: () => set({ viewMode: VIEW_MODES.BY_SIGHTING }),
   viewByVideo: () => set({ viewMode: VIEW_MODES.BY_VIDEO }),
 
+  setActiveLinkageId: valueSetter(set, 'activeLinkageId'),
   setLinkageThumbnail: valueSetter(set, 'linkageThumbnail'),
   setLinkageVideoFrameRate: valueSetter(set, 'linkageVideoFrameRate'),
 
   setActiveLinkage: (linkage) => {
     const {
+      setActiveLinkageId,
       setVideoFolderId,
       setRegionStart,
       setRegionEnd,
@@ -49,6 +52,7 @@ const createAssociationsViewStore = (set, get) => ({
       setLinkageVideoFrameRate,
       activeVideo,
     } = get()
+    setActiveLinkageId(linkage.id)
     setRegionStart(linkage.regionStart)
     setRegionEnd(linkage.regionEnd)
     setAnnotations(linkage.annotations)

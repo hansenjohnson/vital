@@ -61,6 +61,7 @@ const AssociationsViewSidebar = () => {
   }, {})
 
   // Linkage Item Handling
+  const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setActiveLinkage = useStore((state) => state.setActiveLinkage)
 
   const makeLinkageItem = (linkage) => (
@@ -73,6 +74,7 @@ const AssociationsViewSidebar = () => {
       frameRate={linkage.video.frameRate}
       thumbnail={thumbnailsAPI.formulateHostedPath(linkage.thumbnail)}
       onClick={() => setActiveLinkage(linkage)}
+      selected={linkage.id === activeLinkageId}
     />
   )
 
@@ -145,7 +147,7 @@ const AssociationsViewSidebar = () => {
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
         {viewMode === VIEW_MODES.BY_VIDEO &&
           Object.entries(linkageGroups).map(([group, linkages], index) => (
-            <Box key={group} sx={{ marginTop: index > 0 ? 1 : 0 }}>
+            <Box key={group} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
               <LinkageGroupHeader name={leafPath(group).split('.')[0]} />
               <Box sx={{ marginTop: '2px' }} />
               {linkages.map(makeLinkageItem)}

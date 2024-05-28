@@ -85,6 +85,7 @@ const AssociationsViewWorkspace = () => {
   }, [activeVideoURL, regionStart])
 
   useEffect(() => {
+    if (!videoElementRef.current) return
     if (videoFrameNumber >= regionEnd) {
       videoElementRef.current.pause()
     }

@@ -14,6 +14,7 @@ const LinkageListItem = ({
   frameRate,
   thumbnail,
   onClick,
+  selected,
 }) => {
   const theme = useTheme()
 
@@ -33,17 +34,24 @@ const LinkageListItem = ({
       onClick={onClick}
       sx={{
         width: '100%',
-        paddingTop: '2px',
-        paddingBottom: '2px',
+        paddingTop: 0.25,
+        paddingBottom: 0.25,
         paddingLeft: 0.5,
         display: 'flex',
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 0.5,
 
-        '&:hover': {
-          backgroundColor: theme.palette.action.hover,
-        },
+        ...(selected
+          ? {
+              color: theme.palette.primary.dark,
+              backgroundColor: theme.palette.primary.light,
+            }
+          : {
+              '&:hover': {
+                backgroundColor: selected ? 'inherit' : theme.palette.action.hover,
+              },
+            }),
       }}
     >
       <img
@@ -73,7 +81,7 @@ const LinkageListItem = ({
         </Box>
         <Box
           sx={(theme) => ({
-            color: 'text.secondary',
+            color: selected ? `inherit` : theme.palette.text.secondary,
             fontFamily: theme.typography.monoFamily,
             fontSize: '14px',
             lineHeight: '14px',
