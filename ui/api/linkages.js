@@ -1,5 +1,5 @@
 import { baseURL } from './config'
-import { getJSON, postJSON, deleteThis } from './fetchers'
+import { getJSON, postJSON, putJson, deleteThis } from './fetchers'
 
 const create = (data) => postJSON(`${baseURL}/linkages`, data)
 const update = (id, data) => putJson(`${baseURL}/linkages/${id}`, data)
@@ -19,6 +19,7 @@ const deleteLinkage = (linkageId) => deleteThis(`${baseURL}/linkages/${linkageId
 
 export default {
   create,
+  update,
   list,
   bySighting,
   deleteLinkage,
