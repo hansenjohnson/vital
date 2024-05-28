@@ -73,6 +73,28 @@ class LinkageModel(SQL):
             print_err(f"Failed to execute SQL query create_linkage: {e}")
             raise e
 
+    def update_linkage(self, linkage_id, payload):
+        try:
+            columns = []
+            values = []
+
+            for key, value in payload.items():
+                columns.append(f"{key} = ?")
+                values.append(value)
+
+            values.append(linkage_id)
+
+            query = f"UPDATE linkage SET {', '.join(columns)} WHERE LinkageId = ?"
+
+            cursor = self.conn.cursor()
+            cursor.execute(query, values)
+            self.conn.commit()
+
+            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
+        except Exception as e:
+            print_err(f"Failed to execute SQL query update_linkage: {e}")
+            raise e
+
     def delete_linkage_by_id(self, linkage_id):
         try:
             cursor = self.conn.cursor()
