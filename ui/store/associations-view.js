@@ -18,7 +18,7 @@ const createAssociationsViewStore = (set, get) => ({
   ...initialState,
   resetAssociationsViewStore: () => set(initialState),
 
-  setViewYear: valueSetter(set, 'viewYear'),
+  setViewYear: (value) => set({ viewYear: value, viewSuffix: null }),
   setViewSuffix: valueSetter(set, 'viewSuffix'),
 
   loadLinkages: async () => {
@@ -26,7 +26,7 @@ const createAssociationsViewStore = (set, get) => ({
     if (viewYear == null || viewSuffix == null) return
     const { month, day, observer } = getViewParamsFromSuffix(viewSuffix)
 
-    const linkageData = await linkagesAPI.bySighting(viewYear, month, day, observer)
+    const linkageData = (await linkagesAPI.bySighting(viewYear, month, day, observer)) || []
     const transformedData = linkageData.map(transformLinkageData)
     const sortedData = sortLinkageData(transformedData)
     set({ linkages: sortedData })

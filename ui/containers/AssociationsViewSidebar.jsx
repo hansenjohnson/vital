@@ -30,9 +30,23 @@ const AssociationsViewSidebar = () => {
 
   // Sightings Data Handling
   const sightings = useStore((state) => state.sightings)
-  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year))]
-  const sightingSuffixes = [...new Set(sightings.map(getViewSuffix))]
+  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year)), 2022]
+  const sightingSuffixes = [
+    ...new Set(
+      sightings
+        .filter((sighting) => {
+          if (viewYear == null) {
+            return sighting.year === sightingYears[0]
+          }
+          return sighting.year === viewYear
+        })
+        .map(getViewSuffix)
+    ),
+  ]
   sightingSuffixes.sort((a, b) => a.localeCompare(b))
+  if (sightingYears.length > 0 && sightingSuffixes.length === 0) {
+    sightingSuffixes.push('none')
+  }
 
   // Linkage Data Handling
   const linkages = useStore((state) => state.linkages)
@@ -41,13 +55,15 @@ const AssociationsViewSidebar = () => {
     // Set Default Options as initial reaction to them being available
     if (viewYear == null) {
       setViewYear(sightingYears[0])
-    }
-    if (viewSuffix == null) {
+      setViewSuffix(sightingSuffixes[0])
+    } else {
       setViewSuffix(sightingSuffixes[0])
     }
-
+  }, [viewYear])
+  useEffect(() => {
+    if (viewSuffix == null) return
     loadLinkages()
-  }, [viewYear, viewSuffix])
+  }, [viewSuffix])
 
   // Make by-video groups available
   const linkageGroups = linkages.reduce((acc, linkage) => {
