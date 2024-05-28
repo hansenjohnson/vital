@@ -32,6 +32,15 @@ const createAssociationsViewStore = (set, get) => ({
     set({ linkages: sortedData })
   },
 
+  deleteLinkage: async (linkageId) => {
+    const success = await linkagesAPI.deleteLinkage(linkageId)
+    if (success) {
+      const { loadLinkages, clearActiveLinkage } = get()
+      clearActiveLinkage()
+      loadLinkages()
+    }
+  },
+
   viewBySighting: () => set({ viewMode: VIEW_MODES.BY_SIGHTING }),
   viewByVideo: () => set({ viewMode: VIEW_MODES.BY_VIDEO }),
 
@@ -62,6 +71,27 @@ const createAssociationsViewStore = (set, get) => ({
     setVideoFolderId(linkage.video.folderId)
     setLinkageVideoFrameRate(linkage.video.frameRate)
     setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
+  },
+
+  clearActiveLinkage: () => {
+    const {
+      setActiveLinkageId,
+      setRegionStart,
+      setRegionEnd,
+      setAnnotations,
+      selectSighting,
+      setActiveVideo,
+      setLinkageThumbnail,
+      setLinkageVideoFrameRate,
+    } = get()
+    setActiveLinkageId(null)
+    setRegionStart(null)
+    setRegionEnd(null)
+    setAnnotations(null)
+    selectSighting(null)
+    setLinkageThumbnail(null)
+    setLinkageVideoFrameRate(null)
+    setActiveVideo(null, true)
   },
 })
 

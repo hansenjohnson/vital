@@ -43,7 +43,6 @@ const AssociationsViewSidebar = () => {
         .map(getViewSuffix)
     ),
   ]
-  sightingSuffixes.sort((a, b) => a.localeCompare(b))
   if (sightingYears.length > 0 && sightingSuffixes.length === 0) {
     sightingSuffixes.push('none')
   }

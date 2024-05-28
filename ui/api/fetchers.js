@@ -53,3 +53,15 @@ export const postBlob = async (url, blob) => {
     return false
   }
 }
+
+export const deleteThis = async (url) => {
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    })
+    return response.ok
+  } catch (error) {
+    console.error(`Error with DELETE to ${url}:`, error?.message || error)
+    return null
+  }
+}

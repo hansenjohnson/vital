@@ -36,6 +36,8 @@ const AssociationsViewWorkspace = () => {
   const saveAssociation = useStore((state) => state.saveAssociation)
   const linkageThumbnail = useStore((state) => state.linkageThumbnail)
   const videoFrameRate = useStore((state) => frameRateFromStr(state.linkageVideoFrameRate))
+  const activeLinkageId = useStore((state) => state.activeLinkageId)
+  const deleteLinkage = useStore((state) => state.deleteLinkage)
 
   // Video State that we imperatively subscribe to
   const videoElementRef = useRef(null)
@@ -92,7 +94,6 @@ const AssociationsViewWorkspace = () => {
   }, [videoFrameNumber])
 
   const enterAddMode = () => {}
-  const deleteAssociation = () => {}
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -157,7 +158,7 @@ const AssociationsViewWorkspace = () => {
             Add Association
           </StyledButton>
           <StyledButton
-            onClick={deleteAssociation}
+            onClick={() => deleteLinkage(activeLinkageId)}
             variant="contained"
             color="error"
             disabled={!activeVideo || activeVideoLoading}
