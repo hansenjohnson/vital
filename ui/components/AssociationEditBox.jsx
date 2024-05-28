@@ -36,8 +36,22 @@ const AssociationsEditBox = ({
 
   return (
     <Box sx={containerStyles(theme)}>
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box>
+      <Box
+        sx={{
+          maxWidth: '70%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            overflow: 'hidden',
+            textWrap: 'wrap',
+            wordBreak: 'break-all',
+          }}
+        >
           <SectionHeading size={16}>Video</SectionHeading>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
@@ -68,7 +82,7 @@ const AssociationsEditBox = ({
 
       <Box
         sx={{
-          maxWidth: '30%',
+          flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
           gap: 1,
