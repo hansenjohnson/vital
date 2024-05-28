@@ -13,6 +13,9 @@ const VideoTimeline = ({
   videoDuration: videoDurationProp, // unit frames
   currentFrameNumber, // unit frames
   seekToFrame,
+  showRegionAsSelected = false,
+  selectableRegions = false,
+  selectRegion,
 }) => {
   const videoDuration = videoDurationProp || 1 // prevent division by zero
 
@@ -96,6 +99,8 @@ const VideoTimeline = ({
     containerEl.scrollTop += event.deltaY
   }
 
+  const handleRegionClick = (start, end) => () => selectRegion(start, end)
+
   return (
     <Box
       sx={{
@@ -164,17 +169,29 @@ const VideoTimeline = ({
           {existingRegions.map((region) => {
             const { letter, start, end } = region
             const track = letterToTrackMap[letter]
+            const showAsSelected =
+              showRegionAsSelected && start === regionStart && end === regionEnd
             return (
               <Box
                 key={`${letter}-${start}-${end}`}
-                sx={{
+                sx={(theme) => ({
                   position: 'absolute',
                   top: `calc(${track * 10}px + 6px)`,
                   left: `${(start / videoDuration) * 100}%`,
                   width: `${((end - start) / videoDuration) * 100}%`,
                   height: `${LINE_HEIGHT}px`,
                   backgroundColor: 'tertiary.main',
-                }}
+                  outline: showAsSelected ? `2px solid ${theme.palette.secondary.dark}` : 'none',
+
+                  ...(selectableRegions && {
+                    zIndex: 5,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      outline: !showAsSelected && `2px solid ${theme.palette.action.disabled}`,
+                    },
+                  }),
+                })}
+                onClick={selectableRegions && handleRegionClick(start, end)}
               />
             )
           })}
@@ -221,7 +238,10 @@ const VideoTimeline = ({
             backgroundColor: 'tertiary.dark',
             opacity: 0.1,
             borderRadius: '4px',
-            visibility: regionStart == null || regionEnd == null ? 'hidden' : 'visible',
+            visibility:
+              regionStart == null || regionEnd == null || showRegionAsSelected
+                ? 'hidden'
+                : 'visible',
           }}
         />
         <Box
@@ -235,7 +255,7 @@ const VideoTimeline = ({
             borderRight: 'none',
             borderTopLeftRadius: '4px',
             borderBottomLeftRadius: '4px',
-            visibility: regionStart == null ? 'hidden' : 'visible',
+            visibility: regionStart == null || showRegionAsSelected ? 'hidden' : 'visible',
           })}
         />
         <Box
@@ -249,7 +269,7 @@ const VideoTimeline = ({
             borderLeft: 'none',
             borderTopRightRadius: '4px',
             borderBottomRightRadius: '4px',
-            visibility: regionEnd == null ? 'hidden' : 'visible',
+            visibility: regionEnd == null || showRegionAsSelected ? 'hidden' : 'visible',
           })}
         />
 
@@ -281,6 +301,7 @@ const VideoTimeline = ({
             width: '2px',
             height: '100%',
             backgroundColor: 'secondary.main',
+            zIndex: 10,
           }}
         />
         <Box
@@ -293,6 +314,7 @@ const VideoTimeline = ({
             borderLeft: '6px solid transparent',
             borderRight: '6px solid transparent',
             borderBottom: `6px solid ${theme.palette.secondary.main}`,
+            zIndex: 10,
 
             '&:hover': {
               width: '16px',
@@ -319,6 +341,7 @@ const VideoTimeline = ({
               backgroundColor: theme.palette.secondary.main,
               transform: 'translate(-7px, 5px)',
               boxShadow: theme.shadows[4],
+              zIndex: 10,
             })}
           />
         )}

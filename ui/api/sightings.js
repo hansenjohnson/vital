@@ -13,6 +13,11 @@ const get = (videoFolderName) => {
   )
 }
 
+const getList = () => {
+  return getJSON(`${baseURL}/sightings`)
+}
+
 export default {
   get,
+  getList,
 }

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -10,23 +11,52 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 
+import useSettingsStore from '../store/settings'
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
 
-const SettingsContainer = ({ open, handleClose, settingsInitialized, settings, setOneSetting }) => {
+const SettingsContainer = () => {
+  const [loading, initialized, setInitialized] = useSettingsStore(
+    useShallow((state) => [state.loading, state.initialized, state.setInitialized])
+  )
+  const [open, openDialog, closeDialog] = useSettingsStore(
+    useShallow((state) => [state.open, state.openDialog, state.closeDialog])
+  )
+  const [settings, setOneSetting] = useSettingsStore(
+    useShallow((state) => [state.settings, state.setOneSetting])
+  )
+
+  // Determine if settings are initialized, open the dialog otherwise
+  // as the app is unusable without them
+  useEffect(() => {
+    if (loading) return
+    const areSettingsInitialized = Object.values(settings).every(
+      (value) => value !== null && value !== ''
+    )
+
+    // This captures the case where they are all initialized on app launch
+    // or become initialized on the first closing of the Settings dialog
+    if (open === false && areSettingsInitialized) {
+      setInitialized(true)
+      return
+    }
+
+    openDialog()
+  }, [loading, open])
+
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
 
   const [submitting, setSubmitting] = useState(false)
   const handleSubmit = async () => {
     setSubmitting(true)
     const successful = await settingsAPI.save(settings)
-    if (successful && settingsInitialized) {
+    if (successful && initialized) {
       return window.api.reloadWindow()
     } else if (successful) {
-      handleClose()
+      closeDialog()
       setSubmitting(false)
     } else {
       setSubmitting(false)
@@ -34,19 +64,19 @@ const SettingsContainer = ({ open, handleClose, settingsInitialized, settings, s
     }
   }
 
-  const _handleClose = (event, reason) => {
-    if (!settingsInitialized && reason === 'backdropClick') return
-    handleClose()
+  const _handleMuiClose = (event, reason) => {
+    if (!initialized && reason === 'backdropClick') return
+    closeDialog()
   }
 
   return (
     <Dialog
       open={open}
-      onClose={_handleClose}
+      onClose={_handleMuiClose}
       fullWidth
       maxWidth="md"
       disablePortal
-      disableEscapeKeyDown={!settingsInitialized}
+      disableEscapeKeyDown={!initialized}
       sx={{
         position: 'aboslute',
         top: `${TITLEBAR_HEIGHT}px`,
@@ -59,9 +89,9 @@ const SettingsContainer = ({ open, handleClose, settingsInitialized, settings, s
     >
       <DialogTitle>Settings</DialogTitle>
 
-      {settingsInitialized && (
+      {initialized && (
         <IconButton
-          onClick={handleClose}
+          onClick={closeDialog}
           size="small"
           sx={(theme) => ({
             position: 'absolute',
@@ -74,7 +104,7 @@ const SettingsContainer = ({ open, handleClose, settingsInitialized, settings, s
       )}
 
       <DialogContent>
-        {!settingsInitialized && (
+        {!initialized && (
           <Alert severity="warning" sx={{ marginBottom: 1 }}>
             You must initially populate these settings in order to use the Application.
           </Alert>
@@ -157,7 +187,7 @@ const SettingsContainer = ({ open, handleClose, settingsInitialized, settings, s
           }
           sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
         >
-          {settingsInitialized ? 'Save & Reload' : 'Save'}
+          {initialized ? 'Save & Reload' : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
