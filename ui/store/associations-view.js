@@ -60,6 +60,8 @@ const createAssociationsViewStore = (set, get) => ({
       setLinkageThumbnail,
       setLinkageVideoFrameRate,
       activeVideo,
+      linkages,
+      setExistingRegions,
     } = get()
     setActiveLinkageId(linkage.id)
     setRegionStart(linkage.regionStart)
@@ -67,6 +69,15 @@ const createAssociationsViewStore = (set, get) => ({
     setAnnotations(linkage.annotations)
     selectSighting(linkage.sighting.id)
     setLinkageThumbnail(thumbnailsAPI.formulateHostedPath(linkage.thumbnail))
+
+    const allLinkageRegionsForThisVideo = linkages
+      .filter((another) => another.video.id === linkage.video.id)
+      .map((another) => ({
+        letter: another.sighting.letter,
+        start: another.regionStart,
+        end: another.regionEnd,
+      }))
+    setExistingRegions(allLinkageRegionsForThisVideo)
 
     setVideoFolderId(linkage.video.folderId)
     setLinkageVideoFrameRate(linkage.video.frameRate)

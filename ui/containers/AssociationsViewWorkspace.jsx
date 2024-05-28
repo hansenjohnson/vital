@@ -93,6 +93,16 @@ const AssociationsViewWorkspace = () => {
     }
   }, [videoFrameNumber])
 
+  // Linkage Selection via Timeline
+  const linkages = useStore((state) => state.linkages)
+  const setActiveLinkage = useStore((state) => state.setActiveLinkage)
+  const selectLinkageByRegion = (start, end) => {
+    const linkageToSelect = linkages.find(
+      (linkage) => linkage.regionStart === start && linkage.regionEnd === end
+    )
+    setActiveLinkage(linkageToSelect)
+  }
+
   const enterAddMode = () => {}
 
   return (
@@ -122,6 +132,9 @@ const AssociationsViewWorkspace = () => {
           videoDuration={videoDuration}
           currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
+          showRegionAsSelected
+          selectableRegions
+          selectRegion={selectLinkageByRegion}
         />
       </Box>
 
