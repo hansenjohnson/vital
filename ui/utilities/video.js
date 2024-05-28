@@ -13,6 +13,7 @@ export const getFrameRateFromDashPlayer = (dashPlayer) => {
 }
 
 export const frameRateFromStr = (frameRateStr) => {
+  if (!frameRateStr) return null
   if (frameRateStr.includes('/')) {
     const [numerator, denominator] = frameRateStr.split('/')
     return parseFloat(numerator) / parseFloat(denominator)

@@ -6,6 +6,7 @@ import { getActiveVideoURL } from '../store/associations-create'
 import { getSelectedSightingName } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
+import { frameRateFromStr } from '../utilities/video'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
@@ -34,18 +35,17 @@ const AssociationsViewWorkspace = () => {
   const sightingName = useStore(getSelectedSightingName)
   const saveAssociation = useStore((state) => state.saveAssociation)
   const linkageThumbnail = useStore((state) => state.linkageThumbnail)
+  const videoFrameRate = useStore((state) => frameRateFromStr(state.linkageVideoFrameRate))
 
   // Video State that we imperatively subscribe to
   const videoElementRef = useRef(null)
   const [videoDuration, setVideoDuration] = useState(0)
-  const [videoFrameRate, setVideoFrameRate] = useState(null)
   const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
 
   // Reset state when video changes
   useEffect(() => {
     setVideoDuration(0)
-    setVideoFrameRate(null)
     setVideoFrameNumber(0)
     setVideoRangesBuffered([])
   }, [activeVideoURL])
@@ -55,6 +55,40 @@ const AssociationsViewWorkspace = () => {
       videoElementRef.current.currentTime = frame / videoFrameRate
     }
   }
+
+  // Set the playhead to the region start
+  const previousVideoURL = useRef(null)
+  useEffect(() => {
+    if (!activeVideoURL) return
+    if (!videoElementRef.current) return
+    const video = videoElementRef.current
+
+    // The video didn't change, so we can just react to the region start changing
+    if (previousVideoURL.current === activeVideoURL) {
+      seekToFrame(regionStart)
+      video.play()
+      return
+    }
+
+    const seekAfterVideoHasDuration = () => {
+      seekToFrame(regionStart)
+      video.play()
+      video.removeEventListener('durationchange', seekAfterVideoHasDuration)
+    }
+
+    video.addEventListener('durationchange', seekAfterVideoHasDuration)
+    previousVideoURL.current = activeVideoURL
+
+    return () => {
+      video.removeEventListener('durationchange', seekAfterVideoHasDuration)
+    }
+  }, [activeVideoURL, regionStart])
+
+  useEffect(() => {
+    if (videoFrameNumber >= regionEnd) {
+      videoElementRef.current.pause()
+    }
+  }, [videoFrameNumber])
 
   const enterAddMode = () => {}
   const deleteAssociation = () => {}
@@ -70,7 +104,7 @@ const AssociationsViewWorkspace = () => {
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
           frameRate={videoFrameRate}
-          setFrameRate={setVideoFrameRate}
+          setFrameRate={() => null}
           currentFrameNumber={videoFrameNumber}
           setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
