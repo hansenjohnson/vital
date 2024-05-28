@@ -4,8 +4,12 @@ import Button from '@mui/material/Button'
 const StyledButton = ({ color = 'primary', variant = 'outlined', children, ...rest }) => {
   const theme = useTheme()
 
-  let textColor =
-    variant === 'contained' ? theme.palette[color].light : theme.palette[color].contrastText
+  let textColor = theme.palette[color].contrastText
+  if (variant === 'contained') {
+    textColor = theme.palette[color].light
+  } else if (variant === 'outlined') {
+    textColor = theme.palette[color].dark
+  }
   if (color === 'error') {
     textColor = '#D52810'
   }
@@ -28,7 +32,7 @@ const StyledButton = ({ color = 'primary', variant = 'outlined', children, ...re
         color: textColor,
         backgroundColor: backgroundColor,
         '&:hover': {
-          color: variant === 'contained' ? 'white' : 'inherit',
+          color: variant === 'contained' ? 'white' : undefined,
           boxShadow: 'none',
         },
       })}

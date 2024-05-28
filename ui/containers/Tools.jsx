@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 
+import useStore from '../store'
+import useSettingsStore from '../store/settings'
 import ROUTES from '../constants/routes'
 import TOOLS from '../constants/tools'
+import catalogFoldersAPI from '../api/catalogFolders'
+import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
+
 import MainActionButton from '../components/MainActionButton'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import CatalogFolderDialog from '../components/CatalogFolderDialog'
-import catalogFoldersAPI from '../api/catalogFolders'
-import { transformCatalogFolderData, sortCatalogFolderData } from '../utilities/transformers'
 
-const ToolsContainer = ({
-  setRoute,
-  setVideoFolderId,
-  setVideoFolderName,
-  reloadFromSettingsChange,
-}) => {
+const ToolsContainer = () => {
+  const setRoute = useStore((state) => state.setRoute)
+  const settingsInitialized = useSettingsStore((state) => state.initialized)
+  const [setVideoFolderId, setVideoFolderName] = useStore(
+    useShallow((state) => [state.setVideoFolderId, state.setVideoFolderName])
+  )
+
   const [tool, setTool] = useState(TOOLS.ASSOCIATE_ANNOTATE)
 
   const [catalogFolders, setCatalogFolders] = useState([])
@@ -28,10 +33,12 @@ const ToolsContainer = ({
       const sortedFolders = sortCatalogFolderData(transformedData)
       setCatalogFolders(sortedFolders)
     })
-  }, [reloadFromSettingsChange])
+  }, [settingsInitialized])
 
-  const handleClickViewAssociations = () => {
-    alert('not implemented yet!')
+  const loadSightings = useStore((state) => state.loadSightings)
+  const handleClickViewAssociations = async () => {
+    await loadSightings()
+    setRoute(ROUTES.ASSOCIATIONS_VIEW)
   }
 
   const handleClickCreateAssociations = () => {
@@ -39,7 +46,7 @@ const ToolsContainer = ({
     setCatalogFoldersDialog(true)
   }
 
-  const handleSelectCatalogFolder = async (catalogFolderId) => {
+  const handleSelectCatalogFolder = (catalogFolderId) => {
     const catalogFolder = catalogFolders.find((entry) => entry.id === catalogFolderId)
     setVideoFolderId(catalogFolderId)
     setVideoFolderName(`${catalogFolder.date}-${catalogFolder.observer}`)

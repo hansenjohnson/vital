@@ -96,8 +96,15 @@ class LinkageModel(SQL):
                 sighting_query += f" AND ObserverCode = '{observer_code}'"
 
             cursor = self.conn.cursor()
-            cursor.execute(f"""SELECT l.*, s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode FROM Linkage l 
-                           JOIN Sighting s ON l.SightingId = s.SightingId where s.SightingYear = {year}{sighting_query}""")
+            cursor.execute(f"""
+                           SELECT l.*,
+                           s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode, s.SightingLetter,
+                           v.OptimizedFileName, v.FrameRate, v.CatalogFolderId
+                           FROM Linkage l
+                           JOIN Sighting s ON l.SightingId = s.SightingId
+                           JOIN Video v ON l.CatalogVideoId = v.CatalogVideoId
+                           WHERE s.SightingYear = {year}{sighting_query}
+            """)
             rows = cursor.fetchall()
             cursor.close()
             return [dict(row) for row in rows]

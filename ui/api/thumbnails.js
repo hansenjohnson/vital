@@ -2,7 +2,13 @@ import { baseURL } from './config'
 import { postBlob } from './fetchers'
 import { leafPath, joinPath } from '../utilities/paths'
 
-const formulatePath = (sightingId, sightingDate, videoFileName, regionStart, fileType = 'jpg') => {
+const formulateSavePath = (
+  sightingId,
+  sightingDate,
+  videoFileName,
+  regionStart,
+  fileType = 'jpg'
+) => {
   const nonAlphaNumeric = /[^a-zA-Z0-9\-_]/g
   const safeSightingId = `${sightingId}`.replace(nonAlphaNumeric, '_')
   const safeSightingDate = `${sightingDate}`.replace(nonAlphaNumeric, '_')
@@ -17,12 +23,16 @@ const formulatePath = (sightingId, sightingDate, videoFileName, regionStart, fil
   return path
 }
 
+const formulateHostedPath = (partialPath) =>
+  `${baseURL}/thumbnails/${encodeURIComponent(partialPath)}`
+
 const save = async (filepathWithName, imageBlob) => {
   const safeFilepath = encodeURIComponent(filepathWithName)
   return await postBlob(`${baseURL}/thumbnails/${safeFilepath}`, imageBlob)
 }
 
 export default {
-  formulatePath,
+  formulateSavePath,
+  formulateHostedPath,
   save,
 }
