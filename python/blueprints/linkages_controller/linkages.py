@@ -34,6 +34,16 @@ def create_linkage():
         return jsonify({"error": str(e)}), 400
 
 
+@bp.route('/<int:linkage_id>', methods=['PUT'])
+def update_linkage(linkage_id):
+    payload = request.json
+    try:
+        linkage_model.update_linkage(linkage_id, payload)
+        return jsonify({"message": "Linkage updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bp.route('/<int:linkage_id>', methods=['DELETE'])
 def delete_linkage_by_id(linkage_id):
     try:

@@ -1,16 +1,27 @@
+import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 
-import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+import useStore from '../store'
+import useSettingsStore from '../store/settings'
 import ROUTES from '../constants/routes'
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
-const Navbar = ({ width, route, setRoute, settingsOpen, setSettingsOpen, settingsInitialized }) => {
+const Navbar = ({ width }) => {
+  const [resetStore, route, setRoute] = useStore(
+    useShallow((state) => [state.resetStore, state.route, state.setRoute])
+  )
+  const [settingsInitialized, settingsOpen, setSettingsOpen] = useSettingsStore(
+    useShallow((state) => [state.initialized, state.open, state.setOpen])
+  )
+
   const title = TITLES[route]
 
   const handleToolsClick = () => {
     setSettingsOpen(false)
     setRoute(ROUTES.TOOLS)
+    resetStore()
   }
 
   if (width === 0) return null
@@ -51,6 +62,18 @@ const Navbar = ({ width, route, setRoute, settingsOpen, setSettingsOpen, setting
       >
         {title}
       </Box>
+
+      {/* Extra box behind navbar to hide window resizing artifacts */}
+      <Box
+        sx={{
+          position: 'fixed',
+          width: `400px`,
+          height: `${TITLEBAR_HEIGHT}px`,
+          right: 0,
+          backgroundColor: 'primary.dark',
+          zIndex: -1,
+        }}
+      />
     </Box>
   )
 }

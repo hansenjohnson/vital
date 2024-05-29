@@ -12,6 +12,7 @@ const theme = createTheme({
     background: {
       default: '#1E1E1E',
       paper: '#1E1E1E',
+      headerPaper: '#BCCBCC',
     },
 
     primary: {
@@ -45,6 +46,7 @@ const theme = createTheme({
 
   typography: {
     fontFamily: "'Ubuntu', sans-serif",
+    monoFamily: "'Sometype Mono Variable', monopace",
   },
 })
 

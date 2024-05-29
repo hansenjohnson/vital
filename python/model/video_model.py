@@ -30,6 +30,7 @@ class VideoModel(SQL):
                        CatalogFolderId INTEGER,
                        OriginalFileName TEXT,
                        OptimizedFileName TEXT,
+                       FrameRate TEXT,
                        CreatedBy TEXT,
                        CreatedDate TEXT
                     )"""

@@ -23,6 +23,20 @@ export const postJSON = async (url, data) => {
   }
 }
 
+export const putJson = async (url, data) => {
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return response.ok
+  } catch (error) {
+    console.error(`Error with PUT to ${url}:`, error?.message || error)
+    return false
+  }
+}
+
 export const postJSONWithResponse = async (url, data) => {
   try {
     const response = await fetch(url, {
@@ -51,5 +65,17 @@ export const postBlob = async (url, blob) => {
   } catch (error) {
     console.error(`Error with POST to ${url}:`, error?.message || error)
     return false
+  }
+}
+
+export const deleteThis = async (url) => {
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    })
+    return response.ok
+  } catch (error) {
+    console.error(`Error with DELETE to ${url}:`, error?.message || error)
+    return null
   }
 }

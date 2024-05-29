@@ -10,6 +10,7 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
 import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilities/video'
+import BlankSlate from './BlankSlate'
 
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
@@ -46,6 +47,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   const videoContainerRef = useRef(null)
   const [widerContainer, setWiderContainer] = useState(false)
   useEffect(() => {
+    if (!videoContainerRef.current) return
     const { clientWidth, clientHeight } = videoContainerRef.current
     const videoContainerAspectRatio = clientWidth / clientHeight
     const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
@@ -189,6 +191,8 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   // High-Frequency Timestamp Reporting
   useEffect(() => {
     const video = videoElementRef.current
+    if (!video) return
+
     let callbackId
     const videoFrameCallback = (now, metadata) => {
       const timeInSeconds = metadata.mediaTime
@@ -199,7 +203,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     // Initial spawn
     callbackId = video.requestVideoFrameCallback(videoFrameCallback)
     return () => video.cancelVideoFrameCallback(callbackId)
-  }, [frameRate])
+  }, [frameRate, url])
 
   // Fullscreen Controls
   // Chromium renders default controls on Fullscreen Video,
@@ -207,6 +211,10 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   const enterFullscreen = () => {
     if (!videoElementRef.current) return
     videoElementRef.current.requestFullscreen()
+  }
+
+  if (!url) {
+    return <BlankSlate message="Select an Association to get started" />
   }
 
   return (

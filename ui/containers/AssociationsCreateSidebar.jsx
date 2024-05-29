@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
@@ -7,24 +8,33 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ArtTrackIcon from '@mui/icons-material/ArtTrack'
 import PostAddIcon from '@mui/icons-material/PostAdd'
 
+import useStore from '../store'
 import Sidebar from '../components/Sidebar'
 import CreationHeader from '../components/CreationHeader'
 import SectionHeading from '../components/SectionHeading'
 import IconNote from '../components/IconNote'
 import { leafPath } from '../utilities/paths'
 
-const AssociationsCreateSidebar = ({
-  videoFolderName,
-  videoFiles,
-  activeVideoFile,
-  associationsAdded,
-  associationIsPending,
-  completedVideoFiles,
-}) => {
+const AssociationsCreateSidebar = () => {
+  const videoFolderName = useStore((state) => state.videoFolderName)
+  const activeVideoFileName = useStore((state) =>
+    state.activeVideo ? state.activeVideo.fileName : ''
+  )
+  const numAssociationsAdded = useStore((state) => state.existingRegions.length)
+  const someAssociationPending = useStore((state) => state.saveable)
+  const remainingVideoFileNames = useStore(
+    useShallow((state) => state.remainingVideos.map((v) => v.fileName))
+  )
+  const completedVideoFileNames = useStore(
+    useShallow((state) => state.completedVideos.map((v) => v.fileName))
+  )
+
   const [showCompletedVideos, setShowCompletedVideos] = useState(false)
   const NUM_VIDEOS_TO_SHOW = showCompletedVideos ? 5 : 10
   const additionalVideos =
-    videoFiles.length > NUM_VIDEOS_TO_SHOW ? videoFiles.length - NUM_VIDEOS_TO_SHOW : 0
+    remainingVideoFileNames.length > NUM_VIDEOS_TO_SHOW
+      ? remainingVideoFileNames.length - NUM_VIDEOS_TO_SHOW
+      : 0
 
   const flashFadeInDuration = 200
   const [shouldFlash, setShouldFlash] = useState(false)
@@ -36,7 +46,7 @@ const AssociationsCreateSidebar = ({
     // video player changing source URLs.
     const timeout = setTimeout(() => setShouldFlash(false), flashFadeInDuration + 250)
     return () => clearTimeout(timeout)
-  }, [activeVideoFile])
+  }, [activeVideoFileName])
 
   return (
     <Sidebar>
@@ -55,7 +65,7 @@ const AssociationsCreateSidebar = ({
         {/* Unprocessed Videos Section */}
         <Box sx={{ flexGrow: 1 }}>
           <SectionHeading>Unprocessed Videos</SectionHeading>
-          {videoFiles.slice(0, NUM_VIDEOS_TO_SHOW).map((videoFile, index) => (
+          {remainingVideoFileNames.slice(0, NUM_VIDEOS_TO_SHOW).map((videoFile, index) => (
             <Typography key={videoFile} sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
               {leafPath(videoFile)}
               <Box component="span" sx={{ color: 'text.disabled' }}>
@@ -85,17 +95,17 @@ const AssociationsCreateSidebar = ({
                 : `background-color ${flashFadeInDuration * 2}ms ease-in`,
             }}
           >
-            {leafPath(activeVideoFile)}
+            {leafPath(activeVideoFileName)}
           </Typography>
           <IconNote
             icon={ArtTrackIcon}
-            note={`${associationsAdded} Association${associationsAdded !== 1 ? 's' : ''} Added`}
+            note={`${numAssociationsAdded} Association${numAssociationsAdded !== 1 ? 's' : ''} Added`}
             color="secondary.light"
           />
           <IconNote
             icon={PostAddIcon}
             iconFontSize={20}
-            note={associationIsPending ? '1 Association Pending' : 'none pending'}
+            note={someAssociationPending ? '1 Association Pending' : 'none pending'}
           />
         </Box>
 
@@ -105,9 +115,9 @@ const AssociationsCreateSidebar = ({
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ flexGrow: 1 }}>
-              <SectionHeading>Completed Videos ({completedVideoFiles.length})</SectionHeading>
+              <SectionHeading>Completed Videos ({completedVideoFileNames.length})</SectionHeading>
             </Box>
-            {completedVideoFiles.length > 0 && (
+            {completedVideoFileNames.length > 0 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <IconButton
                   size="small"
@@ -121,7 +131,7 @@ const AssociationsCreateSidebar = ({
             )}
           </Box>
           {showCompletedVideos &&
-            completedVideoFiles.map((videoFile) => (
+            completedVideoFileNames.map((videoFile) => (
               <Typography key={videoFile} sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
                 {leafPath(videoFile)}
               </Typography>

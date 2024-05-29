@@ -73,6 +73,28 @@ class LinkageModel(SQL):
             print_err(f"Failed to execute SQL query create_linkage: {e}")
             raise e
 
+    def update_linkage(self, linkage_id, payload):
+        try:
+            columns = []
+            values = []
+
+            for key, value in payload.items():
+                columns.append(f"{key} = ?")
+                values.append(value)
+
+            values.append(linkage_id)
+
+            query = f"UPDATE linkage SET {', '.join(columns)} WHERE LinkageId = ?"
+
+            cursor = self.conn.cursor()
+            cursor.execute(query, values)
+            self.conn.commit()
+
+            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
+        except Exception as e:
+            print_err(f"Failed to execute SQL query update_linkage: {e}")
+            raise e
+
     def delete_linkage_by_id(self, linkage_id):
         try:
             cursor = self.conn.cursor()
@@ -96,8 +118,15 @@ class LinkageModel(SQL):
                 sighting_query += f" AND ObserverCode = '{observer_code}'"
 
             cursor = self.conn.cursor()
-            cursor.execute(f"""SELECT l.*, s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode FROM Linkage l 
-                           JOIN Sighting s ON l.SightingId = s.SightingId where s.SightingYear = {year}{sighting_query}""")
+            cursor.execute(f"""
+                           SELECT l.*,
+                           s.SightingYear, s.SightingMonth, s.SightingDay, s.ObserverCode, s.SightingLetter,
+                           v.OptimizedFileName, v.FrameRate, v.CatalogFolderId
+                           FROM Linkage l
+                           JOIN Sighting s ON l.SightingId = s.SightingId
+                           JOIN Video v ON l.CatalogVideoId = v.CatalogVideoId
+                           WHERE s.SightingYear = {year}{sighting_query}
+            """)
             rows = cursor.fetchall()
             cursor.close()
             return [dict(row) for row in rows]
