@@ -28,10 +28,13 @@ class StillExportService:
             frame_number = payload['FrameNumber']
             created_date = payload['CreatedDate']
 
-            output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_NAME.value)
-            original_video_folder_path = file_path.catalog_folder_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
-
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
+
+            output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_PATH.value)
+            original_video_folder_path = file_path.catalog_folder_path(
+                catalog_video['CatalogFolderId'],
+                SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value
+            )
             original_video_name = catalog_video['OriginalFileName']
 
             original_video_file_path = str(os.path.join(original_video_folder_path, original_video_name))
