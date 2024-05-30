@@ -26,7 +26,6 @@ class StillExportService:
             catalog_video_id = payload['CatalogVideoId']
             output_image_name = payload['FileName']
             frame_number = payload['FrameNumber']
-            created_by = payload['CreatedBy']
             created_date = payload['CreatedDate']
 
             output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_NAME.value)
@@ -53,7 +52,6 @@ class StillExportService:
                     'CatalogVideoId': catalog_video_id,
                     'FileName': output_image_name,
                     'FileLocation': output_image_path,
-                    'CreatedBy': created_by,
                     'CreatedDate': created_date
                 })
                 print_out(f"Frame extracted successfully and saved to {output_image_path}")
