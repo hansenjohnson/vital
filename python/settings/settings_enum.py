@@ -9,7 +9,7 @@ class SettingsEnum(Enum):
     STILL_EXPORT_FILE_PATH = 'still_export_file_path'
 
     THUMBNAIL_DIR_PATH = 'thumbnail_dir_path'
-    STILLEXPORT_DIR_NAME = 'stillexport_dir_path'
+    STILLEXPORT_DIR_PATH = 'stillexport_dir_path'
 
     BASE_FOLDER_OF_VIDEOS = 'base_folder_of_videos'
     BASE_FOLDER_OF_ORIGINAL_VIDEOS = 'base_folder_of_original_videos'
