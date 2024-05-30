@@ -44,7 +44,7 @@ class StillExportModel(SQL):
                 INSERT INTO still_export
                     (CatalogVideoId, FileName, FileLocation, CreatedBy, CreatedDate)
                 VALUES
-                    (:CatalogVideoId, :FileName, :FileLocation, :CreatedBy, :CreatedDate)
+                    (:CatalogVideoId, :FileName, :FileLocation, '', :CreatedDate)
             """
             cursor.execute(query, payload)
             self.conn.commit()
