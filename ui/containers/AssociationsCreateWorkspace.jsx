@@ -5,6 +5,8 @@ import useStore from '../store'
 import { getActiveVideoURL, isSaveable } from '../store/associations-create'
 import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
+import stillExportsAPI from '../api/stillExports'
+
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
@@ -16,6 +18,7 @@ const THUMBNAIL_WIDTH = 200
 
 const AssociationsCreateWorkspace = () => {
   const existingRegions = useStore((state) => state.existingRegions)
+  const activeVideo = useStore((state) => state.activeVideo)
   const activeVideoURL = useStore(getActiveVideoURL)
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
     useStore,
@@ -87,6 +90,14 @@ const AssociationsCreateWorkspace = () => {
     saveAssociation(regionStartBlob.current)
   }
 
+  const exportStillFrame = () => {
+    stillExportsAPI.create(
+      activeVideo.id,
+      `test-${Math.floor(Math.random() * 10000)}.jpg`,
+      videoFrameNumber
+    )
+  }
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
@@ -143,7 +154,7 @@ const AssociationsCreateWorkspace = () => {
           }}
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
-          <StyledButton disabled>Export Still Frame</StyledButton>
+          <StyledButton onClick={exportStillFrame}>Export Still Frame</StyledButton>
           <StyledButton
             onClick={_saveAssociation}
             variant="contained"
