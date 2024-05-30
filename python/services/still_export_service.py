@@ -5,8 +5,11 @@ import time
 from model.video_model import VideoModel
 from model.still_export_model import StillExportModel
 from utils import file_path
+from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err, print_out
+
+settings_service = SettingsService()
 
 
 class StillExportService:
@@ -21,12 +24,12 @@ class StillExportService:
     def create_still(self, payload):
         try:
             catalog_video_id = payload['CatalogVideoId']
-            output_image_path = payload['FileLocation']
             output_image_name = payload['FileName']
             frame_number = payload['FrameNumber']
             created_by = payload['CreatedBy']
             created_date = payload['CreatedDate']
 
+            output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_NAME.value)
             original_video_folder_path = file_path.catalog_folder_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
