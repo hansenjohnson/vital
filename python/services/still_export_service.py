@@ -25,7 +25,7 @@ class StillExportService:
         try:
             catalog_video_id = payload['CatalogVideoId']
             output_image_name = payload['FileName']
-            frame_number = payload['FrameNumber']
+            timestamp = payload['Timestamp'] # should look like HH:MM:SS.000
             created_date = payload['CreatedDate']
 
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
@@ -40,15 +40,20 @@ class StillExportService:
             original_video_file_path = str(os.path.join(original_video_folder_path, original_video_name))
             output_file_path = str(os.path.join(output_image_path, output_image_name))
 
+            # this command expects .jpg in the output path, but will not enforce it
             command = [
                 self.ffmpeg_path,
-                '-y',
+                '-loglevel', 'error',
+                '-n',
+                '-ss', timestamp,
                 '-i', original_video_file_path,
-                '-vf', f'select=eq(n\\,{frame_number})',
-                '-vframes:v', '1',
+                '-frames:v', '1',
                 '-update', '1',
+                '-qscale:v', '2',
                 output_file_path
             ]
+
+            print_out(' '.join(command))
             subprocess.run(command, check=True)
             if os.path.isfile(output_file_path):
                 self.still_export_model.create_still_export({

@@ -1,11 +1,11 @@
 import { baseURL } from './config'
 import { postJSON } from './fetchers'
 
-const create = (videoId, fileName, frameNumber) =>
+const create = (videoId, fileName, timestamp) =>
   postJSON(`${baseURL}/still_exports`, {
     CatalogVideoId: videoId,
     FileName: fileName,
-    FrameNumber: frameNumber,
+    Timestamp: timestamp,
     CreatedDate: `${new Date()}`,
   })
 
