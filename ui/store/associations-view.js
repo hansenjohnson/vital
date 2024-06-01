@@ -51,7 +51,7 @@ const createAssociationsViewStore = (set, get) => ({
   setActiveLinkage: (linkage) => {
     const {
       setActiveLinkageId,
-      setVideoFolderId,
+      selectFolder,
       setRegionStart,
       setRegionEnd,
       setAnnotations,
@@ -79,7 +79,7 @@ const createAssociationsViewStore = (set, get) => ({
       }))
     setExistingRegions(allLinkageRegionsForThisVideo)
 
-    setVideoFolderId(linkage.video.folderId)
+    selectFolder(linkage.video.folderId)
     setLinkageVideoFrameRate(linkage.video.frameRate)
     setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
   },

@@ -10,8 +10,7 @@ import useWindowSize from './hooks/useWindowSize'
 
 import SettingsContainer from './containers/Settings'
 import Tools from './containers/Tools'
-import AssociationsView from './containers/AssociationsView'
-import AssociationsCreate from './containers/AssociationsCreate'
+import LinkageEditor from './containers/AssociationsView'
 import Navbar from './containers/Navbar'
 import CenteredLoadingCircle from './components/CenteredLoadingCircle'
 
@@ -31,10 +30,8 @@ const App = () => {
     switch (route) {
       case ROUTES.TOOLS:
         return Tools
-      case ROUTES.ASSOCIATIONS_VIEW:
-        return AssociationsView
-      case ROUTES.ASSOCIATIONS_CREATE:
-        return AssociationsCreate
+      case ROUTES.LINK_AND_ANNOTATE:
+        return LinkageEditor
       default:
         return null
     }

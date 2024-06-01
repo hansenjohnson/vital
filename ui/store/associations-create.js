@@ -8,7 +8,6 @@ import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
 
 const initialState = {
-  videoFolderId: null,
   videoFolderName: null,
   activeVideo: null,
   activeVideoLoading: false,
@@ -23,11 +22,6 @@ const initialState = {
 const createAssociationsCreateStore = (set, get) => ({
   ...initialState,
   resetAssociationsCreateStore: () => set(initialState),
-
-  // TODO: store catalog folders at this level and turn videoFolderName
-  // into a computed value
-  setVideoFolderId: valueSetter(set, 'videoFolderId'),
-  setVideoFolderName: valueSetter(set, 'videoFolderName'),
 
   // == Video Actions ==
   setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),

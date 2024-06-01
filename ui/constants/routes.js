@@ -1,13 +1,11 @@
 const ROUTES = {
   TOOLS: 'tools',
-  ASSOCIATIONS_VIEW: 'aa-view',
-  ASSOCIATIONS_CREATE: 'aa-create',
+  LINK_AND_ANNOTATE: 'link-and-annotate',
 }
 
 const TITLES = {
   [ROUTES.TOOLS]: 'Video Catalog Suite',
-  [ROUTES.ASSOCIATIONS_VIEW]: 'Associate & Annotate - View',
-  [ROUTES.ASSOCIATIONS_CREATE]: 'Associate & Annotate - Create',
+  [ROUTES.LINK_AND_ANNOTATE]: 'Link and Annotate Videos',
 }
 
 const VIEW_MODES = {

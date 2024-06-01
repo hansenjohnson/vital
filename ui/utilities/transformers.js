@@ -1,7 +1,6 @@
-export const yearMonthDayString = (year, month, day) =>
-  `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+import { yearMonthDayString } from './strings'
 
-export const transformCatalogFolderData = (folderRow) => {
+export const transformFolderData = (folderRow) => {
   return {
     id: folderRow.CatalogFolderId,
     date: yearMonthDayString(folderRow.FolderYear, folderRow.FolderMonth, folderRow.FolderDay),
@@ -12,15 +11,15 @@ export const transformCatalogFolderData = (folderRow) => {
   }
 }
 
-export const sortCatalogFolderData = (original) => {
+export const sortFolderData = (original) => {
   return original.toSorted((a, b) => {
     // Date DESC
     if (a.date < b.date) return 1
     if (a.date > b.date) return -1
 
     // Observer ASC
-    if (a.ObserverCode > b.ObserverCode) return 1
-    if (a.ObserverCode < b.ObserverCode) return -1
+    if (a.observer > b.observer) return 1
+    if (a.observer < b.observer) return -1
     return 0
   })
 }

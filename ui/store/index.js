@@ -4,14 +4,14 @@ import ping from '../api/ping'
 import ROUTES from '../constants/routes'
 import { valueSetter } from './utils'
 
-import createAssociationsCreateStore from './associations-create'
 import createAssociationsViewStore from './associations-view'
+import createFoldersStore from './folders'
 import createSightingsStore from './sightings'
 
 const useStore = create((set, get) => ({
   resetStore: () => {
-    get().resetAssociationsCreateStore()
     get().resetAssociationsViewStore()
+    get().resetFoldersStore()
     get().resetSightingsStore()
   },
 
@@ -21,8 +21,8 @@ const useStore = create((set, get) => ({
   route: ROUTES.TOOLS,
   setRoute: valueSetter(set, 'route'),
 
-  ...createAssociationsCreateStore(set, get),
   ...createAssociationsViewStore(set, get),
+  ...createFoldersStore(set, get),
   ...createSightingsStore(set, get),
 }))
 

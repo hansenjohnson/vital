@@ -1,4 +1,4 @@
 export default {
-  ASSOCIATE_ANNOTATE: 'associate-annotate',
+  LINK_ANNOTATE: 'link-annotate',
   INGEST_TRANSCODE: 'ingest-transcode',
 }
