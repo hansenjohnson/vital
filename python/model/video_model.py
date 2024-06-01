@@ -32,7 +32,7 @@ class VideoModel(SQL):
                        OptimizedFileName TEXT,
                        FrameRate TEXT,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
         self.load_table('video', video_model, self.file_path, 'CatalogVideoId')
 

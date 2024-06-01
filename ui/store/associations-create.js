@@ -96,7 +96,6 @@ const createAssociationsCreateStore = (set, get) => ({
       SightingId: selectedSightingId,
       Annotation: annotations,
       ThumbnailFilePath: thumbnailPartialPath,
-      CreatedDate: `${new Date()}`,
     })
     if (!saveStatus) return
 

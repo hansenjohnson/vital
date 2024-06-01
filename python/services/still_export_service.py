@@ -26,7 +26,6 @@ class StillExportService:
             catalog_video_id = payload['CatalogVideoId']
             output_image_name = payload['FileName']
             timestamp = payload['Timestamp'] # should look like HH:MM:SS.000
-            created_date = payload['CreatedDate']
 
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
 
@@ -60,7 +59,6 @@ class StillExportService:
                     'CatalogVideoId': catalog_video_id,
                     'FileName': output_image_name,
                     'FileLocation': output_image_path,
-                    'CreatedDate': created_date
                 })
                 print_out(f"Frame extracted successfully and saved to {output_image_path}")
             else:

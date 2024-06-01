@@ -36,7 +36,7 @@ class LinkageModel(SQL):
                        Annotation JSON,
                        ThumbnailFilePath TEXT,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
 
         self.load_table('linkage', linkage_create, self.file_path, 'LinkageId')
@@ -58,8 +58,8 @@ class LinkageModel(SQL):
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO linkage
-                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
+                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath)
+                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath)
             """
             cursor.execute(query, payload)
             self.conn.commit()

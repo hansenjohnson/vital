@@ -32,7 +32,7 @@ class FolderModel(SQL):
                        FolderDay INTEGER,
                        ObserverCode TEXT,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
         self.load_table('folder', folder_create, self.file_path,  'CatalogFolderId')
 

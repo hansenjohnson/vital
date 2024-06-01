@@ -33,7 +33,7 @@ class StillExportModel(SQL):
                        FileName TEXT,
                        FileLocation TEXT,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
         self.load_table('still_export', still_export_create, self.file_path, 'StillExportId')
 
@@ -42,9 +42,9 @@ class StillExportModel(SQL):
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO still_export
-                    (CatalogVideoId, FileName, FileLocation, CreatedBy, CreatedDate)
+                    (CatalogVideoId, FileName, FileLocation)
                 VALUES
-                    (:CatalogVideoId, :FileName, :FileLocation, '', :CreatedDate)
+                    (:CatalogVideoId, :FileName, :FileLocation)
             """
             cursor.execute(query, payload)
             self.conn.commit()

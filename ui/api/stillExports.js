@@ -6,7 +6,6 @@ const create = (videoId, fileName, timestamp) =>
     CatalogVideoId: videoId,
     FileName: fileName,
     Timestamp: timestamp,
-    CreatedDate: `${new Date()}`,
   })
 
 export default {
