@@ -30,7 +30,7 @@ const AssociationsViewSidebar = () => {
 
   // Sightings Data Handling
   const sightings = useStore((state) => state.sightings)
-  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year)), 2022]
+  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year))]
   const sightingSuffixes = [
     ...new Set(
       sightings
