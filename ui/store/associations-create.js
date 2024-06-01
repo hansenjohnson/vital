@@ -8,7 +8,6 @@ import thumbnailsAPI from '../api/thumbnails'
 import { baseURL } from '../api/config'
 
 const initialState = {
-  videoFolderName: null,
   activeVideo: null,
   activeVideoLoading: false,
   remainingVideos: [],
@@ -35,8 +34,8 @@ const createAssociationsCreateStore = (set, get) => ({
   setRemainingVideos: valueSetter(set, 'remainingVideos'),
   setCompletedVideos: valueSetter(set, 'completedVideos'),
   // TODO: store videos as state and eliminate remaining/completed concepts
-  loadVideos: async (videoFolderId) => {
-    const videoRows = await videosAPI.getList(videoFolderId)
+  loadVideos: async (folderId) => {
+    const videoRows = await videosAPI.getList(folderId)
     const videos = videoRows.map(transformVideoData)
     const [firstVideo, ...nonFirstVideos] = videos
     set({ activeVideo: firstVideo, activeVideoLoading: true, remainingVideos: nonFirstVideos })
@@ -114,7 +113,9 @@ const createAssociationsCreateStore = (set, get) => ({
 })
 
 const getActiveVideoURL = (state) =>
-  state.activeVideo ? `${baseURL}/videos/${state.videoFolderId}/${state.activeVideo.fileName}` : ''
+  state.activeVideo
+    ? `${baseURL}/videos/${state.selectedFolderId}/${state.activeVideo.fileName}`
+    : ''
 
 const isSaveable = (state) => {
   if (state.regionStart == null) return false

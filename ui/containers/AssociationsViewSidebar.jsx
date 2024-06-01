@@ -1,14 +1,15 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
 
 import useStore from '../store'
-import { getViewSuffix } from '../store/associations-view'
+import { getSelectedFolder } from '../store/folders'
 import thumbnailsAPI from '../api/thumbnails'
 import { VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
+import { viewSuffixString } from '../utilities/strings'
 
 import Sidebar from '../components/Sidebar'
 import StyledSelect from '../components/StyledSelect'
@@ -17,48 +18,36 @@ import LinkageGroupHeader from '../components/LinkageGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
 const AssociationsViewSidebar = () => {
-  const [viewYear, setViewYear] = useStore(
-    useShallow((state) => [state.viewYear, state.setViewYear])
-  )
-  const [viewSuffix, setViewSuffix] = useStore(
-    useShallow((state) => [state.viewSuffix, state.setViewSuffix])
-  )
+  const folders = useStore((state) => state.folders)
+  const selectFolder = useStore((state) => state.selectFolder)
+  const selectedFolder = useStore((state) => getSelectedFolder(state))
+
+  const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
+  const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
+  const setViewYear = (year) => {
+    const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
+    _setViewYear(year)
+    selectFolder(nextSelectedFolder.id)
+  }
+
+  const folderSuffixes = [
+    ...new Set(folders.filter((folder) => `${folder.year}` === viewYear).map(viewSuffixString)),
+  ]
+  const viewSuffix = viewSuffixString(selectedFolder)
+  const setViewSuffix = (suffix) => {
+    const nextSelectedFolder = folders.find(
+      (folder) => `${folder.year}` === viewYear && viewSuffixString(folder) === suffix
+    )
+    selectFolder(nextSelectedFolder.id)
+  }
 
   const [viewMode, viewBySighting, viewByVideo] = useStore(
     useShallow((state) => [state.viewMode, state.viewBySighting, state.viewByVideo])
   )
 
-  // Sightings Data Handling
-  const sightings = useStore((state) => state.sightings)
-  const sightingYears = [...new Set(sightings.map((sighting) => sighting.year))]
-  const sightingSuffixes = [
-    ...new Set(
-      sightings
-        .filter((sighting) => {
-          if (viewYear == null) {
-            return sighting.year === sightingYears[0]
-          }
-          return sighting.year === viewYear
-        })
-        .map(getViewSuffix)
-    ),
-  ]
-  if (sightingYears.length > 0 && sightingSuffixes.length === 0) {
-    sightingSuffixes.push('none')
-  }
-
   // Linkage Data Handling
   const linkages = useStore((state) => state.linkages)
   const loadLinkages = useStore((state) => state.loadLinkages)
-  useEffect(() => {
-    // Set Default Options as initial reaction to them being available
-    if (viewYear == null) {
-      setViewYear(sightingYears[0])
-      setViewSuffix(sightingSuffixes[0])
-    } else {
-      setViewSuffix(sightingSuffixes[0])
-    }
-  }, [viewYear])
   useEffect(() => {
     if (viewSuffix == null) return
     loadLinkages()
@@ -113,7 +102,7 @@ const AssociationsViewSidebar = () => {
                 label="Year"
                 value={viewYear}
                 handleChange={(event) => setViewYear(event.target.value)}
-                options={sightingYears}
+                options={folderYears}
               />
             )}
           </Box>
@@ -123,7 +112,7 @@ const AssociationsViewSidebar = () => {
                 label="Viewing"
                 value={viewSuffix}
                 handleChange={(event) => setViewSuffix(event.target.value)}
-                options={sightingSuffixes}
+                options={folderSuffixes}
               />
             )}
           </Box>

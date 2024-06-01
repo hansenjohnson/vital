@@ -13,6 +13,7 @@ const ChooseFolderBrowser = () => {
 
   const settingsInitialized = useSettingsStore((state) => state.initialized)
 
+  const selectFolder = useStore((state) => state.selectFolder)
   const folders = useStore((state) => state.folders)
   const loadFolders = useStore((state) => state.loadFolders)
   useEffect(() => {
@@ -51,7 +52,23 @@ const ChooseFolderBrowser = () => {
         .map((folder) => folder.observer)
     ),
   ]
-  const [selectedObserver, setSelectedObserver] = useState(null)
+  const [selectedObserver, _setSelectedObserver] = useState(null)
+  const setSelectedObserver = (observer) => {
+    if (!observer) {
+      selectFolder(null)
+      _setSelectedObserver(observer)
+      return
+    }
+
+    const selectedFolder = folders.find(
+      (folder) =>
+        folder.year === selectedYear &&
+        monthDayString(folder.month, folder.day) === selectedDate &&
+        folder.observer === observer
+    )
+    selectFolder(selectedFolder.id)
+    _setSelectedObserver(observer)
+  }
 
   return (
     <Box

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
@@ -15,6 +16,13 @@ const AssociationsViewContainer = () => {
     'sightingsDialogOpen',
     'setSightingsDialogOpen'
   )
+
+  const selectedFolderId = useStore((state) => state.selectedFolderId)
+  const loadSightings = useStore((state) => state.loadSightings)
+  useEffect(() => {
+    if (!selectedFolderId) return
+    loadSightings()
+  }, [selectedFolderId])
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>

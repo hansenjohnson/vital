@@ -2,6 +2,7 @@ import { valueSetter } from './utils'
 import { transformSightingData, sortSightingData } from '../utilities/transformers'
 import { doRegionsOverlap } from '../utilities/numbers'
 import sightingsAPI from '../api/sightings'
+import { getSelectedFolder } from './folders'
 
 const initialState = {
   sightings: [],
@@ -9,14 +10,18 @@ const initialState = {
   sightingsDialogOpen: false,
 }
 
-const createSightingsStore = (set) => ({
+const createSightingsStore = (set, get) => ({
   ...initialState,
   resetSightingsStore: () => set(initialState),
 
-  loadSightings: async (videoFolderName = undefined) => {
-    const sightingData = videoFolderName
-      ? await sightingsAPI.get(videoFolderName)
-      : await sightingsAPI.getList()
+  loadSightings: async () => {
+    const selectedFolder = getSelectedFolder(get())
+    const sightingData = await sightingsAPI.get(
+      selectedFolder.year,
+      selectedFolder.month,
+      selectedFolder.day,
+      selectedFolder.observer
+    )
     const transformedData = sightingData.map(transformSightingData)
     const sortedData = sortSightingData(transformedData)
     set({ sightings: sortedData })

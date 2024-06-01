@@ -3,10 +3,9 @@ import thumbnailsAPI from '../api/thumbnails'
 import { valueSetter } from './utils'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
 import { VIEW_MODES } from '../constants/routes'
+import { getSelectedFolder } from './folders'
 
 const initialState = {
-  viewYear: null,
-  viewSuffix: null,
   linkages: [],
   viewMode: VIEW_MODES.BY_SIGHTING,
   activeLinkageId: null,
@@ -18,15 +17,14 @@ const createAssociationsViewStore = (set, get) => ({
   ...initialState,
   resetAssociationsViewStore: () => set(initialState),
 
-  setViewYear: (value) => set({ viewYear: value, viewSuffix: null }),
-  setViewSuffix: valueSetter(set, 'viewSuffix'),
-
   loadLinkages: async () => {
-    const { viewYear, viewSuffix } = get()
-    if (viewYear == null || viewSuffix == null) return
-    const { month, day, observer } = getViewParamsFromSuffix(viewSuffix)
-
-    const linkageData = (await linkagesAPI.bySighting(viewYear, month, day, observer)) || []
+    const selectedFolder = getSelectedFolder(get())
+    const linkageData = await linkagesAPI.byFolder(
+      selectedFolder.year,
+      selectedFolder.month,
+      selectedFolder.day,
+      selectedFolder.observer
+    )
     const transformedData = linkageData.map(transformLinkageData)
     const sortedData = sortLinkageData(transformedData)
     set({ linkages: sortedData })
@@ -106,13 +104,4 @@ const createAssociationsViewStore = (set, get) => ({
   },
 })
 
-const getViewSuffix = (sighting) => `${sighting.month}-${sighting.day} ${sighting.observer}`
-const getViewParamsFromSuffix = (suffix) => {
-  const month = suffix.substring(0, 2)
-  const day = suffix.substring(3, 5)
-  const observer = suffix.substring(6)
-  return { month, day, observer }
-}
-
-export { getViewSuffix }
 export default createAssociationsViewStore

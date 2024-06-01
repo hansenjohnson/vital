@@ -5,12 +5,14 @@ import ROUTES from '../constants/routes'
 import { valueSetter } from './utils'
 
 import createAssociationsViewStore from './associations-view'
+import createAssociationsCreateStore from './associations-create'
 import createFoldersStore from './folders'
 import createSightingsStore from './sightings'
 
 const useStore = create((set, get) => ({
   resetStore: () => {
     get().resetAssociationsViewStore()
+    get().resetAssociationsCreateStore()
     get().resetFoldersStore()
     get().resetSightingsStore()
   },
@@ -22,6 +24,7 @@ const useStore = create((set, get) => ({
   setRoute: valueSetter(set, 'route'),
 
   ...createAssociationsViewStore(set, get),
+  ...createAssociationsCreateStore(set, get),
   ...createFoldersStore(set, get),
   ...createSightingsStore(set, get),
 }))
