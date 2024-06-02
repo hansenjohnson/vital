@@ -31,6 +31,7 @@ class VideoModel(SQL):
                        OriginalFileName TEXT,
                        OptimizedFileName TEXT,
                        FrameRate TEXT,
+                       Hidden INTEGER,
                        CreatedBy TEXT,
                        CreatedDate TEXT
                     )"""

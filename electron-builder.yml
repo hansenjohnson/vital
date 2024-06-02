@@ -9,6 +9,7 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,jsconfig.json}'
   - '!{requirements.txt}'
   - '!{CHANGELOG.md,README.md}'
+  - '!{python/resources/*}'
 extraFiles:
   - bin
 win:

@@ -1,7 +1,6 @@
 import subprocess
 import os
 import sys
-import time
 from model.video_model import VideoModel
 from model.still_export_model import StillExportModel
 from utils import file_path
@@ -17,10 +16,13 @@ class StillExportService:
     def __init__(self):
         self.video_model = VideoModel()
         self.still_export_model = StillExportModel()
-        current_dir = os.path.dirname(__file__)
-        base_dir = os.path.abspath(os.path.join(current_dir, '..\\..'))
-        self.ffmpeg_path = os.path.join(base_dir, 'bin', 'ffmpeg.exe')
+        base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
+        self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
+        if not os.path.isfile(self.ffmpeg_path):
+            print_err(f"ffmpeg.exe does not exist at {self.ffmpeg_path}")
+            raise FileNotFoundError(f"ffmpeg.exe does not exist at {self.ffmpeg_path}")
+        
     def create_still(self, payload):
         try:
             catalog_video_id = payload['CatalogVideoId']
@@ -54,7 +56,11 @@ class StillExportService:
             ]
 
             print_out(' '.join(command))
-            subprocess.run(command, check=True)
+            try:
+                subprocess.run(command, check=True)
+            except subprocess.CalledProcessError as e:
+                raise e
+
             if os.path.isfile(output_file_path):
                 self.still_export_model.create_still_export({
                     'CatalogVideoId': catalog_video_id,
