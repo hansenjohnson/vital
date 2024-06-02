@@ -27,6 +27,7 @@ class StillExportService:
         try:
             catalog_video_id = payload['CatalogVideoId']
             output_image_name = payload['FileName']
+            frame_number = payload.get('FrameNumber', 100) # provide default value until FE sends FrameNumber
             timestamp = payload['Timestamp'] # should look like HH:MM:SS.000
             created_date = payload['CreatedDate']
 
@@ -66,6 +67,7 @@ class StillExportService:
                     'CatalogVideoId': catalog_video_id,
                     'FileName': output_image_name,
                     'FileLocation': output_image_path,
+                    'FrameNumber': frame_number,
                     'CreatedDate': created_date
                 })
                 print_out(f"Frame extracted successfully and saved to {output_image_path}")
