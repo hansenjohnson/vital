@@ -6,12 +6,13 @@ class SettingsEnum(Enum):
     SIGHTING_FILE_PATH = 'sighting_file_path'
     VIDEO_FILE_PATH = 'video_file_path'
     FOLDER_FILE_PATH = 'folder_file_path'
+    STILL_EXPORT_FILE_PATH = 'still_export_file_path'
 
     THUMBNAIL_DIR_PATH = 'thumbnail_dir_path'
-    STILLFRAME_DIR_NAME = 'stillframe_dir_path'
+    STILLEXPORT_DIR_PATH = 'stillexport_dir_path'
 
     BASE_FOLDER_OF_VIDEOS = 'base_folder_of_videos'
-    FOLDER_OF_VIDEOS = 'folder_of_videos'
+    BASE_FOLDER_OF_ORIGINAL_VIDEOS = 'base_folder_of_original_videos'
 
     @classmethod
     def has_value(cls, value):

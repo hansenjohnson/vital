@@ -4,6 +4,7 @@ from model.folder_model import FolderModel
 from model.video_model import VideoModel
 from model.linkage_model import LinkageModel
 from model.sighting_model import SightingModel
+from model.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
 from utils.prints import print_err
 
@@ -14,6 +15,7 @@ folder_model = FolderModel()
 video_model = VideoModel()
 linkage_model = LinkageModel()
 sighting_model = SightingModel()
+still_export_model = StillExportModel()
 
 
 @bp.route('', methods=['POST'], strict_slashes=False)
@@ -56,3 +58,4 @@ def refresh_tables():
     video_model.refresh_table()
     linkage_model.refresh_table()
     sighting_model.refresh_table()
+    still_export_model.refresh_table()
