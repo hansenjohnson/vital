@@ -7,6 +7,7 @@ import { getSelectedSightingName } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
 import { frameRateFromStr } from '../utilities/video'
+import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
@@ -105,6 +106,14 @@ const AssociationsViewWorkspace = () => {
 
   const enterAddMode = () => {}
 
+  const exportStillFrame = () => {
+    stillExportsAPI.create(
+      activeVideo.id,
+      `test-${Math.floor(Math.random() * 10000)}.jpg`,
+      videoFrameNumber
+    )
+  }
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flexGrow: 1 }}>
@@ -162,7 +171,7 @@ const AssociationsViewWorkspace = () => {
           }}
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
-          <StyledButton disabled>Export Still Frame</StyledButton>
+          <StyledButton onClick={exportStillFrame}>Export Still Frame</StyledButton>
           <StyledButton
             onClick={enterAddMode}
             color="tertiary"

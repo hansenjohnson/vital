@@ -7,7 +7,7 @@ from utils import file_path
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err, print_out
-from utils.video import timestamp_for_ffmpeg
+from utils.video import frame_rate_from_str, timestamp_for_ffmpeg
 
 settings_service = SettingsService()
 
@@ -31,7 +31,8 @@ class StillExportService:
             frame_number = payload['FrameNumber']
 
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
-            timestamp = timestamp_for_ffmpeg(frame_number, catalog_video['FrameRate'])
+            frame_rate = frame_rate_from_str(catalog_video['FrameRate'])
+            timestamp = timestamp_for_ffmpeg(frame_number, frame_rate)
 
             output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_PATH.value)
             original_video_folder_path = file_path.catalog_folder_path(
