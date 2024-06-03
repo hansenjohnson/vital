@@ -33,13 +33,3 @@ export const timecodeFromFrameNumber = (frameNumber, frameRate, showFrames = tru
   }
   return timecode
 }
-
-export const timestampForFFMPEG = (frameNumber, frameRate) => {
-  const totalSeconds = frameNumber / (frameRate * 1.0)
-  const hours = `${Math.floor(totalSeconds / 3600)}`.padStart(2, '0')
-  const minutes = `${Math.floor(totalSeconds / 60) % 60}`.padStart(2, '0')
-  const seconds = `${Math.floor(totalSeconds % 60)}`.padStart(2, '0')
-  const microseconds = `${Math.floor((totalSeconds % 1) * 1000)}`.padStart(3, '0')
-  const timestamp = `${hours}:${minutes}:${seconds}.${microseconds}`
-  return timestamp
-}

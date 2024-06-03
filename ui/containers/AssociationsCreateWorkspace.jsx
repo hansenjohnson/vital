@@ -6,7 +6,6 @@ import { getActiveVideoURL, isSaveable } from '../store/associations-create'
 import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import stillExportsAPI from '../api/stillExports'
-import { timestampForFFMPEG } from '../utilities/video'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
@@ -95,7 +94,7 @@ const AssociationsCreateWorkspace = () => {
     stillExportsAPI.create(
       activeVideo.id,
       `test-${Math.floor(Math.random() * 10000)}.jpg`,
-      timestampForFFMPEG(videoFrameNumber, videoFrameRate)
+      videoFrameNumber
     )
   }
 
