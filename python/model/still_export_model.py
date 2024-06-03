@@ -32,6 +32,7 @@ class StillExportModel(SQL):
                        CatalogVideoId INTEGER,
                        FileName TEXT,
                        FileLocation TEXT,
+                       FrameNumber INTEGER,
                        CreatedBy TEXT,
                        CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
@@ -42,9 +43,9 @@ class StillExportModel(SQL):
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO still_export
-                    (CatalogVideoId, FileName, FileLocation)
+                    (CatalogVideoId, FileName, FileLocation, FrameNumber)
                 VALUES
-                    (:CatalogVideoId, :FileName, :FileLocation)
+                    (:CatalogVideoId, :FileName, :FileLocation, :FrameNumber)
             """
             cursor.execute(query, payload)
             self.conn.commit()
