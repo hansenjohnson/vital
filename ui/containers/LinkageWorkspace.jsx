@@ -2,13 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import { getActiveVideo, getActiveVideoURL } from '../store/videos'
+import { getActiveVideo } from '../store/videos'
 import { getSelectedSightingName } from '../store/sightings'
 import { linkagesForActiveVideo } from '../store/linkages'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
 import { frameRateFromStr } from '../utilities/video'
 import { regionDataForLinkage } from '../utilities/transformers'
+import videosAPI from '../api/videos'
 import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -21,18 +22,23 @@ const DETAILS_HEIGHT = 245
 
 const LinkageWorkspace = () => {
   const activeVideo = useStore(getActiveVideo)
-  const activeVideoURL = useStore(getActiveVideoURL)
+  const activeVideoURL = activeVideo
+    ? videosAPI.getVideoURL(activeVideo.folderId, activeVideo.fileName)
+    : ''
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
     useStore,
     'activeVideoLoading',
     'setActiveVideoLoading'
   )
   const activeVideoName = activeVideo ? leafPath(activeVideo.fileName) : ''
+  // TODO: maybe use a useShallow here?
   const existingRegions = useStore((state) =>
     linkagesForActiveVideo(state).map(regionDataForLinkage)
   )
+  const videoFrameRate = activeVideo && frameRateFromStr(activeVideo.frameRate)
 
   // Active Linkage State
+  const activeLinkageId = useStore((state) => state.activeLinkageId)
   const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
   const annotations = useStore((state) => state.annotations)
@@ -40,8 +46,6 @@ const LinkageWorkspace = () => {
   const sightingName = useStore(getSelectedSightingName)
   const saveAssociation = useStore((state) => state.saveAssociation)
   const linkageThumbnail = useStore((state) => state.linkageThumbnail)
-  const videoFrameRate = useStore((state) => frameRateFromStr(state.linkageVideoFrameRate))
-  const activeLinkageId = useStore((state) => state.activeLinkageId)
   const deleteLinkage = useStore((state) => state.deleteLinkage)
 
   // Video State that we imperatively subscribe to
@@ -91,12 +95,13 @@ const LinkageWorkspace = () => {
     }
   }, [activeVideoURL, regionStart])
 
-  useEffect(() => {
-    if (!videoElementRef.current) return
-    if (videoFrameNumber >= regionEnd) {
-      videoElementRef.current.pause()
-    }
-  }, [videoFrameNumber])
+  // TODO: fix this
+  // useEffect(() => {
+  //   if (!videoElementRef.current) return
+  //   if (videoFrameNumber >= regionEnd) {
+  //     videoElementRef.current.pause()
+  //   }
+  // }, [videoFrameNumber])
 
   // Linkage Selection via Timeline
   const linkages = useStore((state) => state.linkages)

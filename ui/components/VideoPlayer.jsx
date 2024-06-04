@@ -9,7 +9,7 @@ import PauseIcon from '@mui/icons-material/Pause'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
-import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilities/video'
+import { timecodeFromFrameNumber } from '../utilities/video'
 import BlankSlate from './BlankSlate'
 
 const PLAYER_CONTROLS_WIDTH = 150
@@ -34,7 +34,6 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     siblingHeights,
     setVideoDuration,
     frameRate,
-    setFrameRate,
     currentFrameNumber,
     setCurrentFrameNumber,
     setVideoRangesBuffered,
@@ -75,16 +74,10 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setChangingActiveVideo(false)
   }
 
-  const videoStreamInitialized = () => {
-    const _frameRate = getFrameRateFromDashPlayer(playerRef.current)
-    setFrameRate(_frameRate)
-  }
-
   const initializePlayer = (videoElement, url) => {
     playerRef.current = MediaPlayer().create()
     playerRef.current.initialize()
     playerRef.current.on('canPlay', loadingFinished)
-    playerRef.current.on('streamInitialized', videoStreamInitialized)
 
     playerRef.current.updateSettings({
       streaming: {
@@ -109,7 +102,6 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   const destroyPlayer = () => {
     if (!playerRef.current) return
     playerRef.current.off('canPlay', loadingFinished)
-    playerRef.current.off('streamInitialized', videoStreamInitialized)
     playerRef.current.destroy()
     playerRef.current = null
   }
@@ -135,34 +127,16 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     setVideoIs(VIDEO_STATES.PAUSED)
   }
 
-  // Cached duration explained below in reportOnDuration function
-  const [cachedDuration, setCachedDuration] = useState(null)
-  useEffect(() => {
-    setCachedDuration(null)
-  }, [url])
-
   // Sync Video Element state with UI components
   useEffect(() => {
     if (!videoElementRef.current) return
 
-    if (!!cachedDuration && frameRate) {
-      setVideoDuration(Math.floor(cachedDuration * frameRate))
-    }
-
     const reportOnDuration = () => {
-      if (!frameRate) {
-        // somtimes the duration event will come before we receive the frame rate
-        // however, the duration event will not trigger more than once per video
-        // so we cache that duration as seconds, and convert it to frames when we have the frame rate
-        setCachedDuration(videoElementRef.current?.duration)
-        return
-      }
       const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
       setVideoDuration(durationAsFrames)
     }
 
     const reportOnBuffer = () => {
-      if (!frameRate) return
       const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
         (_, index) => {
           const bufferStartAsFrameNum = videoElementRef.current?.buffered.start(index) * frameRate

@@ -1,6 +1,9 @@
 import { baseURL } from './config'
 import { getJSON } from './fetchers'
 
+const getVideoURL = (selectedFolderId, videoFileName) =>
+  `${baseURL}/videos/${selectedFolderId}/${videoFileName}`
+
 const getList = async (catalogFolderId) => {
   const data = await getJSON(`${baseURL}/videos/folders/${catalogFolderId}`)
 
@@ -8,5 +11,6 @@ const getList = async (catalogFolderId) => {
 }
 
 export default {
+  getVideoURL,
   getList,
 }

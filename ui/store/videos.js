@@ -1,7 +1,6 @@
 import { valueSetter } from './utils'
 import { transformVideoData, sortVideoData } from '../utilities/transformers'
 import videosAPI from '../api/videos'
-import { baseURL } from '../api/config'
 
 const initialState = {
   videos: [],
@@ -28,11 +27,5 @@ const createVideosStore = (set, get) => ({
 const getActiveVideo = ({ videos, activeVideoId }) =>
   videos.find((video) => video.id === activeVideoId)
 
-const getActiveVideoURL = (state) => {
-  const activeVideo = getActiveVideo(state)
-  const { selectedFolderId } = state
-  return activeVideo ? `${baseURL}/videos/${selectedFolderId}/${activeVideo.fileName}` : ''
-}
-
-export { getActiveVideo, getActiveVideoURL }
+export { getActiveVideo }
 export default createVideosStore
