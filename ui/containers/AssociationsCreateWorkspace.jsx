@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import { getActiveVideoURL, isSaveable } from '../store/associations-create'
+import { getActiveVideoURL, isSaveable } from '../store/linkages'
 import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import stillExportsAPI from '../api/stillExports'

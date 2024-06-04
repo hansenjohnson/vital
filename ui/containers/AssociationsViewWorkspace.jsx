@@ -4,9 +4,11 @@ import Box from '@mui/material/Box'
 import useStore from '../store'
 import { getActiveVideo, getActiveVideoURL } from '../store/videos'
 import { getSelectedSightingName } from '../store/sightings'
+import { linkagesForActiveVideo } from '../store/linkages'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
 import { frameRateFromStr } from '../utilities/video'
+import { regionDataForLinkage } from '../utilities/transformers'
 import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
@@ -18,7 +20,6 @@ const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
 const AssociationsViewWorkspace = () => {
-  const existingRegions = useStore((state) => state.existingRegions)
   const activeVideo = useStore(getActiveVideo)
   const activeVideoURL = useStore(getActiveVideoURL)
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
@@ -27,6 +28,9 @@ const AssociationsViewWorkspace = () => {
     'setActiveVideoLoading'
   )
   const activeVideoName = activeVideo ? leafPath(activeVideo.fileName) : ''
+  const existingRegions = useStore((state) =>
+    linkagesForActiveVideo(state).map(regionDataForLinkage)
+  )
 
   // Active Linkage State
   const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')

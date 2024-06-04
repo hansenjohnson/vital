@@ -102,3 +102,9 @@ export const sortLinkageData = (original) => {
     return 0
   })
 }
+
+export const regionDataForLinkage = (linkage) => ({
+  letter: linkage.sighting.letter,
+  start: linkage.regionStart,
+  end: linkage.regionEnd,
+})

@@ -1,30 +1,54 @@
 import { valueSetter } from './utils'
 import { getSelectedSighting, selectedSightingHasOverlap } from './sightings'
+import { getSelectedFolder } from './folders'
 
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
+import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
 
 const initialState = {
-  existingRegions: [],
+  linkages: [],
+
+  // Active Linkage being Created/Viewed/Edited
+  activeLinkageId: null,
   regionStart: null,
   regionEnd: null,
   annotations: [],
 }
 
-const createAssociationsCreateStore = (set, get) => ({
+const createLinkagesStore = (set, get) => ({
   ...initialState,
-  resetAssociationsCreateStore: () => set(initialState),
+  resetLinkagesStore: () => set(initialState),
 
-  // == Region Actions ==
-  setExistingRegions: valueSetter(set, 'existingRegions'),
+  loadLinkages: async () => {
+    const selectedFolder = getSelectedFolder(get())
+    const linkageData = await linkagesAPI.byFolder(
+      selectedFolder.year,
+      selectedFolder.month,
+      selectedFolder.day,
+      selectedFolder.observer
+    )
+    const transformedData = linkageData.map(transformLinkageData)
+    const sortedData = sortLinkageData(transformedData)
+    set({ linkages: sortedData })
+  },
+
+  deleteLinkage: async (linkageId) => {
+    const success = await linkagesAPI.deleteLinkage(linkageId)
+    if (success) {
+      const { loadLinkages, clearActiveLinkage } = get()
+      clearActiveLinkage()
+      loadLinkages()
+    }
+  },
+
+  // == Core Linkage Actions ==
+  setActiveLinkage: valueSetter(set, 'activeLinkageId'),
   setRegionStart: valueSetter(set, 'regionStart'),
   setRegionEnd: valueSetter(set, 'regionEnd'),
-
-  // == Annotation Actions ==
   setAnnotations: valueSetter(set, 'annotations'),
 
-  // == Association Actions ==
-  saveAssociation: async (thumbnailBlob) => {
+  saveLinkage: async (thumbnailBlob) => {
     const { sightings, selectedSightingId, activeVideo, regionStart, regionEnd, annotations } =
       get()
     const selectedSighting = getSelectedSighting({ sightings, selectedSightingId })
@@ -55,18 +79,21 @@ const createAssociationsCreateStore = (set, get) => ({
     }
 
     set((state) => {
-      state.clearAssociation()
+      state.clearLinkage()
       return { existingRegions: [...state.existingRegions, newRegion] }
     })
   },
 
-  clearAssociation: (clearAll = false) => {
+  clearLinkage: (clearAll = false) => {
     set({ regionStart: null, regionEnd: null, annotations: [] })
     if (clearAll) {
       set({ selectedSightingId: null })
     }
   },
 })
+
+const linkagesForActiveVideo = ({ activeVideoId, linkages }) =>
+  linkages.filter((linkage) => linkage.video.id === activeVideoId)
 
 const isSaveable = (state) => {
   if (state.regionStart == null) return false
@@ -76,5 +103,5 @@ const isSaveable = (state) => {
   return true
 }
 
-export { isSaveable }
-export default createAssociationsCreateStore
+export { linkagesForActiveVideo, isSaveable }
+export default createLinkagesStore

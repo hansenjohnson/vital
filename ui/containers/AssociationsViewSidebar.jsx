@@ -80,7 +80,7 @@ const AssociationsViewSidebar = () => {
       sighting={linkage.sighting}
       frameRate={linkage.video.frameRate}
       thumbnail={thumbnailsAPI.formulateHostedPath(linkage.thumbnail)}
-      onClick={() => setActiveLinkage(linkage)}
+      onClick={() => setActiveLinkage(linkage.id)}
       selected={linkage.id === activeLinkageId}
     />
   )

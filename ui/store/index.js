@@ -4,19 +4,17 @@ import ping from '../api/ping'
 import ROUTES from '../constants/routes'
 import { valueSetter } from './utils'
 
-import createAssociationsViewStore from './associations-view'
-import createAssociationsCreateStore from './associations-create'
 import createFoldersStore from './folders'
 import createSightingsStore from './sightings'
 import createVideosStore from './videos'
+import createLinkagesStore from './linkages'
 
 const useStore = create((set, get) => ({
   resetStore: () => {
-    get().resetAssociationsViewStore()
-    get().resetAssociationsCreateStore()
     get().resetFoldersStore()
     get().resetSightingsStore()
     get().resetVideosStore()
+    get().resetLinkagesStore()
   },
 
   serverReachable: 0,
@@ -25,11 +23,10 @@ const useStore = create((set, get) => ({
   route: ROUTES.TOOLS,
   setRoute: valueSetter(set, 'route'),
 
-  ...createAssociationsViewStore(set, get),
-  ...createAssociationsCreateStore(set, get),
   ...createFoldersStore(set, get),
   ...createSightingsStore(set, get),
   ...createVideosStore(set, get),
+  ...createLinkagesStore(set, get),
 }))
 
 // We don't need to check for this from React since the app is unusable without it
