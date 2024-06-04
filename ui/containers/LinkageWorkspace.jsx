@@ -14,7 +14,7 @@ import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
-import LinkageEditBox from '../components/LinkageEditBox'
+import LinkageDetailsBox from '../components/LinkageDetailsBox'
 import StyledButton from '../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
@@ -158,7 +158,7 @@ const LinkageWorkspace = () => {
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
-          <LinkageEditBox
+          <LinkageDetailsBox
             videoName={activeVideoName}
             frameRate={videoFrameRate}
             regionStart={regionStart}

@@ -1,109 +1,160 @@
+import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
+import ButtonBase from '@mui/material/ButtonBase'
 import Typography from '@mui/material/Typography'
 
 import SectionHeading from './SectionHeading'
-import PillButtonGroup from './PillButtonGroup'
 import AnnotationChip from './AnnotationChip'
 import { timecodeFromFrameNumber } from '../utilities/video'
 
-const LinkageDetailsBox = ({
+const containerStyles = (theme) => ({
+  height: `calc(100% - ${theme.spacing(2)})`,
+  margin: 1,
+  padding: 1.5,
+  paddingTop: 1,
+  borderRadius: 1,
+  backgroundColor: 'background.paper',
+  display: 'flex',
+  gap: 1,
+})
+
+const LinkageEditBox = ({
+  videoName,
   frameRate,
-  hasOverlap,
   regionStart,
   regionEnd,
-  setStart,
-  setEnd,
   sightingName,
-  openSightingDialog,
   annotations,
   deleteAnnotation,
+  thumbnail,
 }) => {
-  let regionString = <em>None Set</em>
+  const theme = useTheme()
 
-  if (regionStart != null || regionEnd != null) {
-    regionString = ''
-    if (regionStart == null) {
-      regionString += 'not set - '
-    } else {
-      regionString += timecodeFromFrameNumber(regionStart, frameRate)
-      regionString += ' - '
-    }
-    if (regionEnd == null) {
-      regionString += 'not set'
-    } else {
-      regionString += timecodeFromFrameNumber(regionEnd, frameRate)
-    }
+  if (!videoName) {
+    return <Box sx={containerStyles(theme)} />
   }
 
   return (
-    <Box
-      sx={(theme) => ({
-        height: `calc(100% - ${theme.spacing(2)})`,
-        margin: 1,
-        padding: 1.5,
-        paddingTop: 1,
-        borderRadius: 1,
-        backgroundColor: 'background.paper',
-
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1,
-      })}
-    >
-      <Box>
-        <SectionHeading size={16}>
-          Region
-          {hasOverlap && (
-            <Typography
-              variant="caption"
-              color="warning.main"
-              sx={{ marginLeft: 1, fontStyle: 'italic' }}
-            >
-              overlaps another region with this letter
+    <Box sx={containerStyles(theme)}>
+      <Box
+        sx={{
+          maxWidth: '70%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            overflow: 'hidden',
+            textWrap: 'wrap',
+            wordBreak: 'break-all',
+          }}
+        >
+          <SectionHeading size={16}>Video</SectionHeading>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+              {videoName || <>&nbsp;</>}
             </Typography>
-          )}
-        </SectionHeading>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
-            {regionString}
-          </Typography>
-          <PillButtonGroup
-            buttons={[
-              { name: 'set in', action: setStart },
-              { name: 'set out', action: setEnd },
-            ]}
-          />
-        </Box>
-      </Box>
-
-      <Box>
-        <SectionHeading size={16}>Sighting</SectionHeading>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
-            {sightingName || <em>None Set</em>}
-          </Typography>
-          <PillButtonGroup buttons={[{ name: 'choose...', action: openSightingDialog }]} />
-        </Box>
-      </Box>
-
-      <Box>
-        <SectionHeading size={16}>Annotations</SectionHeading>
-        {annotations.length === 0 ? (
-          <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>None</Typography>
-        ) : (
-          <Box sx={{ marginTop: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            {annotations.map((annotationName) => (
-              <AnnotationChip
-                key={annotationName}
-                annotationName={annotationName}
-                onDelete={() => deleteAnnotation(annotationName)}
-              />
-            ))}
           </Box>
-        )}
+        </Box>
+
+        <Box>
+          <SectionHeading size={16}>Region</SectionHeading>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+              {timecodeFromFrameNumber(regionStart, frameRate)} -{' '}
+              {timecodeFromFrameNumber(regionEnd, frameRate)}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box>
+          <SectionHeading size={16}>Sighting</SectionHeading>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+              {sightingName || <>&nbsp;</>}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          alignItems: 'flex-end',
+          textAlign: 'right',
+        }}
+      >
+        <ButtonBase
+          sx={{
+            position: 'relative',
+            width: '100px',
+            height: '56px',
+            borderRadius: 0.5,
+          }}
+        >
+          <img
+            src={thumbnail}
+            style={{
+              width: '100px',
+              borderRadius: theme.spacing(0.5),
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                fontSize: '16px',
+                fontFamily: theme.typography.fontFamily,
+                textShadow: '0px 0px 12px black',
+              }}
+            >
+              edit
+            </Box>
+          </Box>
+        </ButtonBase>
+
+        <Box>
+          <SectionHeading size={16}>Annotations</SectionHeading>
+          {annotations.length === 0 ? (
+            <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>None</Typography>
+          ) : (
+            <Box
+              sx={{
+                marginTop: 0.5,
+                display: 'flex',
+                gap: 0.5,
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+              }}
+            >
+              {annotations.map((annotationName) => (
+                <AnnotationChip
+                  key={annotationName}
+                  annotationName={annotationName}
+                  onDelete={() => deleteAnnotation(annotationName)}
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   )
 }
 
-export default LinkageDetailsBox
+export default LinkageEditBox
