@@ -18,7 +18,7 @@ const containerStyles = (theme) => ({
   gap: 1,
 })
 
-const AssociationsEditBox = ({
+const LinkageEditBox = ({
   videoName,
   frameRate,
   regionStart,
@@ -157,4 +157,4 @@ const AssociationsEditBox = ({
   )
 }
 
-export default AssociationsEditBox
+export default LinkageEditBox

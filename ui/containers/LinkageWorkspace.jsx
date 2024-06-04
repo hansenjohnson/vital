@@ -13,13 +13,13 @@ import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
-import AssociationsEditBox from '../components/AssociationEditBox'
+import LinkageEditBox from '../components/LinkageEditBox'
 import StyledButton from '../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
-const AssociationsViewWorkspace = () => {
+const LinkageWorkspace = () => {
   const activeVideo = useStore(getActiveVideo)
   const activeVideoURL = useStore(getActiveVideoURL)
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
@@ -153,7 +153,7 @@ const AssociationsViewWorkspace = () => {
 
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
-          <AssociationsEditBox
+          <LinkageEditBox
             videoName={activeVideoName}
             frameRate={videoFrameRate}
             regionStart={regionStart}
@@ -197,4 +197,4 @@ const AssociationsViewWorkspace = () => {
   )
 }
 
-export default AssociationsViewWorkspace
+export default LinkageWorkspace

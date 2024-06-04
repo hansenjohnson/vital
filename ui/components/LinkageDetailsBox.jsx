@@ -6,7 +6,7 @@ import PillButtonGroup from './PillButtonGroup'
 import AnnotationChip from './AnnotationChip'
 import { timecodeFromFrameNumber } from '../utilities/video'
 
-const AssociationsDetailsBox = ({
+const LinkageDetailsBox = ({
   frameRate,
   hasOverlap,
   regionStart,
@@ -106,4 +106,4 @@ const AssociationsDetailsBox = ({
   )
 }
 
-export default AssociationsDetailsBox
+export default LinkageDetailsBox

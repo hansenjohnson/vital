@@ -16,7 +16,7 @@ import LinkageListItem from '../components/LinkageListItem'
 import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
-const AssociationsViewSidebar = () => {
+const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
@@ -178,4 +178,4 @@ const AssociationsViewSidebar = () => {
   )
 }
 
-export default AssociationsViewSidebar
+export default LinkageSidebar

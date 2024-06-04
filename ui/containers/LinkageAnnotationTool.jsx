@@ -3,11 +3,11 @@ import Box from '@mui/material/Box'
 
 import useStore from '../store'
 import { useValueAndSetter } from '../store/utils'
-import AssociationsViewSidebar from './AssociationsViewSidebar'
-import AssociationsViewWorkspace from './AssociationsViewWorkspace'
+import LinkageSidebar from './LinkageSidebar'
+import LinkageWorkspace from './LinkageWorkspace'
 import SightingsDialog from '../components/SightingsDialog'
 
-const AssociationsViewContainer = () => {
+const LinkageAnnotationTool = () => {
   // Sighting Data
   const sightings = useStore((state) => state.sightings)
   const selectSighting = useStore((state) => state.selectSighting)
@@ -26,8 +26,8 @@ const AssociationsViewContainer = () => {
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
-      <AssociationsViewSidebar />
-      <AssociationsViewWorkspace />
+      <LinkageSidebar />
+      <LinkageWorkspace />
 
       <SightingsDialog
         open={sightingsDialogOpen}
@@ -39,4 +39,4 @@ const AssociationsViewContainer = () => {
   )
 }
 
-export default AssociationsViewContainer
+export default LinkageAnnotationTool
