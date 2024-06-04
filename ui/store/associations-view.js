@@ -2,12 +2,10 @@ import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { valueSetter } from './utils'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
-import { VIEW_MODES } from '../constants/routes'
 import { getSelectedFolder } from './folders'
 
 const initialState = {
   linkages: [],
-  viewMode: VIEW_MODES.BY_VIDEO,
   activeLinkageId: null,
   linkageThumbnail: null,
   linkageVideoFrameRate: null,
@@ -38,9 +36,6 @@ const createAssociationsViewStore = (set, get) => ({
       loadLinkages()
     }
   },
-
-  viewBySighting: () => set({ viewMode: VIEW_MODES.BY_SIGHTING }),
-  viewByVideo: () => set({ viewMode: VIEW_MODES.BY_VIDEO }),
 
   setActiveLinkageId: valueSetter(set, 'activeLinkageId'),
   setLinkageThumbnail: valueSetter(set, 'linkageThumbnail'),

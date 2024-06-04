@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
@@ -41,10 +40,6 @@ const AssociationsViewSidebar = () => {
     selectFolder(nextSelectedFolder.id)
   }
 
-  const [viewMode, viewBySighting, viewByVideo] = useStore(
-    useShallow((state) => [state.viewMode, state.viewBySighting, state.viewByVideo])
-  )
-
   // Load the following every time the viewSuffix changes
   const linkages = useStore((state) => state.linkages)
   const loadLinkages = useStore((state) => state.loadLinkages)
@@ -55,6 +50,9 @@ const AssociationsViewSidebar = () => {
     loadLinkages()
     loadVideos()
   }, [viewSuffix])
+
+  // View Mode Handling
+  const [viewMode, setViewMode] = useState(VIEW_MODES.BY_VIDEO)
 
   // Make by-video groups available
   const linkageGroups = linkages.reduce((acc, linkage) => {
@@ -140,13 +138,13 @@ const AssociationsViewSidebar = () => {
             name="by video"
             icon={SmartDisplayIcon}
             selected={viewMode === VIEW_MODES.BY_VIDEO}
-            onClick={viewByVideo}
+            onClick={() => setViewMode(VIEW_MODES.BY_VIDEO)}
           />
           <ViewModeTab
             name="by sighting"
             icon={AccountTreeIcon}
             selected={viewMode === VIEW_MODES.BY_SIGHTING}
-            onClick={viewBySighting}
+            onClick={() => setViewMode(VIEW_MODES.BY_SIGHTING)}
           />
         </Box>
       </Box>
