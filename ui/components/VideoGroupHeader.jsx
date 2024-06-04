@@ -6,13 +6,21 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 
 import StyledTooltip from './StyledTooltip'
 
-const VideoGroupHeader = ({ name }) => (
+const VideoGroupHeader = ({ name, hasPresence }) => (
   <Box
     sx={(theme) => ({
       width: '100%',
       paddingLeft: 1,
       display: 'flex',
-      backgroundColor: `${theme.palette.background.headerPaper}44`,
+      alignItems: 'center',
+      backgroundColor: hasPresence
+        ? `${theme.palette.background.headerPaper}44`
+        : `${theme.palette.background.headerPaper}10`,
+      '&:hover': {
+        backgroundColor: hasPresence
+          ? `${theme.palette.background.headerPaper}66`
+          : `${theme.palette.background.headerPaper}20`,
+      },
     })}
   >
     <StyledTooltip title={name} xAdjustment={78}>
@@ -47,9 +55,9 @@ const VideoGroupHeader = ({ name }) => (
       </IconButton>
     </StyledTooltip>
 
-    <StyledTooltip title="Play Video">
-      <IconButton size="small">
-        <PlayArrowIcon sx={{ fontSize: '16px' }} />
+    <StyledTooltip title="Play Video" xAdjustment={2}>
+      <IconButton sx={{ width: '26px', height: '26px', marginLeft: '-2px' }}>
+        <PlayArrowIcon sx={{ fontSize: '18px' }} />
       </IconButton>
     </StyledTooltip>
   </Box>

@@ -57,15 +57,15 @@ const AssociationsViewSidebar = () => {
   }, [viewSuffix])
 
   // Make by-video groups available
-  // const linkageGroups = linkages.reduce((acc, linkage) => {
-  //   const groupName = linkage.video.fileName
-  //   if (!(groupName in acc)) {
-  //     acc[groupName] = [linkage]
-  //   } else {
-  //     acc[groupName].push(linkage)
-  //   }
-  //   return acc
-  // }, {})
+  const linkageGroups = linkages.reduce((acc, linkage) => {
+    const groupName = linkage.video.fileName
+    if (!(groupName in acc)) {
+      acc[groupName] = [linkage]
+    } else {
+      acc[groupName].push(linkage)
+    }
+    return acc
+  }, {})
 
   // Linkage Item Handling
   const activeLinkageId = useStore((state) => state.activeLinkageId)
@@ -130,7 +130,7 @@ const AssociationsViewSidebar = () => {
             opacity: '0.75',
           }}
         >
-          {linkages.length} Total Linkages
+          {linkages.length} total Linkages
         </Box>
 
         <Box sx={{ display: 'flex' }}>
@@ -152,20 +152,18 @@ const AssociationsViewSidebar = () => {
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <Box sx={{ marginTop: '2px' }} />
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
-        {/* {viewMode === VIEW_MODES.BY_VIDEO &&
-          Object.entries(linkageGroups).map(([group, linkages], index) => (
-            <Box key={group} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
-              <LinkageGroupHeader name={leafPath(group).split('.')[0]} />
-              <Box sx={{ marginTop: '2px' }} />
-              {linkages.map(makeLinkageItem)}
-            </Box>
-          ))} */}
         {viewMode === VIEW_MODES.BY_VIDEO &&
-          videos.map((video, index) => (
-            <Box key={video.fileName} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
-              <VideoGroupHeader name={leafPath(video.fileName).split('.')[0]} />
-            </Box>
-          ))}
+          videos.map((video, index) => {
+            const { fileName } = video
+            const videoBaseName = leafPath(fileName).split('.')[0]
+            const linkagesForGroup = linkageGroups[fileName]
+            return (
+              <Box key={fileName} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
+                <VideoGroupHeader name={videoBaseName} hasPresence={linkagesForGroup?.length} />
+                {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}
+              </Box>
+            )
+          })}
         <Box sx={{ marginBottom: '4px' }} />
       </Box>
     </Sidebar>
