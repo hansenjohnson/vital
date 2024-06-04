@@ -130,7 +130,7 @@ const AssociationsViewSidebar = () => {
             opacity: '0.75',
           }}
         >
-          {linkages.length} Associations
+          {linkages.length} Total Linkages
         </Box>
 
         <Box sx={{ display: 'flex' }}>

@@ -214,7 +214,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   }
 
   if (!url) {
-    return <BlankSlate message="Select an Association to get started" />
+    return <BlankSlate message="Select a Video or Linkage to get started" messageWidth={100} />
   }
 
   return (
