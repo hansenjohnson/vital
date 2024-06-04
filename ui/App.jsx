@@ -10,7 +10,7 @@ import useWindowSize from './hooks/useWindowSize'
 
 import SettingsContainer from './containers/Settings'
 import Tools from './containers/Tools'
-import LinkageAnnotationTool from './containers/LinkageAnnotationTool'
+import LinkageAnnotationPage from './containers/LinkageAnnotationPage'
 import Navbar from './containers/Navbar'
 import CenteredLoadingCircle from './components/CenteredLoadingCircle'
 
@@ -31,7 +31,7 @@ const App = () => {
       case ROUTES.TOOLS:
         return Tools
       case ROUTES.LINK_AND_ANNOTATE:
-        return LinkageAnnotationTool
+        return LinkageAnnotationPage
       default:
         return null
     }

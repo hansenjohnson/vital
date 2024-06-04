@@ -3,13 +3,13 @@ import { useShallow } from 'zustand/react/shallow'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
-import useStore from '../store'
-import { useValueAndSetter } from '../store/utils'
-import ROUTES from '../constants/routes'
+import useStore from '../../store'
+import { useValueAndSetter } from '../../store/utils'
+import ROUTES from '../../constants/routes'
 import AssociationsCreateSidebar from './AssociationsCreateSidebar'
-import AssociationsCreateWorkspace from './AssociationsCreateWorkspace'
-import BlankSlate from '../components/BlankSlate'
-import SightingsDialog from '../components/SightingsDialog'
+import AssociationsCreateWorkspace from '../AssociationsCreateWorkspace'
+import BlankSlate from '../../components/BlankSlate'
+import SightingsDialog from '../../components/SightingsDialog'
 
 const AssociationsCreateContainer = () => {
   const [resetStore, setRoute] = useStore(useShallow((state) => [state.resetStore, state.setRoute]))

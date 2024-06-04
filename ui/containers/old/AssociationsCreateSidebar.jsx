@@ -8,12 +8,12 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ArtTrackIcon from '@mui/icons-material/ArtTrack'
 import PostAddIcon from '@mui/icons-material/PostAdd'
 
-import useStore from '../store'
-import Sidebar from '../components/Sidebar'
-import CreationHeader from '../components/CreationHeader'
-import SectionHeading from '../components/SectionHeading'
-import IconNote from '../components/IconNote'
-import { leafPath } from '../utilities/paths'
+import useStore from '../../store'
+import Sidebar from '../../components/Sidebar'
+import CreationHeader from '../../components/CreationHeader'
+import SectionHeading from '../../components/SectionHeading'
+import IconNote from '../../components/IconNote'
+import { leafPath } from '../../utilities/paths'
 
 const AssociationsCreateSidebar = () => {
   const videoFolderName = useStore((state) => state.videoFolderName)

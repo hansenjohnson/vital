@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
-import useStore from '../store'
-import { getActiveVideoURL, isSaveable } from '../store/linkages'
-import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
-import { useValueAndSetter } from '../store/utils'
-import stillExportsAPI from '../api/stillExports'
+import useStore from '../../store'
+import { getActiveVideoURL, isSaveable } from '../../store/linkages'
+import { getSelectedSightingName, selectedSightingHasOverlap } from '../../store/sightings'
+import { useValueAndSetter } from '../../store/utils'
+import stillExportsAPI from '../../api/stillExports'
 
-import VideoPlayer from '../components/VideoPlayer'
-import VideoTimeline from '../components/VideoTimeline'
+import VideoPlayer from '../../components/VideoPlayer'
+import VideoTimeline from '../../components/VideoTimeline'
 import AssociationsDetailsBox from '../components/AssociationDetailsBox'
-import StyledButton from '../components/StyledButton'
+import StyledButton from '../../components/StyledButton'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
