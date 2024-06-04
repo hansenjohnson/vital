@@ -12,6 +12,7 @@ const BlankSlate = ({ message, action, messageWidth = 50 }) => {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 1,
+        userSelect: 'none',
       }}
     >
       <Typography

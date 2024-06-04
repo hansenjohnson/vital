@@ -5,8 +5,10 @@ import { getSelectedFolder } from './folders'
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
+import { LINKAGE_MODES } from '../constants/routes'
 
 const initialState = {
+  linkageMode: LINKAGE_MODES.BLANK,
   linkages: [],
 
   // Active Linkage being Created/Viewed/Edited
@@ -19,6 +21,8 @@ const initialState = {
 const createLinkagesStore = (set, get) => ({
   ...initialState,
   resetLinkagesStore: () => set(initialState),
+
+  setLinkageMode: valueSetter(set, 'linkageMode'),
 
   loadLinkages: async () => {
     const selectedFolder = getSelectedFolder(get())

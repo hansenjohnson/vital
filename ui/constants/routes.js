@@ -13,5 +13,11 @@ const VIEW_MODES = {
   BY_VIDEO: 'by-video',
 }
 
-export { TITLES, VIEW_MODES }
+const LINKAGE_MODES = {
+  BLANK: 'blank',
+  CREATE: 'create',
+  EDIT: 'edit',
+}
+
+export { TITLES, VIEW_MODES, LINKAGE_MODES }
 export default ROUTES

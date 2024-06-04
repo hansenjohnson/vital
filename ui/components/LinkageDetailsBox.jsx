@@ -3,9 +3,10 @@ import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
 import Typography from '@mui/material/Typography'
 
+import { timecodeFromFrameNumber } from '../utilities/video'
+import { LINKAGE_MODES } from '../constants/routes'
 import SectionHeading from './SectionHeading'
 import AnnotationChip from './AnnotationChip'
-import { timecodeFromFrameNumber } from '../utilities/video'
 
 const containerStyles = (theme) => ({
   height: `calc(100% - ${theme.spacing(2)})`,
@@ -18,7 +19,9 @@ const containerStyles = (theme) => ({
   gap: 1,
 })
 
-const LinkageEditBox = ({
+const LinkageDetailsBox = ({
+  mode,
+  setMode,
   videoName,
   frameRate,
   regionStart,
@@ -32,6 +35,35 @@ const LinkageEditBox = ({
 
   if (!videoName) {
     return <Box sx={containerStyles(theme)} />
+  }
+
+  if (mode === LINKAGE_MODES.BLANK) {
+    return (
+      <Box
+        sx={{
+          ...containerStyles(theme),
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'text.disabled',
+        }}
+      >
+        Select a Linkage or&nbsp;
+        <Box
+          sx={{
+            marginLeft: -1,
+            borderBottom: `1px dotted ${theme.palette.text.disabled}`,
+            '&:hover': {
+              cursor: 'pointer',
+              color: 'text.primary',
+              borderColor: 'text.primary',
+            },
+          }}
+          onClick={() => setMode(LINKAGE_MODES.CREATE)}
+        >
+          Add a new one
+        </Box>
+      </Box>
+    )
   }
 
   return (
@@ -157,4 +189,4 @@ const LinkageEditBox = ({
   )
 }
 
-export default LinkageEditBox
+export default LinkageDetailsBox

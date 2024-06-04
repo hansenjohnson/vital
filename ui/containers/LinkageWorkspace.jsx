@@ -103,7 +103,9 @@ const LinkageWorkspace = () => {
   //   }
   // }, [videoFrameNumber])
 
-  // Linkage Selection via Timeline
+  // Linkage Mode & Selection Handling
+  const linkageMode = useStore((state) => state.linkageMode)
+  const setLinkageMode = useStore((state) => state.setLinkageMode)
   const linkages = useStore((state) => state.linkages)
   const setActiveLinkage = useStore((state) => state.setActiveLinkage)
   const selectLinkageByRegion = (start, end) => {
@@ -159,6 +161,8 @@ const LinkageWorkspace = () => {
       <Box sx={{ flex: `0 0 ${DETAILS_HEIGHT}px`, display: 'flex' }}>
         <Box sx={{ flexGrow: 1, textWrap: 'nowrap', overflow: 'hidden' }}>
           <LinkageDetailsBox
+            mode={linkageMode}
+            setMode={setLinkageMode}
             videoName={activeVideoName}
             frameRate={videoFrameRate}
             regionStart={regionStart}
@@ -180,7 +184,9 @@ const LinkageWorkspace = () => {
           }}
         >
           <StyledButton disabled>Annotation Tools</StyledButton>
-          <StyledButton onClick={exportStillFrame}>Export Still Frame</StyledButton>
+          <StyledButton onClick={exportStillFrame} disabled={!activeVideo || activeVideoLoading}>
+            Export Still Frame
+          </StyledButton>
           <StyledButton
             onClick={enterAddMode}
             color="tertiary"

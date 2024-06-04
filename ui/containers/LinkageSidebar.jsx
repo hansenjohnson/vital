@@ -6,7 +6,7 @@ import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
 import useStore from '../store'
 import { getSelectedFolder } from '../store/folders'
 import thumbnailsAPI from '../api/thumbnails'
-import { VIEW_MODES } from '../constants/routes'
+import { LINKAGE_MODES, VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
 import { viewSuffixString } from '../utilities/strings'
 
@@ -70,6 +70,11 @@ const LinkageSidebar = () => {
   const setActiveVideo = useStore((state) => state.setActiveVideo)
   const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setActiveLinkage = useStore((state) => state.setActiveLinkage)
+  const setLinkageMode = useStore((state) => state.setLinkageMode)
+  const playVideoOnly = (videoId) => {
+    setActiveVideo(videoId)
+    setLinkageMode(LINKAGE_MODES.BLANK)
+  }
 
   const makeLinkageItem = (linkage) => (
     <LinkageListItem
@@ -164,8 +169,8 @@ const LinkageSidebar = () => {
                   name={videoBaseName}
                   hasPresence={linkagesForGroup?.length}
                   onHide={() => null}
-                  onAddLinkage={() => {}}
-                  onPlay={() => setActiveVideo(id)}
+                  onAddLinkage={() => setLinkageMode(LINKAGE_MODES.CREATE)}
+                  onPlay={() => playVideoOnly(video.id)}
                   isPlaying={id === activeVideoId}
                 />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}
