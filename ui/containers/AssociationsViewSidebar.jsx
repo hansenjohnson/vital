@@ -67,7 +67,9 @@ const AssociationsViewSidebar = () => {
     return acc
   }, {})
 
-  // Linkage Item Handling
+  // Video & Linkage Item Handling
+  const activeVideoId = useStore((state) => state.activeVideoId)
+  const setActiveVideo = useStore((state) => state.setActiveVideo)
   const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setActiveLinkage = useStore((state) => state.setActiveLinkage)
 
@@ -152,14 +154,22 @@ const AssociationsViewSidebar = () => {
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <Box sx={{ marginTop: '2px' }} />
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
+
         {viewMode === VIEW_MODES.BY_VIDEO &&
           videos.map((video, index) => {
-            const { fileName } = video
+            const { id, fileName } = video
             const videoBaseName = leafPath(fileName).split('.')[0]
             const linkagesForGroup = linkageGroups[fileName]
             return (
-              <Box key={fileName} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
-                <VideoGroupHeader name={videoBaseName} hasPresence={linkagesForGroup?.length} />
+              <Box key={id} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
+                <VideoGroupHeader
+                  name={videoBaseName}
+                  hasPresence={linkagesForGroup?.length}
+                  onHide={() => null}
+                  onAddLinkage={() => {}}
+                  onPlay={() => setActiveVideo(id)}
+                  isPlaying={id === activeVideoId}
+                />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}
               </Box>
             )

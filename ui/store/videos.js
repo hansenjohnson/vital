@@ -21,7 +21,7 @@ const createVideosStore = (set, get) => ({
     set({ videos: sortedData })
   },
 
-  selectVideo: (id) => set({ activeVideoId: id, activeVideoLoading: true }),
+  setActiveVideo: (id) => set({ activeVideoId: id, activeVideoLoading: true }),
   setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),
 })
 

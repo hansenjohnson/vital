@@ -35,6 +35,7 @@ const StyledButton = ({ color = 'primary', variant = 'outlined', children, sx, .
         backgroundColor: backgroundColor,
         '&:hover': {
           backgroundColor: variant === 'contained' ? theme.palette[color].main : undefined,
+          color: color === 'error' ? 'white' : undefined,
           boxShadow: 'none',
         },
       })}

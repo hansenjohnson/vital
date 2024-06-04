@@ -3,10 +3,11 @@ import IconButton from '@mui/material/IconButton'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import CircleIcon from '@mui/icons-material/Circle'
 
 import StyledTooltip from './StyledTooltip'
 
-const VideoGroupHeader = ({ name, hasPresence }) => (
+const VideoGroupHeader = ({ name, hasPresence, onHide, onAddLinkage, onPlay, isPlaying }) => (
   <Box
     sx={(theme) => ({
       width: '100%',
@@ -44,22 +45,38 @@ const VideoGroupHeader = ({ name, hasPresence }) => (
     </StyledTooltip>
 
     <StyledTooltip title="Hide Video" xAdjustment={52}>
-      <IconButton size="small">
+      <IconButton size="small" onClick={onHide}>
         <VisibilityOffIcon sx={{ fontSize: '16px' }} />
       </IconButton>
     </StyledTooltip>
 
     <StyledTooltip title="Add Linkage" xAdjustment={26}>
-      <IconButton size="small">
+      <IconButton size="small" onClick={onAddLinkage}>
         <AddCircleOutlineIcon sx={{ fontSize: '16px' }} />
       </IconButton>
     </StyledTooltip>
 
-    <StyledTooltip title="Play Video" xAdjustment={2}>
-      <IconButton sx={{ width: '26px', height: '26px', marginLeft: '-2px' }}>
-        <PlayArrowIcon sx={{ fontSize: '18px' }} />
-      </IconButton>
-    </StyledTooltip>
+    {isPlaying ? (
+      <Box
+        sx={{
+          width: '26px',
+          height: '26px',
+          marginLeft: '1px',
+          marginRight: '2px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircleIcon sx={{ fontSize: '10px', color: 'action.disabled' }} />
+      </Box>
+    ) : (
+      <StyledTooltip title="Play Video" xAdjustment={2}>
+        <IconButton sx={{ width: '26px', height: '26px', marginLeft: '-2px' }} onClick={onPlay}>
+          <PlayArrowIcon sx={{ fontSize: '18px' }} />
+        </IconButton>
+      </StyledTooltip>
+    )}
   </Box>
 )
 
