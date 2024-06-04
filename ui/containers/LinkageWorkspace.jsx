@@ -3,8 +3,8 @@ import Box from '@mui/material/Box'
 
 import useStore from '../store'
 import { getActiveVideo } from '../store/videos'
-import { getSelectedSightingName } from '../store/sightings'
-import { linkagesForActiveVideo } from '../store/linkages'
+import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
+import { linkagesForActiveVideo, isSaveable } from '../store/linkages'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
 import { frameRateFromStr } from '../utilities/video'
@@ -16,6 +16,7 @@ import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import LinkageDetailsBox from '../components/LinkageDetailsBox'
 import StyledButton from '../components/StyledButton'
+import { LINKAGE_MODES } from '../constants/routes'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -39,13 +40,19 @@ const LinkageWorkspace = () => {
 
   // Active Linkage State
   const activeLinkageId = useStore((state) => state.activeLinkageId)
-  const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
+  const regionStart = useStore((state) => state.regionStart)
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
   const annotations = useStore((state) => state.annotations)
   const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
   const sightingName = useStore(getSelectedSightingName)
-  const saveAssociation = useStore((state) => state.saveAssociation)
   const linkageThumbnail = useStore((state) => state.linkageThumbnail)
+  const setRegionStartAndCaptureThumbnail = useStore(
+    (state) => state.setRegionStartAndCaptureThumbnail
+  )
+
+  const hasOverlap = useStore(selectedSightingHasOverlap)
+  const saveable = useStore(isSaveable)
+  const saveLinkage = useStore((state) => state.saveLinkage)
   const deleteLinkage = useStore((state) => state.deleteLinkage)
 
   // Video State that we imperatively subscribe to
@@ -70,6 +77,7 @@ const LinkageWorkspace = () => {
   // Set the playhead to the region start
   const previousVideoURL = useRef(null)
   useEffect(() => {
+    if (linkageMode === LINKAGE_MODES.CREATE) return
     if (!activeVideoURL) return
     if (!videoElementRef.current) return
     const video = videoElementRef.current
@@ -104,6 +112,7 @@ const LinkageWorkspace = () => {
   // }, [videoFrameNumber])
 
   // Linkage Mode & Selection Handling
+  const viewMode = useStore((state) => state.viewMode)
   const linkageMode = useStore((state) => state.linkageMode)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
   const linkages = useStore((state) => state.linkages)
@@ -114,8 +123,6 @@ const LinkageWorkspace = () => {
     )
     setActiveLinkage(linkageToSelect)
   }
-
-  const enterAddMode = () => {}
 
   const exportStillFrame = () => {
     stillExportsAPI.create(
@@ -152,7 +159,7 @@ const LinkageWorkspace = () => {
           videoDuration={videoDuration}
           currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
-          showRegionAsSelected
+          showRegionAsSelected={linkageMode === LINKAGE_MODES.EDIT}
           selectableRegions
           selectRegion={selectLinkageByRegion}
         />
@@ -163,11 +170,18 @@ const LinkageWorkspace = () => {
           <LinkageDetailsBox
             mode={linkageMode}
             setMode={setLinkageMode}
+            viewMode={viewMode}
             videoName={activeVideoName}
+            hasOverlap={hasOverlap}
             frameRate={videoFrameRate}
             regionStart={regionStart}
             regionEnd={regionEnd}
+            setStart={() =>
+              setRegionStartAndCaptureThumbnail(videoFrameNumber, videoElementRef.current)
+            }
+            setEnd={() => setRegionEnd(videoFrameNumber)}
             sightingName={sightingName}
+            openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations}
             deleteAnnotation={() => null}
             thumbnail={linkageThumbnail}
@@ -183,25 +197,63 @@ const LinkageWorkspace = () => {
             gap: 1,
           }}
         >
-          <StyledButton disabled>Annotation Tools</StyledButton>
-          <StyledButton onClick={exportStillFrame} disabled={!activeVideo || activeVideoLoading}>
-            Export Still Frame
-          </StyledButton>
-          <StyledButton
-            onClick={enterAddMode}
-            color="tertiary"
-            disabled={!activeVideo || activeVideoLoading}
-          >
-            Add Association
-          </StyledButton>
-          <StyledButton
+          {linkageMode === LINKAGE_MODES.BLANK && (
+            <>
+              <StyledButton disabled>&nbsp;</StyledButton>
+              <StyledButton disabled>&nbsp;</StyledButton>
+              <StyledButton disabled>&nbsp;</StyledButton>
+              <StyledButton disabled>&nbsp;</StyledButton>
+            </>
+          )}
+
+          {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
+            <StyledButton disabled>Annotation Tools</StyledButton>
+          )}
+
+          {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
+            <StyledButton
+              onClick={exportStillFrame}
+              disabled={
+                !activeVideo ||
+                activeVideoLoading ||
+                (linkageMode === LINKAGE_MODES.CREATE &&
+                  (!regionStart || !regionEnd || !sightingName))
+              }
+            >
+              Export Still Frame
+            </StyledButton>
+          )}
+
+          {/* <StyledButton
             onClick={() => deleteLinkage(activeLinkageId)}
             variant="contained"
             color="error"
             disabled={!activeVideo || activeVideoLoading}
           >
             Delete
-          </StyledButton>
+          </StyledButton> */}
+
+          {linkageMode === LINKAGE_MODES.CREATE && (
+            <StyledButton
+              onClick={saveLinkage}
+              color="tertiary"
+              disabled={!saveable}
+              style={{ fontSize: '18px' }}
+            >
+              Save + Add Another
+            </StyledButton>
+          )}
+
+          {linkageMode === LINKAGE_MODES.CREATE && (
+            <StyledButton
+              onClick={() => saveLinkage(true)}
+              color="tertiary"
+              variant="contained"
+              disabled={!saveable}
+            >
+              Save Linkage
+            </StyledButton>
+          )}
         </Box>
       </Box>
     </Box>

@@ -8,13 +8,20 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 
 import StyledTooltip from './StyledTooltip'
 
-const VideoGroupHeader = ({ name, hasPresence, onHide, onShowInFileBrowser, onPlay }) => {
+const VideoGroupHeader = ({ name, onHide, onShowInFileBrowser, onPlay, isPlaying }) => {
   const theme = useTheme()
 
   const anchorEl = useRef(null)
 
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
+
+  let backgroundColor = `${theme.palette.background.headerPaper}10`
+  let hoverBackgroundColor = `${theme.palette.background.headerPaper}20`
+  if (isPlaying) {
+    backgroundColor = 'black'
+    hoverBackgroundColor = undefined
+  }
 
   return (
     <>
@@ -24,14 +31,10 @@ const VideoGroupHeader = ({ name, hasPresence, onHide, onShowInFileBrowser, onPl
           paddingLeft: 1,
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: hasPresence
-            ? `${theme.palette.background.headerPaper}44`
-            : `${theme.palette.background.headerPaper}10`,
+          backgroundColor: backgroundColor,
           '&:hover': {
             cursor: 'pointer',
-            backgroundColor: hasPresence
-              ? `${theme.palette.background.headerPaper}66`
-              : `${theme.palette.background.headerPaper}20`,
+            backgroundColor: hoverBackgroundColor,
           },
         }}
         onClick={onPlay}
@@ -96,7 +99,7 @@ const VideoGroupHeader = ({ name, hasPresence, onHide, onShowInFileBrowser, onPl
             },
           },
         }}
-        transformOrigin={{ horizontal: 6 }}
+        transformOrigin={{ vertical: 0, horizontal: 6 }}
       >
         <MenuItem
           onClick={() => {

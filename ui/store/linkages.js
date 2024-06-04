@@ -1,13 +1,16 @@
 import { valueSetter } from './utils'
 import { getSelectedSighting, selectedSightingHasOverlap } from './sightings'
 import { getSelectedFolder } from './folders'
+import { getActiveVideo } from './videos'
 
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
-import { LINKAGE_MODES } from '../constants/routes'
+import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
+import { THUMBNAIL_WIDTH } from '../constants/dimensions'
 
 const initialState = {
+  viewMode: VIEW_MODES.BY_VIDEO,
   linkageMode: LINKAGE_MODES.BLANK,
   linkages: [],
 
@@ -16,12 +19,14 @@ const initialState = {
   regionStart: null,
   regionEnd: null,
   annotations: [],
+  temporaryThumbnail: null,
 }
 
 const createLinkagesStore = (set, get) => ({
   ...initialState,
   resetLinkagesStore: () => set(initialState),
 
+  setViewMode: valueSetter(set, 'viewMode'),
   setLinkageMode: valueSetter(set, 'linkageMode'),
 
   loadLinkages: async () => {
@@ -52,9 +57,45 @@ const createLinkagesStore = (set, get) => ({
   setRegionEnd: valueSetter(set, 'regionEnd'),
   setAnnotations: valueSetter(set, 'annotations'),
 
-  saveLinkage: async (thumbnailBlob) => {
-    const { sightings, selectedSightingId, activeVideo, regionStart, regionEnd, annotations } =
-      get()
+  setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
+    set({ temporaryThumbnail: null })
+
+    const { videoWidth, videoHeight } = videoElement
+    const outputWidth = THUMBNAIL_WIDTH
+    const outputHeight = videoHeight / (videoWidth / THUMBNAIL_WIDTH)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = THUMBNAIL_WIDTH
+    canvas.height = Math.floor(outputHeight)
+
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(videoElement, 0, 0, outputWidth, outputHeight)
+    canvas.toBlob(
+      (blob) => {
+        set({ temporaryThumbnail: blob })
+      },
+      'image/jpeg',
+      0.8
+    )
+
+    // This will proceed asynchronously, but that's okay, the thumbnail will finish
+    // capturing in the background
+    set({ regionStart: frameNumber })
+  },
+
+  saveLinkage: async (clearAll = false) => {
+    const state = get()
+    const {
+      sightings,
+      selectedSightingId,
+      regionStart,
+      regionEnd,
+      annotations,
+      temporaryThumbnail,
+      clearCreatedLinkage,
+      loadLinkages,
+    } = state
+    const activeVideo = getActiveVideo(state)
     const selectedSighting = getSelectedSighting({ sightings, selectedSightingId })
 
     const thumbnailPartialPath = thumbnailsAPI.formulateSavePath(
@@ -63,7 +104,7 @@ const createLinkagesStore = (set, get) => ({
       activeVideo.fileName,
       regionStart
     )
-    const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, thumbnailBlob)
+    const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, temporaryThumbnail)
     if (!thumbnailStatus) return
 
     const saveStatus = await linkagesAPI.create({
@@ -76,21 +117,14 @@ const createLinkagesStore = (set, get) => ({
     })
     if (!saveStatus) return
 
-    const newRegion = {
-      letter: selectedSighting.letter,
-      start: regionStart,
-      end: regionEnd,
-    }
-
-    set((state) => {
-      state.clearLinkage()
-      return { existingRegions: [...state.existingRegions, newRegion] }
-    })
+    clearCreatedLinkage(clearAll)
+    loadLinkages()
   },
 
-  clearLinkage: (clearAll = false) => {
-    set({ regionStart: null, regionEnd: null, annotations: [] })
-    if (clearAll) {
+  clearCreatedLinkage: (clearAll = false) => {
+    const { regionStart, regionEnd, annotations } = initialState
+    set({ regionStart, regionEnd, annotations })
+    if (clearAll === true) {
       set({ selectedSightingId: null })
     }
   },

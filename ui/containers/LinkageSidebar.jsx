@@ -52,7 +52,8 @@ const LinkageSidebar = () => {
   }, [viewSuffix])
 
   // View Mode Handling
-  const [viewMode, setViewMode] = useState(VIEW_MODES.BY_VIDEO)
+  const viewMode = useStore((state) => state.viewMode)
+  const setViewMode = useStore((state) => state.setViewMode)
 
   // Make by-video groups available
   const linkageGroups = linkages.reduce((acc, linkage) => {
@@ -71,9 +72,12 @@ const LinkageSidebar = () => {
   const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setActiveLinkage = useStore((state) => state.setActiveLinkage)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
+  const clearCreatedLinkage = useStore((state) => state.clearCreatedLinkage)
   const playVideoOnly = (videoId) => {
     setActiveVideo(videoId)
     setLinkageMode(LINKAGE_MODES.BLANK)
+    setActiveLinkage(null)
+    clearCreatedLinkage(true)
   }
 
   const makeLinkageItem = (linkage) => (
@@ -167,9 +171,7 @@ const LinkageSidebar = () => {
               <Box key={id} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
                 <VideoGroupHeader
                   name={videoBaseName}
-                  hasPresence={linkagesForGroup?.length}
                   onHide={() => null}
-                  onAddLinkage={() => setLinkageMode(LINKAGE_MODES.CREATE)}
                   onPlay={() => playVideoOnly(video.id)}
                   isPlaying={id === activeVideoId}
                 />

@@ -3,6 +3,7 @@ import { transformSightingData, sortSightingData } from '../utilities/transforme
 import { doRegionsOverlap } from '../utilities/numbers'
 import sightingsAPI from '../api/sightings'
 import { getSelectedFolder } from './folders'
+import { linkagesForActiveVideo } from './linkages'
 
 const initialState = {
   sightings: [],
@@ -41,11 +42,14 @@ const getSelectedSightingName = (state) => {
 }
 
 const selectedSightingHasOverlap = (state) => {
-  const { existingRegions, regionStart, regionEnd } = state
+  const { regionStart, regionEnd } = state
+  const existingLinkages = linkagesForActiveVideo(state)
   const selectedSighting = getSelectedSighting(state)
-  return existingRegions
-    .filter((region) => region.letter === selectedSighting?.letter)
-    .some((region) => doRegionsOverlap(region.start, region.end, regionStart, regionEnd))
+  return existingLinkages
+    .filter((linkage) => linkage.sighting.letter === selectedSighting?.letter)
+    .some((linkage) =>
+      doRegionsOverlap(linkage.regionStart, linkage.regionEnd, regionStart, regionEnd)
+    )
 }
 
 export { getSelectedSighting, getSelectedSightingName, selectedSightingHasOverlap }
