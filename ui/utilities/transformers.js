@@ -33,6 +33,12 @@ export const transformVideoData = (videoRow) => {
   }
 }
 
+export const sortVideoData = (original) => {
+  return original.toSorted((a, b) => {
+    return a.fileName.localeCompare(b.fileName)
+  })
+}
+
 export const transformSightingData = (sightingRow) => {
   const timeStr = `${sightingRow.SightingTime}`
   const timeStrLen4 = timeStr.length === 3 ? `0${timeStr}` : timeStr

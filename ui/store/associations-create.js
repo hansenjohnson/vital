@@ -1,17 +1,10 @@
 import { valueSetter } from './utils'
-import { transformVideoData } from '../utilities/transformers'
 import { getSelectedSighting, selectedSightingHasOverlap } from './sightings'
 
-import videosAPI from '../api/videos'
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
-import { baseURL } from '../api/config'
 
 const initialState = {
-  activeVideo: null,
-  activeVideoLoading: false,
-  remainingVideos: [],
-  completedVideos: [],
   existingRegions: [],
   regionStart: null,
   regionEnd: null,
@@ -21,43 +14,6 @@ const initialState = {
 const createAssociationsCreateStore = (set, get) => ({
   ...initialState,
   resetAssociationsCreateStore: () => set(initialState),
-
-  // == Video Actions ==
-  setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),
-  setActiveVideo: (nextVideo, noLoadingNeeded = false) => {
-    if (noLoadingNeeded) {
-      set({ activeVideo: nextVideo, activeVideoLoading: false })
-    } else {
-      set({ activeVideo: nextVideo, activeVideoLoading: true })
-    }
-  },
-  setRemainingVideos: valueSetter(set, 'remainingVideos'),
-  setCompletedVideos: valueSetter(set, 'completedVideos'),
-  // TODO: store videos as state and eliminate remaining/completed concepts
-  loadVideos: async (folderId) => {
-    const videoRows = await videosAPI.getList(folderId)
-    const videos = videoRows.map(transformVideoData)
-    const [firstVideo, ...nonFirstVideos] = videos
-    set({ activeVideo: firstVideo, activeVideoLoading: true, remainingVideos: nonFirstVideos })
-  },
-  nextVideo: () => {
-    const { activeVideo, remainingVideos } = get()
-    if (activeVideo) {
-      set((state) => ({ completedVideos: [...state.completedVideos, activeVideo] }))
-    }
-    if (remainingVideos.length === 0) {
-      set({ activeVideo: null })
-      return
-    }
-    set((state) => {
-      state.clearAssociation(true)
-      return {
-        activeVideo: state.remainingVideos[0],
-        remainingVideos: state.remainingVideos.slice(1),
-        existingRegions: [],
-      }
-    })
-  },
 
   // == Region Actions ==
   setExistingRegions: valueSetter(set, 'existingRegions'),
@@ -112,11 +68,6 @@ const createAssociationsCreateStore = (set, get) => ({
   },
 })
 
-const getActiveVideoURL = (state) =>
-  state.activeVideo
-    ? `${baseURL}/videos/${state.selectedFolderId}/${state.activeVideo.fileName}`
-    : ''
-
 const isSaveable = (state) => {
   if (state.regionStart == null) return false
   if (state.regionEnd == null) return false
@@ -125,5 +76,5 @@ const isSaveable = (state) => {
   return true
 }
 
-export { getActiveVideoURL, isSaveable }
+export { isSaveable }
 export default createAssociationsCreateStore

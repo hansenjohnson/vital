@@ -14,7 +14,7 @@ import { viewSuffixString } from '../utilities/strings'
 import Sidebar from '../components/Sidebar'
 import StyledSelect from '../components/StyledSelect'
 import LinkageListItem from '../components/LinkageListItem'
-import LinkageGroupHeader from '../components/LinkageGroupHeader'
+import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
 const AssociationsViewSidebar = () => {
@@ -45,24 +45,27 @@ const AssociationsViewSidebar = () => {
     useShallow((state) => [state.viewMode, state.viewBySighting, state.viewByVideo])
   )
 
-  // Linkage Data Handling
+  // Load the following every time the viewSuffix changes
   const linkages = useStore((state) => state.linkages)
   const loadLinkages = useStore((state) => state.loadLinkages)
+  const videos = useStore((state) => state.videos)
+  const loadVideos = useStore((state) => state.loadVideos)
   useEffect(() => {
     if (viewSuffix == null) return
     loadLinkages()
+    loadVideos()
   }, [viewSuffix])
 
   // Make by-video groups available
-  const linkageGroups = linkages.reduce((acc, linkage) => {
-    const groupName = linkage.video.fileName
-    if (!(groupName in acc)) {
-      acc[groupName] = [linkage]
-    } else {
-      acc[groupName].push(linkage)
-    }
-    return acc
-  }, {})
+  // const linkageGroups = linkages.reduce((acc, linkage) => {
+  //   const groupName = linkage.video.fileName
+  //   if (!(groupName in acc)) {
+  //     acc[groupName] = [linkage]
+  //   } else {
+  //     acc[groupName].push(linkage)
+  //   }
+  //   return acc
+  // }, {})
 
   // Linkage Item Handling
   const activeLinkageId = useStore((state) => state.activeLinkageId)
@@ -132,16 +135,16 @@ const AssociationsViewSidebar = () => {
 
         <Box sx={{ display: 'flex' }}>
           <ViewModeTab
-            name="by sighting"
-            icon={AccountTreeIcon}
-            selected={viewMode === VIEW_MODES.BY_SIGHTING}
-            onClick={viewBySighting}
-          />
-          <ViewModeTab
             name="by video"
             icon={SmartDisplayIcon}
             selected={viewMode === VIEW_MODES.BY_VIDEO}
             onClick={viewByVideo}
+          />
+          <ViewModeTab
+            name="by sighting"
+            icon={AccountTreeIcon}
+            selected={viewMode === VIEW_MODES.BY_SIGHTING}
+            onClick={viewBySighting}
           />
         </Box>
       </Box>
@@ -149,12 +152,18 @@ const AssociationsViewSidebar = () => {
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
         <Box sx={{ marginTop: '2px' }} />
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
-        {viewMode === VIEW_MODES.BY_VIDEO &&
+        {/* {viewMode === VIEW_MODES.BY_VIDEO &&
           Object.entries(linkageGroups).map(([group, linkages], index) => (
             <Box key={group} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
               <LinkageGroupHeader name={leafPath(group).split('.')[0]} />
               <Box sx={{ marginTop: '2px' }} />
               {linkages.map(makeLinkageItem)}
+            </Box>
+          ))} */}
+        {viewMode === VIEW_MODES.BY_VIDEO &&
+          videos.map((video, index) => (
+            <Box key={video.fileName} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
+              <VideoGroupHeader name={leafPath(video.fileName).split('.')[0]} />
             </Box>
           ))}
         <Box sx={{ marginBottom: '4px' }} />

@@ -7,7 +7,7 @@ import { getSelectedFolder } from './folders'
 
 const initialState = {
   linkages: [],
-  viewMode: VIEW_MODES.BY_SIGHTING,
+  viewMode: VIEW_MODES.BY_VIDEO,
   activeLinkageId: null,
   linkageThumbnail: null,
   linkageVideoFrameRate: null,
@@ -54,7 +54,7 @@ const createAssociationsViewStore = (set, get) => ({
       setRegionEnd,
       setAnnotations,
       selectSighting,
-      setActiveVideo,
+      // setActiveVideo,
       setLinkageThumbnail,
       setLinkageVideoFrameRate,
       activeVideo,
@@ -79,7 +79,7 @@ const createAssociationsViewStore = (set, get) => ({
 
     selectFolder(linkage.video.folderId)
     setLinkageVideoFrameRate(linkage.video.frameRate)
-    setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
+    // setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
   },
 
   clearActiveLinkage: () => {
@@ -89,7 +89,7 @@ const createAssociationsViewStore = (set, get) => ({
       setRegionEnd,
       setAnnotations,
       selectSighting,
-      setActiveVideo,
+      // setActiveVideo,
       setLinkageThumbnail,
       setLinkageVideoFrameRate,
     } = get()
@@ -100,7 +100,7 @@ const createAssociationsViewStore = (set, get) => ({
     selectSighting(null)
     setLinkageThumbnail(null)
     setLinkageVideoFrameRate(null)
-    setActiveVideo(null, true)
+    // setActiveVideo(null, true)
   },
 })
 

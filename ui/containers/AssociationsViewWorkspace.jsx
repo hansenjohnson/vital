@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import { getActiveVideoURL } from '../store/associations-create'
+import { getActiveVideo, getActiveVideoURL } from '../store/videos'
 import { getSelectedSightingName } from '../store/sightings'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
@@ -19,7 +19,7 @@ const DETAILS_HEIGHT = 245
 
 const AssociationsViewWorkspace = () => {
   const existingRegions = useStore((state) => state.existingRegions)
-  const activeVideo = useStore((state) => state.activeVideo)
+  const activeVideo = useStore(getActiveVideo)
   const activeVideoURL = useStore(getActiveVideoURL)
   const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
     useStore,
