@@ -1,83 +1,122 @@
+import { useRef, useState } from 'react'
+import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import CircleIcon from '@mui/icons-material/Circle'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 
 import StyledTooltip from './StyledTooltip'
 
-const VideoGroupHeader = ({ name, hasPresence, onHide, onAddLinkage, onPlay, isPlaying }) => (
-  <Box
-    sx={(theme) => ({
-      width: '100%',
-      paddingLeft: 1,
-      display: 'flex',
-      alignItems: 'center',
-      backgroundColor: hasPresence
-        ? `${theme.palette.background.headerPaper}44`
-        : `${theme.palette.background.headerPaper}10`,
-      '&:hover': {
-        backgroundColor: hasPresence
-          ? `${theme.palette.background.headerPaper}66`
-          : `${theme.palette.background.headerPaper}20`,
-      },
-    })}
-  >
-    <StyledTooltip title={name} xAdjustment={78}>
-      <Box
-        sx={(theme) => ({
-          width: '100%',
-          paddingTop: '2px',
-          paddingBottom: '2px',
-          paddingRight: '4px',
+const VideoGroupHeader = ({ name, hasPresence, onHide, onShowInFileBrowser, onPlay }) => {
+  const theme = useTheme()
 
-          fontSize: '14px',
-          fontFamily: theme.typography.monoFamily,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          wordBreak: 'keep-all',
-        })}
-      >
-        {name}
-      </Box>
-    </StyledTooltip>
+  const anchorEl = useRef(null)
 
-    <StyledTooltip title="Hide Video" xAdjustment={52}>
-      <IconButton size="small" onClick={onHide}>
-        <VisibilityOffIcon sx={{ fontSize: '16px' }} />
-      </IconButton>
-    </StyledTooltip>
+  const [menuOpen, setMenuOpen] = useState(false)
+  const closeMenu = () => setMenuOpen(false)
 
-    <StyledTooltip title="Add Linkage" xAdjustment={26}>
-      <IconButton size="small" onClick={onAddLinkage}>
-        <AddCircleOutlineIcon sx={{ fontSize: '16px' }} />
-      </IconButton>
-    </StyledTooltip>
-
-    {isPlaying ? (
+  return (
+    <>
       <Box
         sx={{
-          width: '26px',
-          height: '26px',
-          marginLeft: '1px',
-          marginRight: '2px',
+          width: '100%',
+          paddingLeft: 1,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          backgroundColor: hasPresence
+            ? `${theme.palette.background.headerPaper}44`
+            : `${theme.palette.background.headerPaper}10`,
+          '&:hover': {
+            cursor: 'pointer',
+            backgroundColor: hasPresence
+              ? `${theme.palette.background.headerPaper}66`
+              : `${theme.palette.background.headerPaper}20`,
+          },
         }}
+        onClick={onPlay}
       >
-        <CircleIcon sx={{ fontSize: '10px', color: 'action.disabled' }} />
-      </Box>
-    ) : (
-      <StyledTooltip title="Play Video" xAdjustment={2}>
-        <IconButton sx={{ width: '26px', height: '26px', marginLeft: '-2px' }} onClick={onPlay}>
-          <PlayArrowIcon sx={{ fontSize: '18px' }} />
+        <StyledTooltip title={`Play ${name}`} xAdjustment={26}>
+          <Box
+            sx={{
+              width: '100%',
+              paddingTop: '2px',
+              paddingBottom: '2px',
+              paddingRight: '4px',
+
+              fontSize: '14px',
+              fontFamily: theme.typography.monoFamily,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              wordBreak: 'keep-all',
+            }}
+          >
+            {name}
+          </Box>
+        </StyledTooltip>
+
+        <IconButton
+          ref={anchorEl}
+          size="small"
+          onClick={(event) => {
+            event.stopPropagation()
+            setMenuOpen(!menuOpen)
+          }}
+        >
+          <MoreHorizIcon sx={{ fontSize: '16px' }} />
         </IconButton>
-      </StyledTooltip>
-    )}
-  </Box>
-)
+      </Box>
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl.current}
+        open={menuOpen}
+        onClose={closeMenu}
+        MenuListProps={{ dense: true }}
+        slotProps={{
+          paper: {
+            sx: {
+              overflow: 'visible',
+              background: 'none',
+              backgroundColor: theme.palette.background.paper,
+              '&::before': {
+                content: '""',
+                display: 'block',
+                position: 'absolute',
+                top: '-10px',
+                left: '12px',
+
+                width: '0px',
+                height: '0px',
+                borderStyle: 'solid',
+                borderWidth: '0 8px 10px 8px',
+                borderColor: 'transparent',
+                borderBottomColor: theme.palette.background.paper,
+              },
+            },
+          },
+        }}
+        transformOrigin={{ horizontal: 6 }}
+      >
+        <MenuItem
+          onClick={() => {
+            closeMenu()
+            onHide()
+          }}
+        >
+          Hide Video
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            closeMenu()
+            onShowInFileBrowser()
+          }}
+        >
+          Show in File Browser
+        </MenuItem>
+      </Menu>
+    </>
+  )
+}
 
 export default VideoGroupHeader
