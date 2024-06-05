@@ -20,6 +20,7 @@ const Navbar = ({ width }) => {
 
   const handleToolsClick = () => {
     setSettingsOpen(false)
+    if (route === ROUTES.TOOLS) return
     setRoute(ROUTES.TOOLS)
     resetStore()
   }
