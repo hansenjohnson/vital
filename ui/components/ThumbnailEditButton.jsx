@@ -11,9 +11,10 @@ const ThumbnailEditButton = ({ src, onClick }) => (
     }}
     onClick={onClick}
   >
-    <img
+    <Box
+      component="img"
       src={src}
-      style={(theme) => ({
+      sx={(theme) => ({
         width: '100px',
         borderRadius: theme.spacing(0.5),
       })}

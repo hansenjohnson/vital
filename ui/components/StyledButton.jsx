@@ -12,11 +12,11 @@ const StyledButton = ({ color = 'primary', variant = 'outlined', children, sx, .
     textColor = theme.palette[color].dark
   }
   if (color === 'error') {
-    textColor = '#D52810'
+    textColor = '#E43933'
   }
 
   let backgroundColor = variant === 'contained' ? theme.palette[color].dark : 'transparent'
-  if (color === 'error') {
+  if (variant === 'contained' && color === 'error') {
     backgroundColor = '#FFBDB4'
   }
 
@@ -35,7 +35,7 @@ const StyledButton = ({ color = 'primary', variant = 'outlined', children, sx, .
         backgroundColor: backgroundColor,
         '&:hover': {
           backgroundColor: variant === 'contained' ? theme.palette[color].main : undefined,
-          color: color === 'error' ? 'white' : undefined,
+          color: variant === 'contained' && color === 'error' ? 'white' : undefined,
           boxShadow: 'none',
         },
       })}

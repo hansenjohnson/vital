@@ -124,12 +124,14 @@ const LinkageDetailsBox = ({
             <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
               {regionDisplay}
             </Typography>
-            <PillButtonGroup
-              buttons={[
-                { name: 'set in', action: setStart },
-                { name: 'set out', action: setEnd },
-              ]}
-            />
+            {mode === LINKAGE_MODES.CREATE && (
+              <PillButtonGroup
+                buttons={[
+                  { name: 'set in', action: setStart },
+                  { name: 'set out', action: setEnd },
+                ]}
+              />
+            )}
           </Box>
         </Box>
 
@@ -139,7 +141,9 @@ const LinkageDetailsBox = ({
             <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
               {sightingName || <em>None Set</em>}
             </Typography>
-            <PillButtonGroup buttons={[{ name: 'choose...', action: openSightingDialog }]} />
+            {mode === LINKAGE_MODES.CREATE && (
+              <PillButtonGroup buttons={[{ name: 'choose...', action: openSightingDialog }]} />
+            )}
           </Box>
         </Box>
 
@@ -156,7 +160,7 @@ const LinkageDetailsBox = ({
             textAlign: 'right',
           }}
         >
-          <ThumbnailEditButton thumbnail={thumbnail} onClick={() => null} />
+          <ThumbnailEditButton src={thumbnail} onClick={() => null} />
           {annotationsDisplay}
         </Box>
       )}

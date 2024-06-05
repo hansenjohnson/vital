@@ -45,17 +45,26 @@ const createLinkagesStore = (set, get) => ({
   deleteLinkage: async (linkageId) => {
     const success = await linkagesAPI.deleteLinkage(linkageId)
     if (success) {
-      const { loadLinkages, clearActiveLinkage } = get()
-      clearActiveLinkage()
+      const { loadLinkages, selectLinkageVideoSighting, activeVideoId } = get()
+      selectLinkageVideoSighting(null, activeVideoId, null)
       loadLinkages()
     }
   },
 
-  // == Core Linkage Actions ==
-  setActiveLinkage: valueSetter(set, 'activeLinkageId'),
+  // Used for Linkage Creation only
   setRegionStart: valueSetter(set, 'regionStart'),
   setRegionEnd: valueSetter(set, 'regionEnd'),
   setAnnotations: valueSetter(set, 'annotations'),
+
+  // Used for Linkage Viewing/Editing
+  selectLinkageVideoSighting: (linkageId, videoId, sightingId) => {
+    set({
+      linkageMode: linkageId ? LINKAGE_MODES.EDIT : LINKAGE_MODES.BLANK,
+      activeLinkageId: linkageId,
+      activeVideoId: videoId,
+      selectedSightingId: sightingId,
+    })
+  },
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
     set({ temporaryThumbnail: null })
@@ -107,7 +116,7 @@ const createLinkagesStore = (set, get) => ({
     const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, temporaryThumbnail)
     if (!thumbnailStatus) return
 
-    const saveStatus = await linkagesAPI.create({
+    const saveData = await linkagesAPI.create({
       CatalogVideoId: activeVideo.id,
       StartTime: regionStart,
       EndTime: regionEnd,
@@ -115,10 +124,13 @@ const createLinkagesStore = (set, get) => ({
       Annotation: annotations,
       ThumbnailFilePath: thumbnailPartialPath,
     })
+
+    const saveStatus = 'LinkageId' in saveData
     if (!saveStatus) return
 
     clearCreatedLinkage(clearAll)
-    loadLinkages()
+    await loadLinkages()
+    return saveData['LinkageId']
   },
 
   clearCreatedLinkage: (clearAll = false) => {
@@ -129,6 +141,9 @@ const createLinkagesStore = (set, get) => ({
     }
   },
 })
+
+const getActiveLinkage = ({ linkages, activeLinkageId }) =>
+  linkages.find((linkage) => linkage.id === activeLinkageId)
 
 const linkagesForActiveVideo = ({ activeVideoId, linkages }) =>
   linkages.filter((linkage) => linkage.video.id === activeVideoId)
@@ -141,5 +156,5 @@ const isSaveable = (state) => {
   return true
 }
 
-export { linkagesForActiveVideo, isSaveable }
+export { getActiveLinkage, linkagesForActiveVideo, isSaveable }
 export default createLinkagesStore

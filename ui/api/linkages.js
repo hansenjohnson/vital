@@ -1,7 +1,7 @@
 import { baseURL } from './config'
-import { getJSON, postJSON, putJson, deleteThis } from './fetchers'
+import { getJSON, postJSONWithResponse, putJson, deleteThis } from './fetchers'
 
-const create = (data) => postJSON(`${baseURL}/linkages`, data)
+const create = (data) => postJSONWithResponse(`${baseURL}/linkages`, data)
 const update = (id, data) => putJson(`${baseURL}/linkages/${id}`, data)
 
 const list = () => getJSON(`${baseURL}/linkages`)

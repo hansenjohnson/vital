@@ -68,15 +68,13 @@ const LinkageSidebar = () => {
 
   // Video & Linkage Item Handling
   const activeVideoId = useStore((state) => state.activeVideoId)
-  const setActiveVideo = useStore((state) => state.setActiveVideo)
   const activeLinkageId = useStore((state) => state.activeLinkageId)
-  const setActiveLinkage = useStore((state) => state.setActiveLinkage)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
   const clearCreatedLinkage = useStore((state) => state.clearCreatedLinkage)
+  const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
   const playVideoOnly = (videoId) => {
-    setActiveVideo(videoId)
     setLinkageMode(LINKAGE_MODES.BLANK)
-    setActiveLinkage(null)
+    selectLinkageVideoSighting(null, videoId, null)
     clearCreatedLinkage(true)
   }
 
@@ -89,7 +87,7 @@ const LinkageSidebar = () => {
       sighting={linkage.sighting}
       frameRate={linkage.video.frameRate}
       thumbnail={thumbnailsAPI.formulateHostedPath(linkage.thumbnail)}
-      onClick={() => setActiveLinkage(linkage.id)}
+      onClick={() => selectLinkageVideoSighting(linkage.id, linkage.video.id, linkage.sighting.id)}
       selected={linkage.id === activeLinkageId}
     />
   )

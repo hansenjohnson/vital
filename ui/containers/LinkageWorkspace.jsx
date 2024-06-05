@@ -4,13 +4,14 @@ import Box from '@mui/material/Box'
 import useStore from '../store'
 import { getActiveVideo } from '../store/videos'
 import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
-import { linkagesForActiveVideo, isSaveable } from '../store/linkages'
+import { getActiveLinkage, linkagesForActiveVideo, isSaveable } from '../store/linkages'
 import { useValueAndSetter } from '../store/utils'
 import { leafPath } from '../utilities/paths'
 import { frameRateFromStr } from '../utilities/video'
 import { regionDataForLinkage } from '../utilities/transformers'
 import videosAPI from '../api/videos'
 import stillExportsAPI from '../api/stillExports'
+import thumbnailsAPI from '../api/thumbnails'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
@@ -32,27 +33,31 @@ const LinkageWorkspace = () => {
     'setActiveVideoLoading'
   )
   const activeVideoName = activeVideo ? leafPath(activeVideo.fileName) : ''
-  // TODO: maybe use a useShallow here?
   const existingRegions = useStore((state) =>
     linkagesForActiveVideo(state).map(regionDataForLinkage)
   )
   const videoFrameRate = activeVideo && frameRateFromStr(activeVideo.frameRate)
 
-  // Active Linkage State
-  const activeLinkageId = useStore((state) => state.activeLinkageId)
+  // Linkage Creation State & Actions
   const regionStart = useStore((state) => state.regionStart)
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
   const annotations = useStore((state) => state.annotations)
-  const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
-  const sightingName = useStore(getSelectedSightingName)
-  const linkageThumbnail = useStore((state) => state.linkageThumbnail)
   const setRegionStartAndCaptureThumbnail = useStore(
     (state) => state.setRegionStartAndCaptureThumbnail
   )
-
-  const hasOverlap = useStore(selectedSightingHasOverlap)
   const saveable = useStore(isSaveable)
   const saveLinkage = useStore((state) => state.saveLinkage)
+
+  // Selected/Active Linkage State & Actions
+  const activeLinkageId = useStore((state) => state.activeLinkageId)
+  const activeLinkage = useStore(getActiveLinkage)
+  const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
+  const selectedSightingId = useStore((state) => state.selectedSightingId)
+  const sightingName = useStore(getSelectedSightingName)
+  const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
+  const thumbnailURL =
+    activeLinkage?.thumbnail && thumbnailsAPI.formulateHostedPath(activeLinkage?.thumbnail)
+  const hasOverlap = useStore(selectedSightingHasOverlap)
   const deleteLinkage = useStore((state) => state.deleteLinkage)
 
   // Video State that we imperatively subscribe to
@@ -60,8 +65,6 @@ const LinkageWorkspace = () => {
   const [videoDuration, setVideoDuration] = useState(0)
   const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
-
-  // Reset state when video changes
   useEffect(() => {
     setVideoDuration(0)
     setVideoFrameNumber(0)
@@ -74,23 +77,25 @@ const LinkageWorkspace = () => {
     }
   }
 
-  // Set the playhead to the region start
+  // Set the playhead to the region start when a Linkage is Selected
   const previousVideoURL = useRef(null)
   useEffect(() => {
     if (linkageMode === LINKAGE_MODES.CREATE) return
+    if (!activeLinkageId) return
     if (!activeVideoURL) return
     if (!videoElementRef.current) return
+
     const video = videoElementRef.current
 
-    // The video didn't change, so we can just react to the region start changing
+    // The video didn't change, so just seek to the new regionStart
     if (previousVideoURL.current === activeVideoURL) {
-      seekToFrame(regionStart)
+      seekToFrame(activeLinkage?.regionStart)
       video.play()
       return
     }
 
     const seekAfterVideoHasDuration = () => {
-      seekToFrame(regionStart)
+      seekToFrame(activeLinkage?.regionStart)
       video.play()
       video.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
@@ -101,7 +106,7 @@ const LinkageWorkspace = () => {
     return () => {
       video.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-  }, [activeVideoURL, regionStart])
+  }, [activeLinkageId])
 
   // TODO: fix this
   // useEffect(() => {
@@ -116,12 +121,11 @@ const LinkageWorkspace = () => {
   const linkageMode = useStore((state) => state.linkageMode)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
   const linkages = useStore((state) => state.linkages)
-  const setActiveLinkage = useStore((state) => state.setActiveLinkage)
   const selectLinkageByRegion = (start, end) => {
     const linkageToSelect = linkages.find(
       (linkage) => linkage.regionStart === start && linkage.regionEnd === end
     )
-    setActiveLinkage(linkageToSelect)
+    selectLinkageVideoSighting(linkageToSelect.id, activeVideo.id, linkageToSelect.sighting.id)
   }
 
   const exportStillFrame = () => {
@@ -130,6 +134,17 @@ const LinkageWorkspace = () => {
       `test-${Math.floor(Math.random() * 10000)}.jpg`,
       videoFrameNumber
     )
+  }
+
+  const transitionFromEditToCreate = () => {
+    selectLinkageVideoSighting(null, activeVideo.id, null)
+    setLinkageMode(LINKAGE_MODES.CREATE)
+  }
+
+  const saveAndTransitionToEdit = async () => {
+    const sightingIdBeforeSave = selectedSightingId
+    const newLinkageId = await saveLinkage(true)
+    selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave)
   }
 
   return (
@@ -143,7 +158,6 @@ const LinkageWorkspace = () => {
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           setVideoDuration={setVideoDuration}
           frameRate={videoFrameRate}
-          setFrameRate={() => null}
           currentFrameNumber={videoFrameNumber}
           setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
@@ -154,8 +168,8 @@ const LinkageWorkspace = () => {
         <VideoTimeline
           bufferedRegions={videoRangesBuffered}
           existingRegions={existingRegions}
-          regionStart={regionStart}
-          regionEnd={regionEnd}
+          regionStart={regionStart || activeLinkage?.regionStart}
+          regionEnd={regionEnd || activeLinkage?.regionEnd}
           videoDuration={videoDuration}
           currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
@@ -174,17 +188,17 @@ const LinkageWorkspace = () => {
             videoName={activeVideoName}
             hasOverlap={hasOverlap}
             frameRate={videoFrameRate}
-            regionStart={regionStart}
-            regionEnd={regionEnd}
+            regionStart={regionStart || activeLinkage?.regionStart}
+            regionEnd={regionEnd || activeLinkage?.regionEnd}
             setStart={() =>
               setRegionStartAndCaptureThumbnail(videoFrameNumber, videoElementRef.current)
             }
             setEnd={() => setRegionEnd(videoFrameNumber)}
-            sightingName={sightingName}
+            sightingName={sightingName} // --
             openSightingDialog={() => setSightingsDialogOpen(true)}
-            annotations={annotations}
+            annotations={annotations || activeLinkage?.annotations}
             deleteAnnotation={() => null}
-            thumbnail={linkageThumbnail}
+            thumbnail={thumbnailURL}
           />
         </Box>
         <Box
@@ -206,10 +220,12 @@ const LinkageWorkspace = () => {
             </>
           )}
 
+          {/* Button Slot 1 */}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
             <StyledButton disabled>Annotation Tools</StyledButton>
           )}
 
+          {/* Button Slot 2 */}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
             <StyledButton
               onClick={exportStillFrame}
@@ -224,15 +240,7 @@ const LinkageWorkspace = () => {
             </StyledButton>
           )}
 
-          {/* <StyledButton
-            onClick={() => deleteLinkage(activeLinkageId)}
-            variant="contained"
-            color="error"
-            disabled={!activeVideo || activeVideoLoading}
-          >
-            Delete
-          </StyledButton> */}
-
+          {/* Button Slot 3 */}
           {linkageMode === LINKAGE_MODES.CREATE && (
             <StyledButton
               onClick={saveLinkage}
@@ -243,15 +251,30 @@ const LinkageWorkspace = () => {
               Save + Add Another
             </StyledButton>
           )}
+          {linkageMode === LINKAGE_MODES.EDIT && (
+            <StyledButton
+              onClick={() => deleteLinkage(activeLinkageId)}
+              color="error"
+              disabled={!activeVideo || activeVideoLoading}
+            >
+              Delete Linkage
+            </StyledButton>
+          )}
 
+          {/* Button Slot 4 */}
           {linkageMode === LINKAGE_MODES.CREATE && (
             <StyledButton
-              onClick={() => saveLinkage(true)}
+              onClick={saveAndTransitionToEdit}
               color="tertiary"
               variant="contained"
               disabled={!saveable}
             >
               Save Linkage
+            </StyledButton>
+          )}
+          {linkageMode === LINKAGE_MODES.EDIT && (
+            <StyledButton color="tertiary" onClick={transitionFromEditToCreate}>
+              + Add Linkage
             </StyledButton>
           )}
         </Box>
