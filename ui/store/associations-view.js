@@ -1,5 +1,0 @@
-//   selectSighting(linkage.sighting.id)
-//   setLinkageThumbnail(thumbnailsAPI.formulateHostedPath(linkage.thumbnail))
-//   selectFolder(linkage.video.folderId)
-//   setLinkageVideoFrameRate(linkage.video.frameRate)
-//   setActiveVideo(linkage.video, activeVideo && activeVideo.id === linkage.video.id)
