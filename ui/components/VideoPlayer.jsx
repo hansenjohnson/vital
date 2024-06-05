@@ -85,6 +85,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
           bufferTimeAtTopQuality: 120,
           bufferTimeAtTopQualityLongForm: 120,
           bufferToKeep: 120,
+          fastSwitchEnabled: true,
         },
       },
     })
