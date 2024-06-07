@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import Skeleton from '@mui/material/Skeleton'
 import InputAdornment from '@mui/material/InputAdornment'
+import CheckIcon from '@mui/icons-material/Check'
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
 
 import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
 import { joinPath, folderSlash } from '../utilities/paths'
@@ -34,6 +36,7 @@ const ExportStillDialog = ({
   sightingLetter,
   stillExportDir,
   subFolder,
+  exportStatus, // One of: null, 'exporting', 'success', or 'error'
 }) => {
   const [fileName, setFileName] = useState('')
 
@@ -158,10 +161,20 @@ const ExportStillDialog = ({
             />
           </Box>
 
-          <Box sx={{ alignSelf: 'flex-end' }}>
-            {/* // TODO: add progress spinner, and maybe button to open output file? */}
-            <StyledButton variant="contained" onClick={() => handleExport(fileName)}>
-              Export
+          <Box sx={{ alignSelf: 'flex-end', display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {exportStatus === 'success' && <CheckIcon color="success" />}
+              {exportStatus === 'error' && <ReportGmailerrorredIcon color="error" />}
+            </Box>
+            <StyledButton
+              variant="contained"
+              onClick={() => handleExport(fileName)}
+              disabled={exportStatus !== null}
+            >
+              {exportStatus === null && 'Export'}
+              {exportStatus === 'exporting' && 'Export'}
+              {exportStatus === 'success' && 'Success'}
+              {exportStatus === 'error' && 'Failed'}
             </StyledButton>
           </Box>
         </Box>

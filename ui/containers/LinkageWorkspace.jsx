@@ -190,6 +190,7 @@ const LinkageWorkspace = () => {
   const handleExportStillClick = async () => {
     videoElementRef.current.pause()
     setExportStillPreviewImage(null)
+    setExportStatus(null)
     thumbnailFromVideoElement(videoElementRef.current, STILL_FRAME_PREVIEW_WIDTH).then(
       setExportStillPreviewImage
     )
@@ -211,8 +212,11 @@ const LinkageWorkspace = () => {
     mediaPlayerRef.current.on('canPlay', captureThumbnail)
   }
 
-  const exportStillFrame = (fileName) => {
-    stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
+  const [exportStatus, setExportStatus] = useState(null)
+  const exportStillFrame = async (fileName) => {
+    setExportStatus('exporting')
+    const status = await stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
+    setExportStatus(status === true ? 'success' : 'error')
   }
 
   const transitionFromEditToCreate = () => {
@@ -365,6 +369,7 @@ const LinkageWorkspace = () => {
         sightingLetter={selectedSighting?.letter}
         stillExportDir={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
         subFolder={catalogFolderName}
+        exportStatus={exportStatus}
       />
     </Box>
   )
