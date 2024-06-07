@@ -51,6 +51,7 @@ const ToolsContainer = () => {
             <ChooseFolderBrowser />
             <StyledButton
               variant="contained"
+              color="secondary"
               onClick={() => setRoute(ROUTES.LINK_AND_ANNOTATE)}
               sx={{ flexShrink: 0, alignSelf: 'flex-end' }}
             >

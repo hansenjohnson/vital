@@ -8,6 +8,7 @@ import createFoldersStore from './folders'
 import createSightingsStore from './sightings'
 import createVideosStore from './videos'
 import createLinkagesStore from './linkages'
+import createDialogsStore from './dialogs'
 
 const useStore = create((set, get) => ({
   resetStore: () => {
@@ -15,6 +16,7 @@ const useStore = create((set, get) => ({
     get().resetSightingsStore()
     get().resetVideosStore()
     get().resetLinkagesStore()
+    get().resetDialogsStore()
   },
 
   serverReachable: 0,
@@ -27,6 +29,7 @@ const useStore = create((set, get) => ({
   ...createSightingsStore(set, get),
   ...createVideosStore(set, get),
   ...createLinkagesStore(set, get),
+  ...createDialogsStore(set, get),
 }))
 
 // We don't need to check for this from React since the app is unusable without it

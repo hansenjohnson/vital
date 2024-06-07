@@ -6,6 +6,7 @@ const initialState = {
   videos: [],
   activeVideoId: null,
   activeVideoLoading: false,
+  videoFrameNumber: 0,
 }
 
 const createVideosStore = (set, get) => ({
@@ -22,6 +23,8 @@ const createVideosStore = (set, get) => ({
 
   setActiveVideo: (id) => set({ activeVideoId: id, activeVideoLoading: true }),
   setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),
+
+  setVideoFrameNumber: valueSetter(set, 'videoFrameNumber'),
 })
 
 const getActiveVideo = ({ videos, activeVideoId }) =>
