@@ -5,7 +5,6 @@ import videosAPI from '../api/videos'
 const initialState = {
   videos: [],
   activeVideoId: null,
-  activeVideoLoading: false,
   videoFrameNumber: 0,
 }
 
@@ -21,8 +20,7 @@ const createVideosStore = (set, get) => ({
     set({ videos: sortedData })
   },
 
-  setActiveVideo: (id) => set({ activeVideoId: id, activeVideoLoading: true }),
-  setActiveVideoLoading: valueSetter(set, 'activeVideoLoading'),
+  setActiveVideo: (id) => set({ activeVideoId: id }),
 
   setVideoFrameNumber: valueSetter(set, 'videoFrameNumber'),
 })

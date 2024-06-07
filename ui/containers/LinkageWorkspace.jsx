@@ -27,11 +27,6 @@ const LinkageWorkspace = () => {
   const activeVideoURL = activeVideo
     ? videosAPI.getVideoURL(activeVideo.folderId, activeVideo.fileName)
     : ''
-  const [activeVideoLoading, setActiveVideoLoading] = useValueAndSetter(
-    useStore,
-    'activeVideoLoading',
-    'setActiveVideoLoading'
-  )
   const activeVideoName = activeVideo ? leafPath(activeVideo.fileName) : ''
   const existingRegions = useStore((state) =>
     linkagesForActiveVideo(state).map(regionDataForLinkage)
@@ -62,9 +57,11 @@ const LinkageWorkspace = () => {
 
   // Video State that we imperatively subscribe to
   const videoElementRef = useRef(null)
+  const videoFrameNumber = useStore((state) => state.videoFrameNumber)
+  const setVideoFrameNumber = useStore((state) => state.setVideoFrameNumber)
   const [videoDuration, setVideoDuration] = useState(0)
-  const [videoFrameNumber, setVideoFrameNumber] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
+  const [activeVideoLoading, setActiveVideoLoading] = useState(false)
   useEffect(() => {
     setVideoDuration(0)
     setVideoFrameNumber(0)
@@ -76,6 +73,32 @@ const LinkageWorkspace = () => {
       videoElementRef.current.currentTime = frame / videoFrameRate
     }
   }
+
+  // DashJS Instance Create/Destroy & Actions
+  const mediaPlayerRef = useRef(null)
+  window.mediaPlayer = mediaPlayerRef.current
+  const stopSubscriptionsRef = useRef(null)
+  useEffect(() => {
+    if (!activeVideoURL) return () => null
+
+    setActiveVideoLoading(true)
+    const onStreamInitialized = () => {
+      setActiveVideoLoading(false)
+    }
+
+    mediaPlayerRef.current = initializePlayer(videoElementRef.current, activeVideoURL)
+    stopSubscriptionsRef.current = startSubscriptions(
+      mediaPlayerRef.current,
+      onStreamInitialized,
+      null
+    )
+
+    return () => {
+      stopSubscriptionsRef.current()
+      mediaPlayerRef.current.destroy()
+      mediaPlayerRef.current = null
+    }
+  }, [activeVideoURL])
 
   // Set the playhead to the region start when a Linkage is Selected
   const previousVideoURL = useRef(null)
@@ -153,12 +176,10 @@ const LinkageWorkspace = () => {
         <VideoPlayer
           ref={videoElementRef}
           url={activeVideoURL}
-          changingActiveVideo={activeVideoLoading}
-          setChangingActiveVideo={setActiveVideoLoading}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
-          setVideoDuration={setVideoDuration}
           frameRate={videoFrameRate}
           currentFrameNumber={videoFrameNumber}
+          setVideoDuration={setVideoDuration}
           setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
         />

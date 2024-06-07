@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, forwardRef } from 'react'
-import { MediaPlayer } from 'dashjs'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -29,8 +28,6 @@ const controlIconStyle = {
 const VideoPlayer = forwardRef((props, videoElementRef) => {
   const {
     url,
-    changingActiveVideo,
-    setChangingActiveVideo,
     siblingHeights,
     setVideoDuration,
     frameRate,
@@ -58,108 +55,75 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     }
   }, [videoContainerRef, windowWidth, windowHeight])
 
-  // Video Player, Init/Destroy Loop, URL reactivity
-  const playerRef = useRef(null)
-  const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
-
-  useEffect(() => {
-    if (changingActiveVideo) {
-      setVideoIs(VIDEO_STATES.LOADING)
-    }
-  }, [changingActiveVideo])
-
-  const loadingFinished = () => {
-    // move immediatley from Loading to Playing because of Auto-Play
-    setVideoIs(VIDEO_STATES.PLAYING)
-    setChangingActiveVideo(false)
-  }
-
-  const initializePlayer = (videoElement, url) => {
-    playerRef.current = MediaPlayer().create()
-    playerRef.current.initialize()
-    playerRef.current.on('canPlay', loadingFinished)
-
-    playerRef.current.updateSettings({
-      streaming: {
-        buffer: {
-          bufferTimeAtTopQuality: 120,
-          bufferTimeAtTopQualityLongForm: 120,
-          bufferToKeep: 120,
-          fastSwitchEnabled: true,
-        },
-      },
-    })
-
-    if (videoElement) {
-      playerRef.current.attachView(videoElement)
-    }
-
-    if (url) {
-      console.log('Attaching Source:', url)
-      playerRef.current.attachSource(url)
-    }
-  }
-
-  const destroyPlayer = () => {
-    if (!playerRef.current) return
-    playerRef.current.off('canPlay', loadingFinished)
-    playerRef.current.destroy()
-    playerRef.current = null
-  }
-
-  useEffect(() => {
-    setVideoIs(VIDEO_STATES.LOADING)
-    initializePlayer(videoElementRef.current, url)
-    return destroyPlayer
-  }, [url])
-
   // Play Controls
   const playVideo = () => {
     const video = videoElementRef.current
     if (!video) return
-
     video.play()
-    setVideoIs(VIDEO_STATES.PLAYING)
   }
   const pauseVideo = () => {
     const video = videoElementRef.current
     if (!video) return
     video.pause()
+  }
+
+  const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
+  const handleLoadStart = () => {
+    setVideoIs(VIDEO_STATES.LOADING)
+  }
+  const handleVideoCanPlay = () => {
+    // Sometimes canplay gets in a race with play
+    if (videoElementRef.current.paused === true) {
+      setVideoIs(VIDEO_STATES.PAUSED)
+    }
+  }
+  const handleVideoPlay = () => {
+    setVideoIs(VIDEO_STATES.PLAYING)
+  }
+  const handleVideoPause = () => {
+    setVideoIs(VIDEO_STATES.PAUSED)
+  }
+  const handleVideoEnded = () => {
     setVideoIs(VIDEO_STATES.PAUSED)
   }
 
   // Sync Video Element state with UI components
   useEffect(() => {
     if (!videoElementRef.current) return
+    const videoElement = videoElementRef.current
 
     const reportOnDuration = () => {
-      const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
+      const durationAsFrames = Math.floor(videoElement.duration * frameRate)
       setVideoDuration(durationAsFrames)
     }
 
     const reportOnBuffer = () => {
-      const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
+      const bufferedRanges = Array.from(Array(videoElement.buffered.length || 0)).map(
         (_, index) => {
-          const bufferStartAsFrameNum = videoElementRef.current?.buffered.start(index) * frameRate
-          const bufferendAsFrameNum = videoElementRef.current?.buffered.end(index) * frameRate
+          const bufferStartAsFrameNum = videoElement.buffered.start(index) * frameRate
+          const bufferendAsFrameNum = videoElement.buffered.end(index) * frameRate
           return [bufferStartAsFrameNum, bufferendAsFrameNum]
         }
       )
       setVideoRangesBuffered(bufferedRanges)
     }
 
-    const handleVideoEnded = () => {
-      setVideoIs(VIDEO_STATES.PAUSED)
+    const listeners = {
+      durationchange: reportOnDuration,
+      progress: reportOnBuffer,
+      loadstart: handleLoadStart,
+      canplay: handleVideoCanPlay,
+      play: handleVideoPlay,
+      pause: handleVideoPause,
+      ended: handleVideoEnded,
     }
-
-    videoElementRef.current?.addEventListener('durationchange', reportOnDuration)
-    videoElementRef.current?.addEventListener('progress', reportOnBuffer)
-    videoElementRef.current?.addEventListener('ended', handleVideoEnded)
-
+    Object.entries(listeners).forEach(([event, handler]) => {
+      videoElement.addEventListener(event, handler)
+    })
     return () => {
-      videoElementRef.current?.removeEventListener('durationchange', reportOnDuration)
-      videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
-      videoElementRef.current?.removeEventListener('ended', handleVideoEnded)
+      Object.entries(listeners).forEach(([event, handler]) => {
+        videoElement.removeEventListener(event, handler)
+      })
     }
   }, [frameRate, url])
 

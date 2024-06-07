@@ -35,6 +35,12 @@ export const startSubscriptions = (player, onStreamInitialized, onCanPlay) => {
   }
 }
 
+export const isPlayerHighestQuality = (player) => {
+  const qualityIndex = player.getQualityFor('video')
+  const qualities = player.getBitrateInfoListFor('video')
+  return qualityIndex === qualities.length - 1
+}
+
 export const forceToHighestQuality = (player, currentTime, stopSubscriptions) => {
   stopSubscriptions()
   player.setAutoPlay(false)
