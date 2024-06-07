@@ -2,10 +2,11 @@ import subprocess
 import os
 import sys
 from model.video_model import VideoModel
+from model.folder_model import FolderModel
 from model.still_export_model import StillExportModel
-from utils import file_path
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
+from utils import file_path
 from utils.prints import print_err, print_out
 from utils.video import frame_rate_from_str, timestamp_for_ffmpeg
 
@@ -17,6 +18,7 @@ class StillExportService:
     def __init__(self):
         self.video_model = VideoModel()
         self.still_export_model = StillExportModel()
+        self.folder_model = FolderModel()
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
@@ -31,14 +33,24 @@ class StillExportService:
             timestamp = timestamp_for_ffmpeg(frame_number, frame_rate)
 
             output_image_path = settings_service.get_setting(SettingsEnum.STILLEXPORT_DIR_PATH.value)
-            original_video_folder_path = file_path.catalog_folder_path(
+            video_folder_path = file_path.catalog_folder_path(
                 catalog_video['CatalogFolderId'],
                 SettingsEnum.BASE_FOLDER_OF_VIDEOS.value
             )
-            original_video_name = catalog_video['OptimizedFileName']
+            video_name = catalog_video['OptimizedFileName']
 
-            original_video_file_path = str(os.path.join(original_video_folder_path, original_video_name))
-            output_file_path = str(os.path.join(output_image_path, output_image_name))
+            folder_by_id = self.folder_model.get_folder_by_id(catalog_video['CatalogFolderId'])
+            catalog_folder_subdir = file_path.catalog_folder_subdir(
+                folder_by_id['FolderYear'],
+                folder_by_id['FolderMonth'],
+                folder_by_id['FolderDay'],
+                folder_by_id['ObserverCode']
+            )
+
+            video_file_path = os.path.join(video_folder_path, video_name)
+            output_dir = os.path.join(output_image_path, catalog_folder_subdir)
+            os.mkdir(output_dir) if not os.path.exists(output_dir) else None
+            output_file_path = os.path.join(output_dir, output_image_name)
 
             # this command expects .jpg in the output path, but will not enforce it
             command = [
@@ -46,7 +58,7 @@ class StillExportService:
                 '-loglevel', 'error',
                 '-n',
                 '-ss', timestamp,
-                '-i', original_video_file_path,
+                '-i', video_file_path,
                 '-frames:v', '1',
                 '-update', '1',
                 '-qscale:v', '2',
@@ -68,7 +80,7 @@ class StillExportService:
                 })
                 print_out(f"Frame extracted successfully and saved to {output_image_path}")
             else:
-                raise Exception(f"Failed to extract frame from video: {original_video_name}")
+                raise Exception(f"Failed to extract frame from video: {video_name}")
         except Exception as e:
             print_err(f"An error occurred: {e}")
             raise e

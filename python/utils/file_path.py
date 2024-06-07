@@ -13,6 +13,12 @@ folder_model = FolderModel()
 video_model = VideoModel()
 
 
+def catalog_folder_subdir(year, month, day, observer_code):
+    date = datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d")
+    formatted_date = date.strftime("%Y-%m-%d")
+    return f"{formatted_date}-{observer_code.replace('/', '-')}"
+
+
 def catalog_folder_path(catalog_folder_id, settings_enum):
     base_folder_path = settings_service.get_setting(settings_enum)
     folder_by_id = folder_model.get_folder_by_id(catalog_folder_id)
@@ -21,12 +27,12 @@ def catalog_folder_path(catalog_folder_id, settings_enum):
     folder_floor_10 = math.floor(folder_year / 10) * 10
     folder_year_range = (folder_floor_10, folder_floor_10 + 9)
 
-    date = datetime.strptime(f"{folder_by_id['FolderYear']}-{folder_by_id['FolderMonth']}-{folder_by_id['FolderDay']}", "%Y-%m-%d")
-    formatted_date = date.strftime("%Y-%m-%d")
-
-    observer_code = folder_by_id['ObserverCode'].replace('/', '-')
-
-    folder_catalog_name = f"{formatted_date}-{observer_code}"
+    folder_catalog_name = catalog_folder_subdir(
+        folder_by_id['FolderYear'],
+        folder_by_id['FolderMonth'],
+        folder_by_id['FolderDay'],
+        folder_by_id['ObserverCode']
+    )
 
     return os.path.join(base_folder_path, f"{folder_year_range[0]}-{folder_year_range[1]}", str(folder_year), folder_catalog_name)
 
