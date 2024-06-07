@@ -6,6 +6,7 @@ import { getActiveVideo } from './videos'
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
+import { thumbnailFromVideoElement } from '../utilities/video'
 import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
 import { THUMBNAIL_WIDTH } from '../constants/dimensions'
 
@@ -68,24 +69,9 @@ const createLinkagesStore = (set, get) => ({
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
     set({ temporaryThumbnail: null })
-
-    const { videoWidth, videoHeight } = videoElement
-    const outputWidth = THUMBNAIL_WIDTH
-    const outputHeight = videoHeight / (videoWidth / THUMBNAIL_WIDTH)
-
-    const canvas = document.createElement('canvas')
-    canvas.width = THUMBNAIL_WIDTH
-    canvas.height = Math.floor(outputHeight)
-
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(videoElement, 0, 0, outputWidth, outputHeight)
-    canvas.toBlob(
-      (blob) => {
-        set({ temporaryThumbnail: blob })
-      },
-      'image/jpeg',
-      0.8
-    )
+    thumbnailFromVideoElement(videoElement, THUMBNAIL_WIDTH).then((imageBlob) => {
+      set({ temporaryThumbnail: imageBlob })
+    })
 
     // This will proceed asynchronously, but that's okay, the thumbnail will finish
     // capturing in the background
