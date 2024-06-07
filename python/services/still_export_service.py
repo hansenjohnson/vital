@@ -24,12 +24,8 @@ class StillExportService:
             print_err(f"ffmpeg.exe does not exist at {self.ffmpeg_path}")
             raise FileNotFoundError(f"ffmpeg.exe does not exist at {self.ffmpeg_path}")
 
-    def create_still(self, payload):
+    def create_still(self, catalog_video_id, output_image_name, frame_number):
         try:
-            catalog_video_id = payload['CatalogVideoId']
-            output_image_name = payload['FileName']
-            frame_number = payload['FrameNumber']
-
             catalog_video = self.video_model.get_video_by_id(catalog_video_id)
             frame_rate = frame_rate_from_str(catalog_video['FrameRate'])
             timestamp = timestamp_for_ffmpeg(frame_number, frame_rate)
