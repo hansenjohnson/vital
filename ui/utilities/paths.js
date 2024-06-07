@@ -11,3 +11,5 @@ export const leafPath = (path) => {
 export const joinPath = (parts) => {
   return parts.join('\\')
 }
+
+export const folderSlash = () => '\\'

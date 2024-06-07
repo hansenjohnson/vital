@@ -25,3 +25,6 @@ export const regionString = (regionStart, regionEnd, frameRate) => {
   }
   return regionString
 }
+
+export const catalogFolderString = (folder) =>
+  `${yearMonthDayString(folder.year, folder.month, folder.day)}-${folder.observer.replaceAll('/', '-')}`

@@ -35,14 +35,20 @@ export const startSubscriptions = (player, onStreamInitialized, onCanPlay) => {
   }
 }
 
+export const highestResolutionAvailable = (player) => {
+  const highestQuality = player.getBitrateInfoListFor('video').pop()
+  return `${highestQuality.width}x${highestQuality.height}`
+}
+
 export const isPlayerHighestQuality = (player) => {
   const qualityIndex = player.getQualityFor('video')
   const qualities = player.getBitrateInfoListFor('video')
   return qualityIndex === qualities.length - 1
 }
 
-export const forceToHighestQuality = (player, currentTime, stopSubscriptions) => {
-  stopSubscriptions()
+export const forceToHighestQuality = (player, currentTime) => {
+  // NOTE: Make sure you cancel other subscriptions before calling this function
+  //       or the attachSource method might trigger some of them, like 'streamInitialized'/'canPlay'
   player.setAutoPlay(false)
 
   const highestQuality = player.getBitrateInfoListFor('video').pop()

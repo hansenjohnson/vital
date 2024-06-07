@@ -1,6 +1,6 @@
 import TextField from '@mui/material/TextField'
 
-const SettingInput = ({ label, value, onChange }) => {
+const SettingInput = ({ label, value, onChange, endAdornment }) => {
   return (
     <TextField
       variant="outlined"
@@ -12,6 +12,7 @@ const SettingInput = ({ label, value, onChange }) => {
       }}
       InputProps={{
         sx: { fontFamily: "'Sometype Mono Variable', monopace" },
+        endAdornment,
       }}
       label={label}
       value={value}

@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { useState, forwardRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -8,9 +8,12 @@ import Grow from '@mui/material/Grow'
 import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import Skeleton from '@mui/material/Skeleton'
+import InputAdornment from '@mui/material/InputAdornment'
 
 import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
+import { joinPath, folderSlash } from '../utilities/paths'
 import StyledButton from './StyledButton'
+import SettingInput from './SettingInput'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Grow ref={ref} {...props} />
@@ -25,9 +28,26 @@ const ExportStillDialog = ({
   handlePreviewRefresh,
   image,
   videoName,
+  frameNumber,
   timestamp,
   resolution,
+  sightingLetter,
+  stillExportDir,
+  subFolder,
 }) => {
+  const [fileName, setFileName] = useState('')
+
+  // Set default file name when dialog is opened
+  // TODO: feed this filename to the output
+  useEffect(() => {
+    if (!open) return
+    let videoNameStr = videoName
+    if (videoName.includes('.')) {
+      videoNameStr = videoName.split('.')[0]
+    }
+    setFileName(`Sighting_${sightingLetter}_${videoNameStr}_frame_${frameNumber}`)
+  }, [open])
+
   return (
     <Dialog
       TransitionComponent={Transition}
@@ -107,7 +127,11 @@ const ExportStillDialog = ({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Box>
                 <Typography sx={{ fontWeight: 500 }}>Video</Typography>
-                <Typography sx={mono}>{videoName}</Typography>
+                <Typography
+                  sx={(theme) => ({ ...mono(theme), maxWidth: '300px', wordBreak: 'break-all' })}
+                >
+                  {videoName}
+                </Typography>
               </Box>
 
               <Box>
@@ -122,9 +146,21 @@ const ExportStillDialog = ({
             </Box>
           </Box>
 
-          <Box>2</Box>
+          <Box sx={{ marginTop: 1, marginBottom: 1 }}>
+            <Typography sx={(theme) => ({ ...mono(theme), fontSize: '14px' })}>
+              {joinPath([stillExportDir, subFolder])}
+              {folderSlash()}
+            </Typography>
+            <SettingInput
+              label="File Name"
+              value={fileName}
+              onChange={(event) => setFileName(event.target.value)}
+              endAdornment={<InputAdornment position="end">.jpg</InputAdornment>}
+            />
+          </Box>
 
           <Box sx={{ alignSelf: 'flex-end' }}>
+            {/* // TODO: add progress spinner, and maybe button to open output file? */}
             <StyledButton variant="contained" onClick={handleExport}>
               Export
             </StyledButton>

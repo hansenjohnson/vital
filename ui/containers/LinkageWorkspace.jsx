@@ -2,27 +2,50 @@ import { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
+import useSettingsStore from '../store/settings'
 import { getActiveVideo } from '../store/videos'
-import { getSelectedSightingName, selectedSightingHasOverlap } from '../store/sightings'
+import {
+  getSelectedSighting,
+  getSelectedSightingName,
+  selectedSightingHasOverlap,
+} from '../store/sightings'
 import { getActiveLinkage, linkagesForActiveVideo, isSaveable } from '../store/linkages'
+import { getSelectedFolder } from '../store/folders'
 import { useValueAndSetter } from '../store/utils'
+
 import { leafPath } from '../utilities/paths'
-import { frameRateFromStr } from '../utilities/video'
+import { catalogFolderString } from '../utilities/strings'
+import {
+  frameRateFromStr,
+  timecodeFromFrameNumber,
+  thumbnailFromVideoElement,
+} from '../utilities/video'
+import {
+  initializePlayer,
+  startSubscriptions,
+  forceToHighestQuality,
+  highestResolutionAvailable,
+} from '../utilities/dashPlayer'
 import { regionDataForLinkage } from '../utilities/transformers'
+import { LINKAGE_MODES } from '../constants/routes'
+import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
+import SETTING_KEYS from '../constants/settingKeys'
+
 import videosAPI from '../api/videos'
-import stillExportsAPI from '../api/stillExports'
 import thumbnailsAPI from '../api/thumbnails'
+import stillExportsAPI from '../api/stillExports'
 
 import VideoPlayer from '../components/VideoPlayer'
 import VideoTimeline from '../components/VideoTimeline'
 import LinkageDetailsBox from '../components/LinkageDetailsBox'
 import StyledButton from '../components/StyledButton'
-import { LINKAGE_MODES } from '../constants/routes'
+import ExportStillDialog from '../components/ExportStillDialog'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
 
 const LinkageWorkspace = () => {
+  const activeVideoId = useStore((state) => state.activeVideoId)
   const activeVideo = useStore(getActiveVideo)
   const activeVideoURL = activeVideo
     ? videosAPI.getVideoURL(activeVideo.folderId, activeVideo.fileName)
@@ -32,6 +55,10 @@ const LinkageWorkspace = () => {
     linkagesForActiveVideo(state).map(regionDataForLinkage)
   )
   const videoFrameRate = activeVideo && frameRateFromStr(activeVideo.frameRate)
+
+  const settings = useSettingsStore((state) => state.settings)
+  const selectedFolder = useStore(getSelectedFolder)
+  const catalogFolderName = catalogFolderString(selectedFolder)
 
   // Linkage Creation State & Actions
   const regionStart = useStore((state) => state.regionStart)
@@ -48,6 +75,7 @@ const LinkageWorkspace = () => {
   const activeLinkage = useStore(getActiveLinkage)
   const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
   const selectedSightingId = useStore((state) => state.selectedSightingId)
+  const selectedSighting = useStore(getSelectedSighting)
   const sightingName = useStore(getSelectedSightingName)
   const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
   const thumbnailURL =
@@ -62,6 +90,8 @@ const LinkageWorkspace = () => {
   const [videoDuration, setVideoDuration] = useState(0)
   const [videoRangesBuffered, setVideoRangesBuffered] = useState([])
   const [activeVideoLoading, setActiveVideoLoading] = useState(false)
+  const [videoResolution, setVideoResolution] = useState('')
+
   useEffect(() => {
     setVideoDuration(0)
     setVideoFrameNumber(0)
@@ -76,7 +106,6 @@ const LinkageWorkspace = () => {
 
   // DashJS Instance Create/Destroy & Actions
   const mediaPlayerRef = useRef(null)
-  window.mediaPlayer = mediaPlayerRef.current
   const stopSubscriptionsRef = useRef(null)
   useEffect(() => {
     if (!activeVideoURL) return () => null
@@ -84,6 +113,7 @@ const LinkageWorkspace = () => {
     setActiveVideoLoading(true)
     const onStreamInitialized = () => {
       setActiveVideoLoading(false)
+      setVideoResolution(highestResolutionAvailable(mediaPlayerRef.current))
     }
 
     mediaPlayerRef.current = initializePlayer(videoElementRef.current, activeVideoURL)
@@ -151,9 +181,39 @@ const LinkageWorkspace = () => {
     selectLinkageVideoSighting(linkageToSelect.id, activeVideo.id, linkageToSelect.sighting.id)
   }
 
+  // Export Still Frame & Dialog Handling
+  const exportStillDialogOpen = useStore((state) => state.exportStillDialogOpen)
+  const setExportStillDialogOpen = useStore((state) => state.setExportStillDialogOpen)
+  const exportStillPreviewImage = useStore((state) => state.exportStillPreviewImage)
+  const setExportStillPreviewImage = useStore((state) => state.setExportStillPreviewImage)
+
+  const handleExportStillClick = async () => {
+    videoElementRef.current.pause()
+    setExportStillPreviewImage(null)
+    thumbnailFromVideoElement(videoElementRef.current, STILL_FRAME_PREVIEW_WIDTH).then(
+      setExportStillPreviewImage
+    )
+    setExportStillDialogOpen(true)
+  }
+
+  const handlePreviewRefresh = () => {
+    stopSubscriptionsRef.current()
+    // I don't know why, but seeking pushes the video back one frame, so we account for that with a +1
+    forceToHighestQuality(mediaPlayerRef.current, (videoFrameNumber + 1) / videoFrameRate)
+    const captureThumbnail = () => {
+      thumbnailFromVideoElement(videoElementRef.current, STILL_FRAME_PREVIEW_WIDTH).then(
+        (imageBlob) => {
+          setExportStillPreviewImage(imageBlob)
+          mediaPlayerRef.current.off('canPlay', captureThumbnail)
+        }
+      )
+    }
+    mediaPlayerRef.current.on('canPlay', captureThumbnail)
+  }
+
   const exportStillFrame = () => {
     stillExportsAPI.create(
-      activeVideo.id,
+      activeVideoId,
       `test-${Math.floor(Math.random() * 10000)}.jpg`,
       videoFrameNumber
     )
@@ -232,24 +292,17 @@ const LinkageWorkspace = () => {
             gap: 1,
           }}
         >
-          {linkageMode === LINKAGE_MODES.BLANK && (
-            <>
-              <StyledButton disabled>&nbsp;</StyledButton>
-              <StyledButton disabled>&nbsp;</StyledButton>
-              <StyledButton disabled>&nbsp;</StyledButton>
-              <StyledButton disabled>&nbsp;</StyledButton>
-            </>
-          )}
-
           {/* Button Slot 1 */}
+          {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
             <StyledButton disabled>Annotation Tools</StyledButton>
           )}
 
           {/* Button Slot 2 */}
+          {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
             <StyledButton
-              onClick={exportStillFrame}
+              onClick={handleExportStillClick}
               disabled={
                 !activeVideo ||
                 activeVideoLoading ||
@@ -262,6 +315,7 @@ const LinkageWorkspace = () => {
           )}
 
           {/* Button Slot 3 */}
+          {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {linkageMode === LINKAGE_MODES.CREATE && (
             <StyledButton
               onClick={saveLinkage}
@@ -283,6 +337,7 @@ const LinkageWorkspace = () => {
           )}
 
           {/* Button Slot 4 */}
+          {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {linkageMode === LINKAGE_MODES.CREATE && (
             <StyledButton
               onClick={saveAndTransitionToEdit}
@@ -300,6 +355,21 @@ const LinkageWorkspace = () => {
           )}
         </Box>
       </Box>
+
+      <ExportStillDialog
+        open={exportStillDialogOpen}
+        handleClose={() => setExportStillDialogOpen(false)}
+        handleExport={exportStillFrame}
+        handlePreviewRefresh={handlePreviewRefresh}
+        image={exportStillPreviewImage && URL.createObjectURL(exportStillPreviewImage)}
+        videoName={activeVideoName}
+        frameNumber={videoFrameNumber}
+        timestamp={timecodeFromFrameNumber(videoFrameNumber, videoFrameRate)}
+        resolution={videoResolution}
+        sightingLetter={selectedSighting?.letter}
+        stillExportDir={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
+        subFolder={catalogFolderName}
+      />
     </Box>
   )
 }
