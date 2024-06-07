@@ -211,12 +211,8 @@ const LinkageWorkspace = () => {
     mediaPlayerRef.current.on('canPlay', captureThumbnail)
   }
 
-  const exportStillFrame = () => {
-    stillExportsAPI.create(
-      activeVideoId,
-      `test-${Math.floor(Math.random() * 10000)}.jpg`,
-      videoFrameNumber
-    )
+  const exportStillFrame = (fileName) => {
+    stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
   }
 
   const transitionFromEditToCreate = () => {

@@ -38,7 +38,6 @@ const ExportStillDialog = ({
   const [fileName, setFileName] = useState('')
 
   // Set default file name when dialog is opened
-  // TODO: feed this filename to the output
   useEffect(() => {
     if (!open) return
     let videoNameStr = videoName
@@ -161,7 +160,7 @@ const ExportStillDialog = ({
 
           <Box sx={{ alignSelf: 'flex-end' }}>
             {/* // TODO: add progress spinner, and maybe button to open output file? */}
-            <StyledButton variant="contained" onClick={handleExport}>
+            <StyledButton variant="contained" onClick={() => handleExport(fileName)}>
               Export
             </StyledButton>
           </Box>
