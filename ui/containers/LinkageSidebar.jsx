@@ -70,12 +70,10 @@ const LinkageSidebar = () => {
   const activeVideoId = useStore((state) => state.activeVideoId)
   const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
-  const clearCreatedLinkage = useStore((state) => state.clearCreatedLinkage)
   const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
   const playVideoOnly = (videoId) => {
     setLinkageMode(LINKAGE_MODES.BLANK)
     selectLinkageVideoSighting(null, videoId, null)
-    clearCreatedLinkage(true)
   }
 
   const makeLinkageItem = (linkage) => (

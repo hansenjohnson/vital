@@ -65,6 +65,7 @@ const createLinkagesStore = (set, get) => ({
       activeVideoId: videoId,
       selectedSightingId: sightingId,
     })
+    get().clearCreatedLinkage()
   },
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
