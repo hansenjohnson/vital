@@ -61,7 +61,7 @@ const LinkageWorkspace = () => {
   const catalogFolderName = catalogFolderString(selectedFolder)
 
   // Linkage Creation State & Actions
-  const regionStart = useStore((state) => state.regionStart)
+  const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
   const annotations = useStore((state) => state.annotations)
   const setRegionStartAndCaptureThumbnail = useStore(
@@ -220,6 +220,24 @@ const LinkageWorkspace = () => {
     setExportStatus(status === true ? 'success' : 'error')
   }
 
+  // Active Linkage Property Editing
+  const clearCreatedLinkage = useStore((state) => state.clearCreatedLinkage)
+  const regionEditDialog = useStore((state) => state.regionEditDialog)
+  const setRegionEditDialog = useStore((state) => state.setRegionEditDialog)
+  const openRegionEditDialog = () => {
+    setRegionEditDialog(true)
+    setRegionStart(activeLinkage.regionStart)
+    setRegionEnd(activeLinkage.regionEnd)
+  }
+  const closeRegionEditDialog = () => {
+    setRegionEditDialog(false)
+    clearCreatedLinkage()
+  }
+  const updateLinkage = useStore((state) => state.updateLinkage)
+  const saveRegionEdit = () => {
+    updateLinkage(activeLinkageId, { StartTime: regionStart, EndTime: regionEnd })
+  }
+
   const transitionFromEditToCreate = () => {
     selectLinkageVideoSighting(null, activeVideo.id, null)
     setLinkageMode(LINKAGE_MODES.CREATE)
@@ -255,8 +273,9 @@ const LinkageWorkspace = () => {
           videoDuration={videoDuration}
           currentFrameNumber={videoFrameNumber}
           seekToFrame={seekToFrame}
-          showRegionAsSelected={linkageMode === LINKAGE_MODES.EDIT}
+          showActiveRegionAsLine={regionStart == null && regionEnd == null}
           selectableRegions
+          activeLinkageId={activeLinkageId}
           selectRegion={selectLinkageByRegion}
         />
       </Box>
@@ -277,11 +296,16 @@ const LinkageWorkspace = () => {
               setRegionStartAndCaptureThumbnail(videoFrameNumber, videoElementRef.current)
             }
             setEnd={() => setRegionEnd(videoFrameNumber)}
-            sightingName={sightingName} // --
+            regionEditDialog={regionEditDialog}
+            openRegionEditDialog={openRegionEditDialog}
+            closeRegionEditDialog={closeRegionEditDialog}
+            saveRegionEdit={saveRegionEdit}
+            sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations || activeLinkage?.annotations}
             deleteAnnotation={() => null}
             thumbnail={thumbnailURL}
+            saveable={saveable}
           />
         </Box>
         <Box

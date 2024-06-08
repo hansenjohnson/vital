@@ -42,10 +42,12 @@ const getSelectedSightingName = (state) => {
 }
 
 const selectedSightingHasOverlap = (state) => {
-  const { regionStart, regionEnd } = state
-  const existingLinkages = linkagesForActiveVideo(state)
+  const { regionStart, regionEnd, activeLinkageId } = state
+  const relevantLinkages = linkagesForActiveVideo(state).filter(
+    (linkage) => linkage.id !== activeLinkageId
+  )
   const selectedSighting = getSelectedSighting(state)
-  return existingLinkages
+  return relevantLinkages
     .filter((linkage) => linkage.sighting.letter === selectedSighting?.letter)
     .some((linkage) =>
       doRegionsOverlap(linkage.regionStart, linkage.regionEnd, regionStart, regionEnd)

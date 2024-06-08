@@ -2,7 +2,14 @@ import Box from '@mui/material/Box'
 
 import SectionHeading from './SectionHeading'
 
-const HeadingWithButton = ({ heading, buttonText, showButton = true, onClick, children }) => (
+const HeadingWithButton = ({
+  heading,
+  buttonText,
+  showButton = true,
+  disableButton,
+  onClick,
+  children,
+}) => (
   <Box
     sx={{
       display: 'flex',
@@ -18,13 +25,16 @@ const HeadingWithButton = ({ heading, buttonText, showButton = true, onClick, ch
           paddingBottom: '2px',
           fontSize: '14px',
           lineHeight: '14px',
-          color: theme.palette.secondary.main,
-          borderBottom: `1px dotted ${theme.palette.secondary.main}`,
-          '&:hover': {
-            cursor: 'pointer',
-            color: 'secondary.light',
-            borderColor: 'secondary.light',
-          },
+          color: disableButton ? theme.palette.action.disabled : theme.palette.secondary.main,
+          borderBottom: disableButton ? 'none' : `1px dotted ${theme.palette.secondary.main}`,
+          userSelect: 'none',
+          '&:hover': disableButton
+            ? {}
+            : {
+                cursor: 'pointer',
+                color: 'secondary.light',
+                borderColor: 'secondary.light',
+              },
         })}
       >
         {buttonText}

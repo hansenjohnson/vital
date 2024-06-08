@@ -114,6 +114,7 @@ const ExportStillDialog = ({
                     display: 'inline-block',
                     marginTop: 0.5,
                     borderBottom: `1px dotted ${theme.palette.text.disabled}`,
+                    userSelect: 'none',
                     '&:hover': {
                       cursor: 'pointer',
                       color: 'text.primary',

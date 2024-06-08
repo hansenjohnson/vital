@@ -1,6 +1,5 @@
 import { forwardRef } from 'react'
 
-import Button from '@mui/material/Button'
 import CloseIcon from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -15,32 +14,11 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 
+import StyledPillButton from './StyledPillButton'
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />
 })
-
-const PillButton = ({ children, ...rest }) => (
-  <Button
-    variant="outlined"
-    sx={{
-      paddingLeft: 2,
-      paddingRight: 2,
-      paddingTop: '2px',
-      paddingBottom: '2px',
-      fontSize: '14px',
-      lineHeight: 1,
-      fontWeight: 500,
-      textTransform: 'lowercase',
-      boxShadow: 'none',
-      '&:hover': {
-        boxShadow: 'none',
-      },
-    }}
-    {...rest}
-  >
-    {children}
-  </Button>
-)
 
 const TableHeader = () => (
   <TableHead>
@@ -79,7 +57,7 @@ const SightingsDialog = ({ open, handleClose, sightings, handleSelect }) => {
         {letter}
       </TableCell>
       <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="right">
-        <PillButton onClick={() => handleSelect(id)}>select</PillButton>
+        <StyledPillButton onClick={() => handleSelect(id)}>select</StyledPillButton>
       </TableCell>
     </TableRow>
   )

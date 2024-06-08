@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
 import throttle from 'lodash.throttle'
 
+import { dottedLine } from '../utilities/css'
+
 const LINE_HEIGHT = 4
 const LETTERS_CONTAINER_WIDTH = 16
 
@@ -13,8 +15,9 @@ const VideoTimeline = ({
   videoDuration: videoDurationProp, // unit frames
   currentFrameNumber, // unit frames
   seekToFrame,
-  showRegionAsSelected = false,
+  showActiveRegionAsLine = false,
   selectableRegions = false,
+  activeLinkageId,
   selectRegion,
 }) => {
   const videoDuration = videoDurationProp || 1 // prevent division by zero
@@ -167,10 +170,12 @@ const VideoTimeline = ({
           }}
         >
           {existingRegions.map((region) => {
-            const { letter, start, end } = region
+            const { id, letter, start, end } = region
             const track = letterToTrackMap[letter]
             const showAsSelected =
-              showRegionAsSelected && start === regionStart && end === regionEnd
+              showActiveRegionAsLine && start === regionStart && end === regionEnd
+            const showAsDotted = activeLinkageId === id && !showAsSelected
+            const allowClicks = selectableRegions && !showAsDotted
             return (
               <Box
                 key={`${letter}-${start}-${end}`}
@@ -180,10 +185,11 @@ const VideoTimeline = ({
                   left: `${(start / videoDuration) * 100}%`,
                   width: `${((end - start) / videoDuration) * 100}%`,
                   height: `${LINE_HEIGHT}px`,
-                  backgroundColor: 'tertiary.main',
+                  background: showAsDotted ? dottedLine(theme) : 'none',
+                  backgroundColor: showAsDotted ? 'transparent' : 'tertiary.main',
                   outline: showAsSelected ? `2px solid ${theme.palette.secondary.dark}` : 'none',
 
-                  ...(selectableRegions && {
+                  ...(allowClicks && {
                     zIndex: 5,
                     cursor: 'pointer',
                     '&:hover': {
@@ -191,7 +197,7 @@ const VideoTimeline = ({
                     },
                   }),
                 })}
-                onClick={selectableRegions && handleRegionClick(start, end)}
+                onClick={allowClicks ? handleRegionClick(start, end) : undefined}
               />
             )
           })}
@@ -239,7 +245,7 @@ const VideoTimeline = ({
             opacity: 0.1,
             borderRadius: '4px',
             visibility:
-              regionStart == null || regionEnd == null || showRegionAsSelected
+              regionStart == null || regionEnd == null || showActiveRegionAsLine
                 ? 'hidden'
                 : 'visible',
           }}
@@ -255,7 +261,7 @@ const VideoTimeline = ({
             borderRight: 'none',
             borderTopLeftRadius: '4px',
             borderBottomLeftRadius: '4px',
-            visibility: regionStart == null || showRegionAsSelected ? 'hidden' : 'visible',
+            visibility: regionStart == null || showActiveRegionAsLine ? 'hidden' : 'visible',
           })}
         />
         <Box
@@ -269,7 +275,7 @@ const VideoTimeline = ({
             borderLeft: 'none',
             borderTopRightRadius: '4px',
             borderBottomRightRadius: '4px',
-            visibility: regionEnd == null || showRegionAsSelected ? 'hidden' : 'visible',
+            visibility: regionEnd == null || showActiveRegionAsLine ? 'hidden' : 'visible',
           })}
         />
 

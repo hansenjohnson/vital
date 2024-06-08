@@ -66,6 +66,7 @@ const createLinkagesStore = (set, get) => ({
       selectedSightingId: sightingId,
     })
     get().clearCreatedLinkage()
+    get().clearEditDialogs()
   },
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
@@ -89,6 +90,7 @@ const createLinkagesStore = (set, get) => ({
       annotations,
       temporaryThumbnail,
       clearCreatedLinkage,
+      clearEditDialogs,
       loadLinkages,
     } = state
     const activeVideo = getActiveVideo(state)
@@ -116,6 +118,7 @@ const createLinkagesStore = (set, get) => ({
     if (!saveStatus) return
 
     clearCreatedLinkage(clearAll)
+    clearEditDialogs()
     await loadLinkages()
     return saveData['LinkageId']
   },
@@ -126,6 +129,14 @@ const createLinkagesStore = (set, get) => ({
     if (clearAll === true) {
       set({ selectedSightingId: null })
     }
+  },
+
+  updateLinkage: async (linkageId, payload) => {
+    const { clearCreatedLinkage, clearEditDialogs, loadLinkages } = get()
+    await linkagesAPI.update(linkageId, payload)
+    clearCreatedLinkage()
+    clearEditDialogs()
+    await loadLinkages()
   },
 })
 
@@ -138,6 +149,7 @@ const linkagesForActiveVideo = ({ activeVideoId, linkages }) =>
 const isSaveable = (state) => {
   if (state.regionStart == null) return false
   if (state.regionEnd == null) return false
+  if (state.regionStart >= state.regionEnd) return false
   if (state.selectedSightingId == null) return false
   if (selectedSightingHasOverlap(state)) return false
   return true

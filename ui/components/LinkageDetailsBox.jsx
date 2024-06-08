@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -8,6 +9,7 @@ import PillButtonGroup from './PillButtonGroup'
 import AnnotationsSection from './AnnotationsSection'
 import ThumbnailEditButton from './ThumbnailEditButton'
 import HeadingWithButton from './HeadingWithButton'
+import RegionEditDialog from './RegionEditDialog'
 
 const containerStyles = (theme) => ({
   height: `calc(100% - ${theme.spacing(2)})`,
@@ -32,19 +34,32 @@ const LinkageDetailsBox = ({
   regionEnd,
   setStart,
   setEnd,
+  regionEditDialog,
+  openRegionEditDialog,
+  closeRegionEditDialog,
+  saveRegionEdit,
   sightingName,
   openSightingDialog,
   annotations,
   deleteAnnotation,
   thumbnail,
+  saveable,
 }) => {
   const theme = useTheme()
-
-  let regionDisplay = regionString(regionStart, regionEnd, frameRate) || <em>None Set</em>
 
   const annotationsDisplay = (
     <AnnotationsSection annotations={annotations} handleDelete={deleteAnnotation} />
   )
+
+  const regionDisplayRef = useRef(null)
+  const getRegionDisplayRef = () => regionDisplayRef.current
+  let regionDisplay = regionString(regionStart, regionEnd, frameRate) || <em>None Set</em>
+  let regionDisplayColor = 'inherit'
+  if (hasOverlap) {
+    regionDisplayColor = 'warning.main'
+  } else if (regionEditDialog) {
+    regionDisplayColor = 'secondary.main'
+  }
 
   /* == Component Returns == */
   if (!videoName) {
@@ -66,6 +81,7 @@ const LinkageDetailsBox = ({
           sx={{
             marginLeft: -1,
             borderBottom: `1px dotted ${theme.palette.text.disabled}`,
+            userSelect: 'none',
             '&:hover': {
               cursor: 'pointer',
               color: 'text.primary',
@@ -117,7 +133,8 @@ const LinkageDetailsBox = ({
             heading="Region"
             buttonText="edit"
             showButton={mode === LINKAGE_MODES.EDIT}
-            onClick={() => null}
+            disableButton={regionEditDialog}
+            onClick={openRegionEditDialog}
           >
             {hasOverlap && (
               <Typography variant="caption" color="warning.main" sx={{ fontStyle: 'italic' }}>
@@ -127,9 +144,10 @@ const LinkageDetailsBox = ({
           </HeadingWithButton>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography
+              ref={regionDisplayRef}
               sx={{
                 fontFamily: "'Sometype Mono Variable', monopace",
-                color: hasOverlap ? 'warning.main' : 'inherit',
+                color: regionDisplayColor,
               }}
             >
               {regionDisplay}
@@ -178,6 +196,18 @@ const LinkageDetailsBox = ({
           <ThumbnailEditButton src={thumbnail} onClick={() => null} />
           {annotationsDisplay}
         </Box>
+      )}
+
+      {mode === LINKAGE_MODES.EDIT && (
+        <RegionEditDialog
+          open={regionEditDialog}
+          getAnchor={getRegionDisplayRef}
+          setStart={setStart}
+          setEnd={setEnd}
+          handleClose={closeRegionEditDialog}
+          handleSave={saveRegionEdit}
+          disableSave={!saveable}
+        />
       )}
     </Box>
   )
