@@ -89,6 +89,7 @@ const RegionEditDialog = ({
                 sx={{ width: '80px', paddingLeft: 0, paddingRight: 0 }}
                 onClick={handleSave}
                 disabled={disableSave}
+                variant="contained"
               >
                 save
               </StyledPillButton>

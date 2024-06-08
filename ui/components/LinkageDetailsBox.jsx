@@ -168,7 +168,7 @@ const LinkageDetailsBox = ({
             heading="Sighting"
             buttonText="edit"
             showButton={mode === LINKAGE_MODES.EDIT}
-            onClick={() => null}
+            onClick={openSightingDialog}
           />
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>

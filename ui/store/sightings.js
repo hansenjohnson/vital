@@ -3,7 +3,7 @@ import { transformSightingData, sortSightingData } from '../utilities/transforme
 import { doRegionsOverlap } from '../utilities/numbers'
 import sightingsAPI from '../api/sightings'
 import { getSelectedFolder } from './folders'
-import { linkagesForActiveVideo } from './linkages'
+import { linkagesForActiveVideo, getActiveLinkage } from './linkages'
 
 const initialState = {
   sightings: [],
@@ -43,16 +43,34 @@ const getSelectedSightingName = (state) => {
 
 const selectedSightingHasOverlap = (state) => {
   const { regionStart, regionEnd, activeLinkageId } = state
-  const relevantLinkages = linkagesForActiveVideo(state).filter(
-    (linkage) => linkage.id !== activeLinkageId
-  )
   const selectedSighting = getSelectedSighting(state)
-  return relevantLinkages
+  return linkagesForActiveVideo(state)
+    .filter((linkage) => linkage.id !== activeLinkageId)
     .filter((linkage) => linkage.sighting.letter === selectedSighting?.letter)
     .some((linkage) =>
       doRegionsOverlap(linkage.regionStart, linkage.regionEnd, regionStart, regionEnd)
     )
 }
 
-export { getSelectedSighting, getSelectedSightingName, selectedSightingHasOverlap }
+const activeLinkageWithNewSightingHasOverlap = (state, newSightingId) => {
+  const activeLinkage = getActiveLinkage(state)
+  return linkagesForActiveVideo(state)
+    .filter((linkage) => linkage.id !== activeLinkage?.id)
+    .filter((linkage) => linkage.sighting.id === newSightingId)
+    .some((linkage) =>
+      doRegionsOverlap(
+        linkage.regionStart,
+        linkage.regionEnd,
+        activeLinkage.regionStart,
+        activeLinkage.regionEnd
+      )
+    )
+}
+
+export {
+  getSelectedSighting,
+  getSelectedSightingName,
+  selectedSightingHasOverlap,
+  activeLinkageWithNewSightingHasOverlap,
+}
 export default createSightingsStore

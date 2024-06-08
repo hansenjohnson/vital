@@ -16,6 +16,13 @@ const StyledPillButton = ({ children, sx, ...rest }) => (
       '&:hover': {
         boxShadow: 'none',
       },
+      // Added to match spacing from the border on the outlined variant
+      ...(rest.variant === 'contained'
+        ? {
+            marginTop: '1px',
+            marginBottom: '1px',
+          }
+        : {}),
       ...sx,
     }}
     {...rest}
