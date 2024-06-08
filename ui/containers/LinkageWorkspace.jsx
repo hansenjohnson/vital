@@ -171,6 +171,7 @@ const LinkageWorkspace = () => {
 
   // Linkage Mode & Selection Handling
   const viewMode = useStore((state) => state.viewMode)
+  const setViewMode = useStore((state) => state.setViewMode)
   const linkageMode = useStore((state) => state.linkageMode)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
   const linkages = useStore((state) => state.linkages)
@@ -266,6 +267,7 @@ const LinkageWorkspace = () => {
             mode={linkageMode}
             setMode={setLinkageMode}
             viewMode={viewMode}
+            setViewMode={setViewMode}
             videoName={activeVideoName}
             hasOverlap={hasOverlap}
             frameRate={videoFrameRate}

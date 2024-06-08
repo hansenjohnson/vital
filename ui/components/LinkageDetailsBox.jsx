@@ -4,10 +4,10 @@ import Typography from '@mui/material/Typography'
 
 import { LINKAGE_MODES, VIEW_MODES } from '../constants/routes'
 import { regionString } from '../utilities/strings'
-import SectionHeading from './SectionHeading'
 import PillButtonGroup from './PillButtonGroup'
 import AnnotationsSection from './AnnotationsSection'
 import ThumbnailEditButton from './ThumbnailEditButton'
+import HeadingWithButton from './HeadingWithButton'
 
 const containerStyles = (theme) => ({
   height: `calc(100% - ${theme.spacing(2)})`,
@@ -24,6 +24,7 @@ const LinkageDetailsBox = ({
   mode,
   setMode,
   viewMode,
+  setViewMode,
   videoName,
   hasOverlap,
   frameRate,
@@ -98,7 +99,11 @@ const LinkageDetailsBox = ({
               wordBreak: 'break-all',
             }}
           >
-            <SectionHeading size={16}>Video</SectionHeading>
+            <HeadingWithButton
+              heading="Video"
+              buttonText="see in context"
+              onClick={() => setViewMode(VIEW_MODES.BY_VIDEO)}
+            />
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
                 {videoName || <>&nbsp;</>}
@@ -108,20 +113,25 @@ const LinkageDetailsBox = ({
         )}
 
         <Box>
-          <SectionHeading size={16}>
-            Region
+          <HeadingWithButton
+            heading="Region"
+            buttonText="edit"
+            showButton={mode === LINKAGE_MODES.EDIT}
+            onClick={() => null}
+          >
             {hasOverlap && (
-              <Typography
-                variant="caption"
-                color="warning.main"
-                sx={{ marginLeft: 1, fontStyle: 'italic' }}
-              >
+              <Typography variant="caption" color="warning.main" sx={{ fontStyle: 'italic' }}>
                 overlaps another region with this letter
               </Typography>
             )}
-          </SectionHeading>
+          </HeadingWithButton>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
+            <Typography
+              sx={{
+                fontFamily: "'Sometype Mono Variable', monopace",
+                color: hasOverlap ? 'warning.main' : 'inherit',
+              }}
+            >
               {regionDisplay}
             </Typography>
             {mode === LINKAGE_MODES.CREATE && (
@@ -136,7 +146,12 @@ const LinkageDetailsBox = ({
         </Box>
 
         <Box>
-          <SectionHeading size={16}>Sighting</SectionHeading>
+          <HeadingWithButton
+            heading="Sighting"
+            buttonText="edit"
+            showButton={mode === LINKAGE_MODES.EDIT}
+            onClick={() => null}
+          />
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>
               {sightingName || <em>None Set</em>}
