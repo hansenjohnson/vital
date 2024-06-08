@@ -6,9 +6,9 @@ const initialState = {
   regionEditDialog: false,
 }
 
-const createDialogStore = (set) => ({
+const createDialogsStore = (set) => ({
   ...initialState,
-  resetDialogStore: () => set(initialState),
+  resetDialogsStore: () => set(initialState),
 
   setExportStillDialogOpen: valueSetter(set, 'exportStillDialogOpen'),
   setExportStillPreviewImage: valueSetter(set, 'exportStillPreviewImage'),
@@ -17,4 +17,4 @@ const createDialogStore = (set) => ({
   clearEditDialogs: () => set({ regionEditDialog: false }),
 })
 
-export default createDialogStore
+export default createDialogsStore
