@@ -8,7 +8,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 
 import StyledTooltip from './StyledTooltip'
 
-const VideoGroupHeader = ({ name, onHide, onShowInFileBrowser, onPlay, isPlaying }) => {
+const VideoGroupHeader = ({ name, onHide, onReload, onShowInFileBrowser, onPlay, isPlaying }) => {
   const theme = useTheme()
 
   const anchorEl = useRef(null)
@@ -108,6 +108,14 @@ const VideoGroupHeader = ({ name, onHide, onShowInFileBrowser, onPlay, isPlaying
           }}
         >
           Hide Video
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            closeMenu()
+            onReload()
+          }}
+        >
+          Reload at Highest Quality
         </MenuItem>
         <MenuItem
           onClick={() => {

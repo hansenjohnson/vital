@@ -76,6 +76,8 @@ const LinkageSidebar = () => {
     selectLinkageVideoSighting(null, videoId, null)
   }
 
+  const triggerForceToHighestQuality = useStore((state) => state.triggerForceToHighestQuality)
+
   const makeLinkageItem = (linkage) => (
     <LinkageListItem
       key={linkage.id}
@@ -168,6 +170,7 @@ const LinkageSidebar = () => {
                 <VideoGroupHeader
                   name={videoBaseName}
                   onHide={() => null}
+                  onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
                   isPlaying={id === activeVideoId}
                 />

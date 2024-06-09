@@ -131,6 +131,13 @@ const LinkageWorkspace = () => {
     }
   }, [activeVideoURL])
 
+  // Convience function to be called from the LinkageSidebar
+  const forceQualityTriggerNumber = useStore((state) => state.forceQualityTriggerNumber)
+  useEffect(() => {
+    if (forceQualityTriggerNumber <= 0) return
+    forceToHighestQuality(mediaPlayerRef.current, (videoFrameNumber + 1) / videoFrameRate)
+  }, [forceQualityTriggerNumber])
+
   // Set the playhead to the region start when a Linkage is Selected
   const previousVideoURL = useRef(null)
   useEffect(() => {

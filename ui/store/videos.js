@@ -6,6 +6,8 @@ const initialState = {
   videos: [],
   activeVideoId: null,
   videoFrameNumber: 0,
+
+  forceQualityTriggerNumber: 0,
 }
 
 const createVideosStore = (set, get) => ({
@@ -23,6 +25,9 @@ const createVideosStore = (set, get) => ({
   setActiveVideo: (id) => set({ activeVideoId: id }),
 
   setVideoFrameNumber: valueSetter(set, 'videoFrameNumber'),
+
+  triggerForceToHighestQuality: () =>
+    set((state) => ({ forceQualityTriggerNumber: state.forceQualityTriggerNumber + 1 })),
 })
 
 const getActiveVideo = ({ videos, activeVideoId }) =>
