@@ -77,8 +77,8 @@ export const sortSightingData = (original) => {
 
 export const transformLinkageData = (linkageRow) => ({
   id: linkageRow.LinkageId,
-  regionStart: linkageRow.StartTime,
-  regionEnd: linkageRow.EndTime,
+  regionStart: parseInt(linkageRow.StartTime, 10),
+  regionEnd: parseInt(linkageRow.EndTime, 10),
   annotations: JSON.parse(linkageRow.Annotation),
   thumbnail: linkageRow.ThumbnailFilePath,
   sighting: transformSightingData(linkageRow),

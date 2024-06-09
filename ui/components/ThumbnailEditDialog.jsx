@@ -1,4 +1,4 @@
-import { useState, forwardRef, useEffect } from 'react'
+import { useState, forwardRef, Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -39,24 +39,11 @@ const ThumbnailEditDialog = ({
   const currentThumbnail = thumbnails[selectedThumbnailIdx]
   const [topThumbnailLoaded, setTopThumbnailLoaded] = useState(false)
 
-  const [thumbnailsLoaded, setThumbnailsLoaded] = useState({})
-  const [allThumbnailsLoaded, setAllThumbnailsLoaded] = useState(false)
-
-  useEffect(() => {
-    const nextLoadTracker = thumbnails.reduce((acc, _, idx) => ({ ...acc, [`${idx}`]: false }), {})
-    setThumbnailsLoaded(nextLoadTracker)
-    setTopThumbnailLoaded(false)
-  }, [thumbnails])
+  const unloaded = { 0: false, 1: false, 2: false, 3: false, 4: false }
+  const [thumbnailsLoaded, setThumbnailsLoaded] = useState(unloaded)
 
   const reportAsLoaded = (idx) => {
-    if (idx === -1) {
-      setTopThumbnailLoaded(true)
-      return
-    }
-    const nextThumbnailsLoaded = { ...thumbnailsLoaded, [`${idx}`]: true }
-    setThumbnailsLoaded(nextThumbnailsLoaded)
-    const allLoadedCheck = Object.values(thumbnailsLoaded).every((loaded) => loaded)
-    setAllThumbnailsLoaded(allLoadedCheck)
+    setThumbnailsLoaded((prevLoaded) => ({ ...prevLoaded, [`${idx}`]: true }))
   }
 
   // Crop Selected Thumbnail Logic
@@ -74,7 +61,8 @@ const ThumbnailEditDialog = ({
   const resetAndClose = () => {
     setCrop(null)
     setShowCrop(false)
-    setAllThumbnailsLoaded(false)
+    setTopThumbnailLoaded(false)
+    setThumbnailsLoaded(unloaded)
     handleClose()
   }
 
@@ -133,7 +121,7 @@ const ThumbnailEditDialog = ({
             <Box
               component="img"
               src={currentThumbnail}
-              onLoad={() => reportAsLoaded(-1)}
+              onLoad={() => setTopThumbnailLoaded(true)}
               sx={{
                 width: doubleWidth,
                 fontSize: 0,
@@ -170,31 +158,33 @@ const ThumbnailEditDialog = ({
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {thumbnails.map((thumbnailURL, idx) => (
-            <Box
-              key={`${thumbnailURL}-${idx}`}
-              component="img"
-              src={thumbnailURL}
-              onLoad={() => reportAsLoaded(idx)}
-              sx={(theme) => ({
-                display: allThumbnailsLoaded ? 'block' : 'none',
-                width: halfWidth,
-                borderRadius: 0.5,
-                outline:
-                  idx === selectedThumbnailIdx && `4px solid ${theme.palette.secondary.dark}`,
-              })}
-            />
-          ))}
-          {!allThumbnailsLoaded &&
-            Array.from(Array(5)).map((idx) => (
-              <Skeleton
-                key={`${idx}`}
-                variant="rectangular"
-                width={halfWidth}
-                height={halfHeight}
-                sx={{ flexShrink: 0 }}
-              />
-            ))}
+          {Array.from(Array(5)).map((_, idx) => {
+            const thumbnailURL = thumbnails[idx]
+            const isSelected = idx === selectedThumbnailIdx
+            return (
+              <Fragment key={`${idx}-img`}>
+                <Box
+                  component="img"
+                  src={thumbnailURL}
+                  onLoad={() => reportAsLoaded(idx)}
+                  sx={(theme) => ({
+                    display: thumbnailsLoaded[idx] ? 'block' : 'none',
+                    width: halfWidth,
+                    borderRadius: 0.5,
+                    outline: isSelected && `4px solid ${theme.palette.secondary.dark}`,
+                  })}
+                />
+                {!thumbnailsLoaded[idx] && (
+                  <Skeleton
+                    variant="rectangular"
+                    width={halfWidth}
+                    height={halfHeight}
+                    sx={{ flexShrink: 0 }}
+                  />
+                )}
+              </Fragment>
+            )
+          })}
         </Box>
 
         <Box

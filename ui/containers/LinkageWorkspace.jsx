@@ -28,7 +28,7 @@ import {
 } from '../utilities/dashPlayer'
 import { regionDataForLinkage } from '../utilities/transformers'
 import { LINKAGE_MODES } from '../constants/routes'
-import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
+import { STILL_FRAME_PREVIEW_WIDTH, THUMBNAIL_CHOICE_WIDTH } from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
 
 import videosAPI from '../api/videos'
@@ -241,9 +241,44 @@ const LinkageWorkspace = () => {
 
   const [thumbnailEditDialog, setThumbnailEditDialog] = useState(false)
   const [thumbnails, setThumbnails] = useState([])
-  const generateThumbnailsForEditDialog = () => {
-    const _thumbnails = [thumbnailURL, thumbnailURL, thumbnailURL, thumbnailURL, thumbnailURL]
-    setThumbnails(_thumbnails)
+  const generateThumbnailsForEditDialog = async () => {
+    const video = videoElementRef.current
+    video.pause()
+    const prevTime = video.currentTime
+
+    // identify the 5 equally spaced frame numbers within the active region
+    const startFrame = activeLinkage.regionStart
+    const frameGap = activeLinkage.regionEnd - startFrame
+    const frameNumbers = Array.from(Array(5)).map((_, idx) =>
+      Math.round(startFrame + (frameGap / 4) * idx)
+    )
+
+    // An awaitable seek-to-frame function
+    const waitForSeekToFrame = (frameNumber) => {
+      return new Promise((resolve) => {
+        const onCompletion = () => {
+          video.removeEventListener('seeked', onCompletion)
+          resolve()
+        }
+        video.addEventListener('seeked', onCompletion)
+        seekToFrame(frameNumber)
+      })
+    }
+
+    // Async loop that generates the thumbnails
+    for (const frameNumber of frameNumbers) {
+      await waitForSeekToFrame(frameNumber)
+      const imageBlob = await thumbnailFromVideoElement(video, THUMBNAIL_CHOICE_WIDTH)
+      const thumbnailAsURL = URL.createObjectURL(imageBlob)
+      setThumbnails((prevThumbnails) => [...prevThumbnails, thumbnailAsURL])
+    }
+
+    // Reset the user to wherever the playhead was before
+    video.currentTime = prevTime
+  }
+  const thumbnailEditDialogExited = () => {
+    thumbnails.forEach((thumbnailURL) => URL.revokeObjectURL(thumbnailURL))
+    setThumbnails([])
   }
 
   // Linkage Mode Transitions
@@ -399,6 +434,7 @@ const LinkageWorkspace = () => {
         handleClose={() => setExportStillDialogOpen(false)}
         handleExport={exportStillFrame}
         handlePreviewRefresh={handlePreviewRefresh}
+        // TODO: find a way to revokeObjectURL
         image={exportStillPreviewImage && URL.createObjectURL(exportStillPreviewImage)}
         videoName={activeVideoName}
         frameNumber={videoFrameNumber}
@@ -414,7 +450,7 @@ const LinkageWorkspace = () => {
         open={thumbnailEditDialog}
         handleClose={() => setThumbnailEditDialog(false)}
         onEntered={generateThumbnailsForEditDialog}
-        onExited={() => setThumbnails([])}
+        onExited={thumbnailEditDialogExited}
         saveable={false}
         handleSave={() => null}
         thumbnails={thumbnails}
