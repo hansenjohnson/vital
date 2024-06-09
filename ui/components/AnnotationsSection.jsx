@@ -3,8 +3,9 @@ import Typography from '@mui/material/Typography'
 
 import SectionHeading from './SectionHeading'
 import AnnotationChip from './AnnotationChip'
+import { LINKAGE_MODES } from '../constants/routes'
 
-const AnnotationsSection = ({ annotations, handleDelete }) => (
+const AnnotationsSection = ({ mode, annotations, handleDelete }) => (
   <Box>
     <SectionHeading size={16}>Annotations</SectionHeading>
     {!annotations || annotations.length === 0 ? (
@@ -12,11 +13,16 @@ const AnnotationsSection = ({ annotations, handleDelete }) => (
     ) : (
       <Box
         sx={{
+          width: '100%',
+          height: mode === LINKAGE_MODES.EDIT ? '100px' : '48px',
+          overflowY: 'auto',
           marginTop: 0.5,
+
           display: 'flex',
           gap: 0.5,
           flexWrap: 'wrap',
-          justifyContent: 'flex-end',
+          justifyContent: mode === LINKAGE_MODES.EDIT ? 'flex-end' : 'flex-start',
+          alignContent: 'flex-start',
         }}
       >
         {annotations.map(({ type }, index) => {

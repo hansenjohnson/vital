@@ -49,7 +49,7 @@ const LinkageDetailsBox = ({
   const theme = useTheme()
 
   const annotationsDisplay = (
-    <AnnotationsSection annotations={annotations} handleDelete={deleteAnnotation} />
+    <AnnotationsSection mode={mode} annotations={annotations} handleDelete={deleteAnnotation} />
   )
 
   const regionDisplayRef = useRef(null)
