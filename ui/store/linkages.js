@@ -9,6 +9,7 @@ import { transformLinkageData, sortLinkageData } from '../utilities/transformers
 import { thumbnailFromVideoElement } from '../utilities/image'
 import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
 import { THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH } from '../constants/dimensions'
+import { DRAWING } from '../constants/tools'
 
 const initialState = {
   viewMode: VIEW_MODES.BY_VIDEO,
@@ -24,6 +25,9 @@ const initialState = {
 
   // Cache-busting for when we edit a thumbnail
   thumbnailCacheBuster: {},
+
+  // Annotation Drawing
+  activeDrawTool: DRAWING.POINTER,
 }
 
 const createLinkagesStore = (set, get) => ({
@@ -62,14 +66,16 @@ const createLinkagesStore = (set, get) => ({
 
   // Used for Linkage Viewing/Editing
   selectLinkageVideoSighting: (linkageId, videoId, sightingId) => {
+    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool } = get()
+    clearCreatedLinkage()
+    clearEditDialogs()
+    setActiveDrawTool(DRAWING.POINTER)
     set({
       linkageMode: linkageId ? LINKAGE_MODES.EDIT : LINKAGE_MODES.BLANK,
       activeLinkageId: linkageId,
       activeVideoId: videoId,
       selectedSightingId: sightingId,
     })
-    get().clearCreatedLinkage()
-    get().clearEditDialogs()
   },
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
@@ -93,6 +99,7 @@ const createLinkagesStore = (set, get) => ({
       temporaryThumbnail,
       clearCreatedLinkage,
       clearEditDialogs,
+      setActiveDrawTool,
       loadLinkages,
     } = state
     const activeVideo = getActiveVideo(state)
@@ -118,6 +125,7 @@ const createLinkagesStore = (set, get) => ({
 
     clearCreatedLinkage(clearAll)
     clearEditDialogs()
+    setActiveDrawTool(DRAWING.POINTER)
     await loadLinkages()
     return saveData['LinkageId']
   },
@@ -131,10 +139,11 @@ const createLinkagesStore = (set, get) => ({
   },
 
   updateLinkage: async (linkageId, payload) => {
-    const { clearCreatedLinkage, clearEditDialogs, loadLinkages } = get()
+    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages } = get()
     await linkagesAPI.update(linkageId, payload)
     clearCreatedLinkage()
     clearEditDialogs()
+    setActiveDrawTool(DRAWING.POINTER)
     await loadLinkages()
   },
 
@@ -143,6 +152,8 @@ const createLinkagesStore = (set, get) => ({
       thumbnailCacheBuster: { ...state.thumbnailCacheBuster, [thumbnailURL]: Date.now() },
     }))
   },
+
+  setActiveDrawTool: valueSetter(set, 'activeDrawTool'),
 })
 
 const getActiveLinkage = ({ linkages, activeLinkageId }) =>

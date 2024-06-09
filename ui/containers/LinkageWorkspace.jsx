@@ -33,6 +33,7 @@ import {
   THUMBNAIL_WIDTH,
 } from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
+import { DRAWING } from '../constants/tools'
 
 import videosAPI from '../api/videos'
 import thumbnailsAPI from '../api/thumbnails'
@@ -44,6 +45,8 @@ import LinkageDetailsBox from '../components/LinkageDetailsBox'
 import StyledButton from '../components/StyledButton'
 import ExportStillDialog from '../components/ExportStillDialog'
 import ThumbnailEditDialog from '../components/ThumbnailEditDialog'
+import AnnotationDisplayLayer from '../components/AnnotationDisplayLayer'
+import AnnotationDrawingLayer from '../components/AnnotationDrawingLayer'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -324,6 +327,26 @@ const LinkageWorkspace = () => {
     setThumbnailEditDialog(false)
   }
 
+  // Annotation Draw Handling
+  const activeDrawTool = useStore((state) => state.activeDrawTool)
+  const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
+  const enableArrowDrawing = () => {
+    videoElementRef.current.pause()
+    setActiveDrawTool(DRAWING.ARROW)
+  }
+  const addAnnotation = ({ type, x1, y1, x2, y2 }) => {
+    const newAnnotation = {
+      type,
+      x1,
+      y1,
+      x2,
+      y2,
+      frame: videoFrameNumber,
+    }
+    const newAnnotations = [...annotations, newAnnotation]
+    updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+  }
+
   // Linkage Mode Transitions
   const transitionFromEditToCreate = () => {
     selectLinkageVideoSighting(null, activeVideo.id, null)
@@ -338,7 +361,7 @@ const LinkageWorkspace = () => {
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ position: 'relative', flexGrow: 1 }}>
         <VideoPlayer
           ref={videoElementRef}
           url={activeVideoURL}
@@ -349,6 +372,10 @@ const LinkageWorkspace = () => {
           setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
         />
+
+        {/* TODO: find a way to keep these the same size as the video itself */}
+        <AnnotationDisplayLayer annotations={annotations} />
+        <AnnotationDrawingLayer tool={activeDrawTool} addAnnotation={addAnnotation} />
       </Box>
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>
@@ -409,9 +436,11 @@ const LinkageWorkspace = () => {
           }}
         >
           {/* Button Slot 1 */}
+          {/* TODO: make this is a trio button with Pointer, Arrow, Circle */}
+          {/* TODO: figure out when to disable this */}
           {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
-            <StyledButton disabled>Annotation Tools</StyledButton>
+            <StyledButton onClick={enableArrowDrawing}>Annotation Tools</StyledButton>
           )}
 
           {/* Button Slot 2 */}
