@@ -33,23 +33,3 @@ export const timecodeFromFrameNumber = (frameNumber, frameRate, showFrames = tru
   }
   return timecode
 }
-
-export const thumbnailFromVideoElement = (videoElement, outputWidth) =>
-  new Promise((resolve) => {
-    const { videoWidth, videoHeight } = videoElement
-    const outputHeight = videoHeight / (videoWidth / outputWidth)
-
-    const canvas = document.createElement('canvas')
-    canvas.width = outputWidth
-    canvas.height = Math.floor(outputHeight)
-
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(videoElement, 0, 0, outputWidth, outputHeight)
-    canvas.toBlob(
-      (blob) => {
-        resolve(blob)
-      },
-      'image/jpeg',
-      0.8
-    )
-  })
