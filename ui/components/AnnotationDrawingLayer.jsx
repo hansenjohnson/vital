@@ -117,6 +117,7 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
         width: '100%',
         height: '100%',
         userSelect: 'none',
+        zIndex: 8,
         // useful for debugging
         // backgroundColor: 'rgba(255, 0, 0, 0.3)',
       }}

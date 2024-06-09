@@ -25,7 +25,7 @@ const AnnotationsSection = ({ annotations, handleDelete }) => (
             <AnnotationChip
               key={annotationKey}
               annotationName={annotationKey}
-              onDelete={() => handleDelete({ type, index })}
+              onDelete={() => handleDelete(index)}
             />
           )
         })}

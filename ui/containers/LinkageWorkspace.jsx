@@ -70,7 +70,7 @@ const LinkageWorkspace = () => {
   // Linkage Creation State & Actions
   const [regionStart, setRegionStart] = useValueAndSetter(useStore, 'regionStart', 'setRegionStart')
   const [regionEnd, setRegionEnd] = useValueAndSetter(useStore, 'regionEnd', 'setRegionEnd')
-  const annotations = useStore((state) => state.annotations)
+  const [annotations, setAnnotations] = useValueAndSetter(useStore, 'annotations', 'setAnnotations')
   const setRegionStartAndCaptureThumbnail = useStore(
     (state) => state.setRegionStartAndCaptureThumbnail
   )
@@ -343,8 +343,21 @@ const LinkageWorkspace = () => {
       y2,
       frame: videoFrameNumber,
     }
-    const newAnnotations = [...annotations, newAnnotation]
-    updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    if (linkageMode === LINKAGE_MODES.EDIT) {
+      const newAnnotations = [...activeLinkage.annotations, newAnnotation]
+      updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    } else if (linkageMode === LINKAGE_MODES.CREATE) {
+      setAnnotations([...annotations, newAnnotation])
+    }
+  }
+  const deleteAnnotation = (index) => {
+    if (linkageMode === LINKAGE_MODES.EDIT) {
+      const newAnnotations = activeLinkage.annotations.filter((_, idx) => idx !== index)
+      updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    } else if (linkageMode === LINKAGE_MODES.CREATE) {
+      const newAnnotations = annotations.filter((_, idx) => idx !== index)
+      setAnnotations(newAnnotations)
+    }
   }
 
   // Linkage Mode Transitions
@@ -425,7 +438,7 @@ const LinkageWorkspace = () => {
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations.length ? annotations : activeLinkage?.annotations}
-            deleteAnnotation={({ type, index }) => null}
+            deleteAnnotation={deleteAnnotation}
             thumbnail={thumbnailURL}
             openThumbnailEditDialog={() => {
               setThumbnailEditDialog(true)
