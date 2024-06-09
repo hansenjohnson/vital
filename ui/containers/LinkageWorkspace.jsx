@@ -40,6 +40,7 @@ import VideoTimeline from '../components/VideoTimeline'
 import LinkageDetailsBox from '../components/LinkageDetailsBox'
 import StyledButton from '../components/StyledButton'
 import ExportStillDialog from '../components/ExportStillDialog'
+import ThumbnailEditDialog from '../components/ThumbnailEditDialog'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -238,6 +239,14 @@ const LinkageWorkspace = () => {
     updateLinkage(activeLinkageId, { StartTime: regionStart, EndTime: regionEnd })
   }
 
+  const [thumbnailEditDialog, setThumbnailEditDialog] = useState(false)
+  const [thumbnails, setThumbnails] = useState([])
+  const generateThumbnailsForEditDialog = () => {
+    const _thumbnails = [thumbnailURL, thumbnailURL, thumbnailURL, thumbnailURL, thumbnailURL]
+    setThumbnails(_thumbnails)
+  }
+
+  // Linkage Mode Transitions
   const transitionFromEditToCreate = () => {
     selectLinkageVideoSighting(null, activeVideo.id, null)
     setLinkageMode(LINKAGE_MODES.CREATE)
@@ -305,6 +314,9 @@ const LinkageWorkspace = () => {
             annotations={annotations || activeLinkage?.annotations}
             deleteAnnotation={() => null}
             thumbnail={thumbnailURL}
+            openThumbnailEditDialog={() => {
+              setThumbnailEditDialog(true)
+            }}
             saveable={saveable}
           />
         </Box>
@@ -396,6 +408,17 @@ const LinkageWorkspace = () => {
         stillExportDir={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
         subFolder={catalogFolderName}
         exportStatus={exportStatus}
+      />
+
+      <ThumbnailEditDialog
+        open={thumbnailEditDialog}
+        handleClose={() => setThumbnailEditDialog(false)}
+        onEntered={generateThumbnailsForEditDialog}
+        onExited={() => setThumbnails([])}
+        saveable={false}
+        handleSave={() => null}
+        thumbnails={thumbnails}
+        selectedThumbnailIdx={0}
       />
     </Box>
   )

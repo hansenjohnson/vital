@@ -43,6 +43,7 @@ const LinkageDetailsBox = ({
   annotations,
   deleteAnnotation,
   thumbnail,
+  openThumbnailEditDialog,
   saveable,
 }) => {
   const theme = useTheme()
@@ -193,7 +194,7 @@ const LinkageDetailsBox = ({
             textAlign: 'right',
           }}
         >
-          <ThumbnailEditButton src={thumbnail} onClick={() => null} />
+          <ThumbnailEditButton src={thumbnail} onClick={openThumbnailEditDialog} />
           {annotationsDisplay}
         </Box>
       )}

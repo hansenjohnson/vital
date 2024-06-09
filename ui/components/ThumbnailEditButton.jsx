@@ -32,9 +32,34 @@ const ThumbnailEditButton = ({ src, onClick }) => (
     >
       <Box
         sx={(theme) => ({
+          position: 'absolute',
+          color: 'transparent',
+          fontSize: '24px',
+          fontFamily: theme.typography.fontFamily,
+          backgroundColor: 'black',
+          opacity: 0.5,
+          filter: 'blur(10px)',
+        })}
+      >
+        edit
+      </Box>
+      <Box
+        sx={(theme) => ({
+          position: 'absolute',
+          color: 'transparent',
+          fontSize: '20px',
+          fontFamily: theme.typography.fontFamily,
+          textShadow: '0px 0px 8px black',
+          opacity: 0.7,
+        })}
+      >
+        edit
+      </Box>
+      <Box
+        sx={(theme) => ({
           fontSize: '16px',
           fontFamily: theme.typography.fontFamily,
-          textShadow: '0px 0px 12px black',
+          zIndex: 1,
         })}
       >
         edit
