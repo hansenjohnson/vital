@@ -1,14 +1,14 @@
 import { valueSetter } from './utils'
-import { getSelectedSighting, selectedSightingHasOverlap } from './sightings'
+import { selectedSightingHasOverlap } from './sightings'
 import { getSelectedFolder } from './folders'
 import { getActiveVideo } from './videos'
 
 import linkagesAPI from '../api/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { transformLinkageData, sortLinkageData } from '../utilities/transformers'
-import { thumbnailFromVideoElement } from '../utilities/video'
+import { thumbnailFromVideoElement } from '../utilities/image'
 import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
-import { THUMBNAIL_WIDTH } from '../constants/dimensions'
+import { THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH } from '../constants/dimensions'
 
 const initialState = {
   viewMode: VIEW_MODES.BY_VIDEO,
@@ -21,6 +21,9 @@ const initialState = {
   regionEnd: null,
   annotations: [],
   temporaryThumbnail: null,
+
+  // Cache-busting for when we edit a thumbnail
+  thumbnailCacheBuster: {},
 }
 
 const createLinkagesStore = (set, get) => ({
@@ -71,7 +74,7 @@ const createLinkagesStore = (set, get) => ({
 
   setRegionStartAndCaptureThumbnail: async (frameNumber, videoElement) => {
     set({ temporaryThumbnail: null })
-    thumbnailFromVideoElement(videoElement, THUMBNAIL_WIDTH).then((imageBlob) => {
+    thumbnailFromVideoElement(videoElement, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT).then((imageBlob) => {
       set({ temporaryThumbnail: imageBlob })
     })
 
@@ -83,7 +86,6 @@ const createLinkagesStore = (set, get) => ({
   saveLinkage: async (clearAll = false) => {
     const state = get()
     const {
-      sightings,
       selectedSightingId,
       regionStart,
       regionEnd,
@@ -94,13 +96,10 @@ const createLinkagesStore = (set, get) => ({
       loadLinkages,
     } = state
     const activeVideo = getActiveVideo(state)
-    const selectedSighting = getSelectedSighting({ sightings, selectedSightingId })
 
     const thumbnailPartialPath = thumbnailsAPI.formulateSavePath(
-      selectedSightingId,
-      selectedSighting.date,
-      activeVideo.fileName,
-      regionStart
+      getSelectedFolder(state),
+      activeVideo.fileName
     )
     const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, temporaryThumbnail)
     if (!thumbnailStatus) return
@@ -137,6 +136,12 @@ const createLinkagesStore = (set, get) => ({
     clearCreatedLinkage()
     clearEditDialogs()
     await loadLinkages()
+  },
+
+  incrementCacheBuster: (thumbnailURL) => {
+    set((state) => ({
+      thumbnailCacheBuster: { ...state.thumbnailCacheBuster, [thumbnailURL]: Date.now() },
+    }))
   },
 })
 

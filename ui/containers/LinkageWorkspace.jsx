@@ -15,11 +15,8 @@ import { useValueAndSetter } from '../store/utils'
 
 import { leafPath } from '../utilities/paths'
 import { catalogFolderString } from '../utilities/strings'
-import {
-  frameRateFromStr,
-  timecodeFromFrameNumber,
-  thumbnailFromVideoElement,
-} from '../utilities/video'
+import { frameRateFromStr, timecodeFromFrameNumber } from '../utilities/video'
+import { thumbnailFromVideoElement, thumbnailFromBitmap } from '../utilities/image'
 import {
   initializePlayer,
   startSubscriptions,
@@ -28,7 +25,13 @@ import {
 } from '../utilities/dashPlayer'
 import { regionDataForLinkage } from '../utilities/transformers'
 import { LINKAGE_MODES } from '../constants/routes'
-import { STILL_FRAME_PREVIEW_WIDTH, THUMBNAIL_CHOICE_WIDTH } from '../constants/dimensions'
+import {
+  STILL_FRAME_PREVIEW_WIDTH,
+  THUMBNAIL_CHOICE_HEIGHT,
+  THUMBNAIL_CHOICE_WIDTH,
+  THUMBNAIL_HEIGHT,
+  THUMBNAIL_WIDTH,
+} from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
 
 import videosAPI from '../api/videos'
@@ -79,10 +82,19 @@ const LinkageWorkspace = () => {
   const selectedSighting = useStore(getSelectedSighting)
   const sightingName = useStore(getSelectedSightingName)
   const setSightingsDialogOpen = useStore((state) => state.setSightingsDialogOpen)
-  const thumbnailURL =
-    activeLinkage?.thumbnail && thumbnailsAPI.formulateHostedPath(activeLinkage?.thumbnail)
   const hasOverlap = useStore(selectedSightingHasOverlap)
   const deleteLinkage = useStore((state) => state.deleteLinkage)
+
+  const thumbnailCacheBuster = useStore((state) => state.thumbnailCacheBuster)
+  const incrementCacheBuster = useStore((state) => state.incrementCacheBuster)
+  const getThumbnailFullURL = (partialPath) => {
+    let fullURL = thumbnailsAPI.formulateHostedPath(partialPath)
+    if (partialPath in thumbnailCacheBuster) {
+      fullURL = `${fullURL}?t=${thumbnailCacheBuster[partialPath]}`
+    }
+    return fullURL
+  }
+  const thumbnailURL = activeLinkage?.thumbnail && getThumbnailFullURL(activeLinkage?.thumbnail)
 
   // Video State that we imperatively subscribe to
   const videoElementRef = useRef(null)
@@ -247,11 +259,13 @@ const LinkageWorkspace = () => {
   }
 
   const [thumbnailEditDialog, setThumbnailEditDialog] = useState(false)
-  const [thumbnails, setThumbnails] = useState([])
+  const [thumbnailBlobs, setThumbnailBlobs] = useState([])
+  const [thumbnailURLs, setThumbnailURLs] = useState([])
   const [selectedThumbnailIdx, setSelectedThumbnailIdx] = useState(0)
   const thumbnailEditDialogExited = () => {
-    thumbnails.forEach((thumbnailURL) => URL.revokeObjectURL(thumbnailURL))
-    setThumbnails([])
+    thumbnailURLs.forEach((thumbnailURL) => URL.revokeObjectURL(thumbnailURL))
+    setThumbnailURLs([])
+    setThumbnailBlobs([])
   }
 
   const generateThumbnailsForEditDialog = async () => {
@@ -267,27 +281,47 @@ const LinkageWorkspace = () => {
     )
 
     // An awaitable seek-to-frame function
-    const waitForSeekToFrame = (frameNumber) => {
-      return new Promise((resolve) => {
-        const onCompletion = () => {
-          video.removeEventListener('seeked', onCompletion)
-          resolve()
-        }
-        video.addEventListener('seeked', onCompletion)
+    const waitForSeekToFrame = (frameNumber) =>
+      new Promise((resolve) => {
+        video.addEventListener('seeked', resolve, { once: true })
         seekToFrame(frameNumber)
       })
-    }
 
     // Async loop that generates the thumbnails
     for (const frameNumber of frameNumbers) {
       await waitForSeekToFrame(frameNumber)
-      const imageBlob = await thumbnailFromVideoElement(video, THUMBNAIL_CHOICE_WIDTH)
+      const imageBlob = await thumbnailFromVideoElement(
+        video,
+        THUMBNAIL_CHOICE_WIDTH,
+        THUMBNAIL_CHOICE_HEIGHT
+      )
       const thumbnailAsURL = URL.createObjectURL(imageBlob)
-      setThumbnails((prevThumbnails) => [...prevThumbnails, thumbnailAsURL])
+      setThumbnailBlobs((prevBlobs) => [...prevBlobs, imageBlob])
+      setThumbnailURLs((prevURLs) => [...prevURLs, thumbnailAsURL])
     }
 
     // Reset the user to wherever the playhead was before
     video.currentTime = prevTime
+  }
+
+  const saveThumbnailEdit = async (cropSpec) => {
+    // TODO: handle error cases from the awaits
+    const selectedThumbnailBlob = thumbnailBlobs[selectedThumbnailIdx]
+
+    // Apply user provided crop while creating a bitmap (which is needed to work with a canvas element)
+    const cropArgs = cropSpec ? [cropSpec.x, cropSpec.y, cropSpec.width, cropSpec.height] : []
+    const newImageBitmap = await createImageBitmap(selectedThumbnailBlob, ...cropArgs)
+    const newThumbnailBlob = await thumbnailFromBitmap(
+      newImageBitmap,
+      THUMBNAIL_WIDTH,
+      THUMBNAIL_HEIGHT
+    )
+
+    // We overwrite the thumbnail at the filepath for the linkage
+    // but there is nothing to update within the backend data
+    await thumbnailsAPI.save(activeLinkage.thumbnail, newThumbnailBlob)
+    incrementCacheBuster(activeLinkage.thumbnail)
+    setThumbnailEditDialog(false)
   }
 
   // Linkage Mode Transitions
@@ -460,8 +494,9 @@ const LinkageWorkspace = () => {
         handleClose={() => setThumbnailEditDialog(false)}
         onEntered={generateThumbnailsForEditDialog}
         onExited={thumbnailEditDialogExited}
-        handleSave={() => null}
-        thumbnails={thumbnails}
+        handleSave={saveThumbnailEdit}
+        existingThumbnail={thumbnailURL}
+        thumbnails={thumbnailURLs}
         selectedThumbnailIdx={selectedThumbnailIdx}
         setSelectedThumbnailIdx={setSelectedThumbnailIdx}
       />

@@ -12,7 +12,12 @@ import ButtonBase from '@mui/material/ButtonBase'
 import ReactCrop from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 
-import { THUMBNAIL_WIDTH } from '../constants/dimensions'
+import {
+  THUMBNAIL_CHOICE_WIDTH,
+  THUMBNAIL_CHOICE_HEIGHT,
+  THUMBNAIL_WIDTH,
+  THUMBNAIL_HEIGHT,
+} from '../constants/dimensions'
 import StyledButton from './StyledButton'
 import StyledPillButton from './StyledPillButton'
 
@@ -26,18 +31,15 @@ const ThumbnailEditDialog = ({
   onEntered,
   onExited,
   handleSave,
+  existingThumbnail,
   thumbnails,
   selectedThumbnailIdx,
   setSelectedThumbnailIdx,
 }) => {
-  // These are assumptions based on all videos and thumbnails being 16:9 aspect ratio
-  const doubleWidth = THUMBNAIL_WIDTH * 2
-  const doubleHeight = Math.floor(THUMBNAIL_WIDTH * 2 * (9 / 16))
-  const halfWidth = THUMBNAIL_WIDTH / 2
-  const halfHeight = Math.floor((THUMBNAIL_WIDTH / 2) * (9 / 16))
+  const [showExisting, setShowExisting] = useState(true)
 
   // Thumbnail Loading Logic, for placeholder display
-  const currentThumbnail = thumbnails[selectedThumbnailIdx]
+  const currentThumbnail = showExisting ? existingThumbnail : thumbnails[selectedThumbnailIdx]
   const [topThumbnailLoaded, setTopThumbnailLoaded] = useState(false)
 
   const unloaded = { 0: false, 1: false, 2: false, 3: false, 4: false }
@@ -54,27 +56,32 @@ const ThumbnailEditDialog = ({
     unit: 'px',
     x: 0 + initialInset,
     y: 0 + initialInset,
-    width: doubleWidth - initialInset * 2,
-    height: doubleHeight - initialInset * 2,
+    width: THUMBNAIL_CHOICE_WIDTH - initialInset * 2,
+    height: THUMBNAIL_CHOICE_HEIGHT - initialInset * 2,
   }
   const [crop, setCrop] = useState()
 
-  const resetAndClose = () => {
+  const save = () => {
+    handleSave(showCrop ? crop : null)
+  }
+
+  const handleExited = () => {
     setCrop(null)
     setShowCrop(false)
     setTopThumbnailLoaded(false)
     setThumbnailsLoaded(unloaded)
-    handleClose()
+    setShowExisting(true)
+    onExited()
   }
 
   return (
     <Dialog
       TransitionComponent={Transition}
-      TransitionProps={{ onEntered, onExited }}
+      TransitionProps={{ onEntered, onExited: handleExited }}
       maxWidth="md"
       keepMounted
       open={open}
-      onClose={resetAndClose}
+      onClose={handleClose}
     >
       <DialogTitle
         sx={{
@@ -89,7 +96,7 @@ const ThumbnailEditDialog = ({
       </DialogTitle>
 
       <IconButton
-        onClick={resetAndClose}
+        onClick={handleClose}
         color="primary"
         size="small"
         sx={(theme) => ({
@@ -114,31 +121,55 @@ const ThumbnailEditDialog = ({
           <ReactCrop
             crop={crop}
             onChange={(newCrop) => setCrop(newCrop)}
-            // 200/112 is a nearby integer representation of 16/9
-            aspect={200 / 112}
+            aspect={THUMBNAIL_WIDTH / THUMBNAIL_HEIGHT}
             disabled={!showCrop}
-            style={{ display: topThumbnailLoaded ? 'block' : 'none' }}
+            style={{
+              display: topThumbnailLoaded ? 'block' : 'none',
+              width: THUMBNAIL_CHOICE_WIDTH,
+            }}
           >
             <Box
               component="img"
-              src={currentThumbnail}
+              src={open ? currentThumbnail : undefined}
               onLoad={() => setTopThumbnailLoaded(true)}
               sx={{
-                width: doubleWidth,
+                width: showExisting ? THUMBNAIL_WIDTH : THUMBNAIL_CHOICE_WIDTH,
+                margin: showExisting
+                  ? [
+                      `${(THUMBNAIL_CHOICE_WIDTH - THUMBNAIL_WIDTH) / 2}px`,
+                      `${(THUMBNAIL_CHOICE_HEIGHT - THUMBNAIL_HEIGHT) / 2}px`,
+                    ]
+                  : 0,
                 fontSize: 0,
                 userSelect: 'none',
+                pointerEvents: 'none',
               }}
             />
           </ReactCrop>
 
           {!topThumbnailLoaded && (
-            <Skeleton variant="rectangular" width={doubleWidth} height={doubleHeight} />
+            <Skeleton
+              variant="rectangular"
+              width={THUMBNAIL_CHOICE_WIDTH}
+              height={THUMBNAIL_CHOICE_HEIGHT}
+            />
           )}
 
-          <Box sx={{ marginTop: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box
+            sx={{ width: '120px', marginTop: 1, display: 'flex', flexDirection: 'column', gap: 1 }}
+          >
+            <StyledPillButton
+              color={showExisting ? 'primary' : 'inherit'}
+              sx={{ paddingLeft: 0, paddingRight: 0 }}
+              onClick={() => {
+                setShowExisting(true)
+              }}
+            >
+              {showExisting ? 'current' : 'view current'}
+            </StyledPillButton>
             <StyledPillButton
               color="inherit"
-              disabled={showCrop}
+              disabled={showExisting || showCrop}
               onClick={() => {
                 setCrop(initialCrop)
                 setShowCrop(true)
@@ -148,7 +179,7 @@ const ThumbnailEditDialog = ({
             </StyledPillButton>
             <StyledPillButton
               color="inherit"
-              disabled={!showCrop}
+              disabled={showExisting || !showCrop}
               onClick={() => {
                 setCrop(null)
                 setShowCrop(false)
@@ -159,14 +190,20 @@ const ThumbnailEditDialog = ({
           </Box>
         </Box>
 
+        <Box sx={{ fontSize: '12px', color: 'text.secondary', marginBottom: -1.5 }}>
+          Select a thumbnail option from within the linkage region
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {Array.from(Array(5)).map((_, idx) => {
             const thumbnailURL = thumbnails[idx]
-            const isSelected = idx === selectedThumbnailIdx
+            const isSelected = !showExisting && idx === selectedThumbnailIdx
             return (
               <ButtonBase
                 key={`${idx}-img`}
-                onClick={() => setSelectedThumbnailIdx(idx)}
+                onClick={() => {
+                  setShowExisting(false)
+                  setSelectedThumbnailIdx(idx)
+                }}
                 sx={(theme) => ({
                   borderRadius: 0.5,
                   outline: isSelected && `4px solid ${theme.palette.secondary.dark}`,
@@ -181,15 +218,16 @@ const ThumbnailEditDialog = ({
                   onLoad={() => reportAsLoaded(idx)}
                   sx={{
                     display: thumbnailsLoaded[idx] ? 'block' : 'none',
-                    width: halfWidth,
+                    width: THUMBNAIL_WIDTH / 2,
                     borderRadius: 0.5,
+                    pointerEvents: 'none',
                   }}
                 />
                 {!thumbnailsLoaded[idx] && (
                   <Skeleton
                     variant="rectangular"
-                    width={halfWidth}
-                    height={halfHeight}
+                    width={THUMBNAIL_WIDTH / 2}
+                    height={THUMBNAIL_HEIGHT / 2}
                     sx={{ flexShrink: 0 }}
                   />
                 )}
@@ -205,10 +243,10 @@ const ThumbnailEditDialog = ({
             justifyContent: 'space-between',
           }}
         >
-          <StyledButton color="plain" onClick={resetAndClose}>
+          <StyledButton color="plain" onClick={handleClose}>
             Cancel
           </StyledButton>
-          <StyledButton variant="contained" onClick={handleSave}>
+          <StyledButton variant="contained" onClick={save} disabled={showExisting}>
             Save
           </StyledButton>
         </Box>

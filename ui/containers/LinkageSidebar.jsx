@@ -70,10 +70,19 @@ const LinkageSidebar = () => {
   const activeVideoId = useStore((state) => state.activeVideoId)
   const activeLinkageId = useStore((state) => state.activeLinkageId)
   const setLinkageMode = useStore((state) => state.setLinkageMode)
+  const thumbnailCacheBuster = useStore((state) => state.thumbnailCacheBuster)
   const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
   const playVideoOnly = (videoId) => {
     setLinkageMode(LINKAGE_MODES.BLANK)
     selectLinkageVideoSighting(null, videoId, null)
+  }
+
+  const getThumbnailFullURL = (partialPath) => {
+    let fullURL = thumbnailsAPI.formulateHostedPath(partialPath)
+    if (partialPath in thumbnailCacheBuster) {
+      fullURL = `${fullURL}?t=${thumbnailCacheBuster[partialPath]}`
+    }
+    return fullURL
   }
 
   const triggerForceToHighestQuality = useStore((state) => state.triggerForceToHighestQuality)
@@ -86,7 +95,7 @@ const LinkageSidebar = () => {
       regionEnd={linkage.regionEnd}
       sighting={linkage.sighting}
       frameRate={linkage.video.frameRate}
-      thumbnail={thumbnailsAPI.formulateHostedPath(linkage.thumbnail)}
+      thumbnail={getThumbnailFullURL(linkage.thumbnail)}
       onClick={() => selectLinkageVideoSighting(linkage.id, linkage.video.id, linkage.sighting.id)}
       selected={linkage.id === activeLinkageId}
     />
