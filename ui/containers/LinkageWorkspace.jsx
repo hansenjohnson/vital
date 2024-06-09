@@ -374,7 +374,15 @@ const LinkageWorkspace = () => {
         />
 
         {/* TODO: find a way to keep these the same size as the video itself */}
-        <AnnotationDisplayLayer annotations={annotations} />
+        <AnnotationDisplayLayer
+          annotations={annotations.length ? annotations : activeLinkage?.annotations}
+          currentFrame={videoFrameNumber}
+          frameRate={videoFrameRate}
+          disabled={
+            videoFrameNumber < activeLinkage?.regionStart ||
+            videoFrameNumber > activeLinkage?.regionEnd
+          }
+        />
         <AnnotationDrawingLayer tool={activeDrawTool} addAnnotation={addAnnotation} />
       </Box>
 
@@ -416,8 +424,8 @@ const LinkageWorkspace = () => {
             saveRegionEdit={saveRegionEdit}
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
-            annotations={annotations || activeLinkage?.annotations}
-            deleteAnnotation={() => null}
+            annotations={annotations.length ? annotations : activeLinkage?.annotations}
+            deleteAnnotation={({ type, index }) => null}
             thumbnail={thumbnailURL}
             openThumbnailEditDialog={() => {
               setThumbnailEditDialog(true)
@@ -440,7 +448,12 @@ const LinkageWorkspace = () => {
           {/* TODO: figure out when to disable this */}
           {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
-            <StyledButton onClick={enableArrowDrawing}>Annotation Tools</StyledButton>
+            <StyledButton
+              onClick={enableArrowDrawing}
+              disabled={!activeVideo || activeVideoLoading}
+            >
+              Annotation Tools
+            </StyledButton>
           )}
 
           {/* Button Slot 2 */}

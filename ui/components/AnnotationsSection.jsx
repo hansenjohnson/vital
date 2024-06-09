@@ -7,7 +7,7 @@ import AnnotationChip from './AnnotationChip'
 const AnnotationsSection = ({ annotations, handleDelete }) => (
   <Box>
     <SectionHeading size={16}>Annotations</SectionHeading>
-    {annotations.length === 0 ? (
+    {!annotations || annotations.length === 0 ? (
       <Typography sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>None</Typography>
     ) : (
       <Box
@@ -19,13 +19,16 @@ const AnnotationsSection = ({ annotations, handleDelete }) => (
           justifyContent: 'flex-end',
         }}
       >
-        {annotations.map((annotationName) => (
-          <AnnotationChip
-            key={annotationName}
-            annotationName={annotationName}
-            onDelete={() => handleDelete(annotationName)}
-          />
-        ))}
+        {annotations.map(({ type }, index) => {
+          const annotationKey = `${type} ${index + 1}`
+          return (
+            <AnnotationChip
+              key={annotationKey}
+              annotationName={annotationKey}
+              onDelete={() => handleDelete({ type, index })}
+            />
+          )
+        })}
       </Box>
     )}
   </Box>

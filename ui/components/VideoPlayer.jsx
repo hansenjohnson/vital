@@ -200,6 +200,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
           left: theme.spacing(-1),
           width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(3)})`,
           height: `${PLAYER_CONTROLS_HEIGHT}px`,
+          zIndex: 5,
         }}
       >
         {/* Video Controls Backdrop */}
