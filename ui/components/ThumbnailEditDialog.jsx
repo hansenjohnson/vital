@@ -1,4 +1,4 @@
-import { useState, forwardRef, Fragment } from 'react'
+import { useState, forwardRef } from 'react'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton'
 import Grow from '@mui/material/Grow'
 import CloseIcon from '@mui/icons-material/Close'
 import Skeleton from '@mui/material/Skeleton'
+import ButtonBase from '@mui/material/ButtonBase'
 
 import ReactCrop from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
@@ -24,10 +25,10 @@ const ThumbnailEditDialog = ({
   handleClose,
   onEntered,
   onExited,
-  saveable,
   handleSave,
   thumbnails,
   selectedThumbnailIdx,
+  setSelectedThumbnailIdx,
 }) => {
   // These are assumptions based on all videos and thumbnails being 16:9 aspect ratio
   const doubleWidth = THUMBNAIL_WIDTH * 2
@@ -125,6 +126,7 @@ const ThumbnailEditDialog = ({
               sx={{
                 width: doubleWidth,
                 fontSize: 0,
+                userSelect: 'none',
               }}
             />
           </ReactCrop>
@@ -162,17 +164,26 @@ const ThumbnailEditDialog = ({
             const thumbnailURL = thumbnails[idx]
             const isSelected = idx === selectedThumbnailIdx
             return (
-              <Fragment key={`${idx}-img`}>
+              <ButtonBase
+                key={`${idx}-img`}
+                onClick={() => setSelectedThumbnailIdx(idx)}
+                sx={(theme) => ({
+                  borderRadius: 0.5,
+                  outline: isSelected && `4px solid ${theme.palette.secondary.dark}`,
+                  '&:hover': {
+                    outline: !isSelected && `4px solid ${theme.palette.action.hover}`,
+                  },
+                })}
+              >
                 <Box
                   component="img"
                   src={thumbnailURL}
                   onLoad={() => reportAsLoaded(idx)}
-                  sx={(theme) => ({
+                  sx={{
                     display: thumbnailsLoaded[idx] ? 'block' : 'none',
                     width: halfWidth,
                     borderRadius: 0.5,
-                    outline: isSelected && `4px solid ${theme.palette.secondary.dark}`,
-                  })}
+                  }}
                 />
                 {!thumbnailsLoaded[idx] && (
                   <Skeleton
@@ -182,7 +193,7 @@ const ThumbnailEditDialog = ({
                     sx={{ flexShrink: 0 }}
                   />
                 )}
-              </Fragment>
+              </ButtonBase>
             )
           })}
         </Box>
@@ -197,7 +208,7 @@ const ThumbnailEditDialog = ({
           <StyledButton color="plain" onClick={resetAndClose}>
             Cancel
           </StyledButton>
-          <StyledButton variant="contained" onClick={handleSave} disabled={!saveable}>
+          <StyledButton variant="contained" onClick={handleSave}>
             Save
           </StyledButton>
         </Box>

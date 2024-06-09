@@ -241,6 +241,12 @@ const LinkageWorkspace = () => {
 
   const [thumbnailEditDialog, setThumbnailEditDialog] = useState(false)
   const [thumbnails, setThumbnails] = useState([])
+  const [selectedThumbnailIdx, setSelectedThumbnailIdx] = useState(0)
+  const thumbnailEditDialogExited = () => {
+    thumbnails.forEach((thumbnailURL) => URL.revokeObjectURL(thumbnailURL))
+    setThumbnails([])
+  }
+
   const generateThumbnailsForEditDialog = async () => {
     const video = videoElementRef.current
     video.pause()
@@ -275,10 +281,6 @@ const LinkageWorkspace = () => {
 
     // Reset the user to wherever the playhead was before
     video.currentTime = prevTime
-  }
-  const thumbnailEditDialogExited = () => {
-    thumbnails.forEach((thumbnailURL) => URL.revokeObjectURL(thumbnailURL))
-    setThumbnails([])
   }
 
   // Linkage Mode Transitions
@@ -451,10 +453,10 @@ const LinkageWorkspace = () => {
         handleClose={() => setThumbnailEditDialog(false)}
         onEntered={generateThumbnailsForEditDialog}
         onExited={thumbnailEditDialogExited}
-        saveable={false}
         handleSave={() => null}
         thumbnails={thumbnails}
-        selectedThumbnailIdx={0}
+        selectedThumbnailIdx={selectedThumbnailIdx}
+        setSelectedThumbnailIdx={setSelectedThumbnailIdx}
       />
     </Box>
   )
