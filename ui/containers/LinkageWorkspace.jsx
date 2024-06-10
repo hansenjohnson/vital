@@ -33,7 +33,6 @@ import {
   THUMBNAIL_WIDTH,
 } from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
-import { DRAWING } from '../constants/tools'
 
 import videosAPI from '../api/videos'
 import thumbnailsAPI from '../api/thumbnails'
@@ -47,6 +46,7 @@ import ExportStillDialog from '../components/ExportStillDialog'
 import ThumbnailEditDialog from '../components/ThumbnailEditDialog'
 import AnnotationDisplayLayer from '../components/AnnotationDisplayLayer'
 import AnnotationDrawingLayer from '../components/AnnotationDrawingLayer'
+import ToolsButtonGroup from '../components/ToolsButtonGroup'
 
 const TIMELINE_HEIGHT = 48
 const DETAILS_HEIGHT = 245
@@ -335,9 +335,9 @@ const LinkageWorkspace = () => {
   // Annotation Draw Handling
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
-  const enableArrowDrawing = () => {
+  const selectDrawTool = (tool) => {
     videoElement.pause()
-    setActiveDrawTool(DRAWING.ARROW)
+    setActiveDrawTool(tool)
   }
   const navigateToAnnotation = (index) => {
     videoElement.pause()
@@ -474,16 +474,13 @@ const LinkageWorkspace = () => {
           }}
         >
           {/* Button Slot 1 */}
-          {/* TODO: make this is a trio button with Pointer, Arrow, Circle */}
-          {/* TODO: figure out when to disable this */}
           {linkageMode === LINKAGE_MODES.BLANK && <StyledButton disabled>&nbsp;</StyledButton>}
           {[LINKAGE_MODES.CREATE, LINKAGE_MODES.EDIT].includes(linkageMode) && (
-            <StyledButton
-              onClick={enableArrowDrawing}
+            <ToolsButtonGroup
+              activeTool={activeDrawTool}
+              setActiveTool={selectDrawTool}
               disabled={!activeVideo || activeVideoLoading}
-            >
-              Annotation Tools
-            </StyledButton>
+            />
           )}
 
           {/* Button Slot 2 */}
