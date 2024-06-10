@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, forwardRef } from 'react'
+import { useEffect, useCallback, useState, forwardRef } from 'react'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -38,14 +38,17 @@ const VideoPlayer = forwardRef((props, videoElement) => {
   } = props
   const theme = useTheme()
 
+  // Container DOM Node, with special reaction to the ref based on: https://stackoverflow.com/a/60066291/3954694
+  const [videoContainer, setVideoContainer] = useState(null)
+  const onVideoContainerRefChange = useCallback((node) => setVideoContainer(node), [])
+
   // Responding to Window Resize with a Lock to 16/9 Aspect Ratio
   const heightToLeaveForSiblings = siblingHeights.reduce((acc, height) => acc + height, 0)
   const { windowWidth, windowHeight } = useWindowSize()
-  const videoContainerRef = useRef(null)
   const [widerContainer, setWiderContainer] = useState(false)
   useEffect(() => {
-    if (!videoContainerRef.current) return
-    const { clientWidth, clientHeight } = videoContainerRef.current
+    if (!videoContainer) return
+    const { clientWidth, clientHeight } = videoContainer
     const videoContainerAspectRatio = clientWidth / clientHeight
     const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
     const enoughHeightForSiblings = windowHeight - clientHeight > heightToLeaveForSiblings
@@ -54,7 +57,7 @@ const VideoPlayer = forwardRef((props, videoElement) => {
     } else {
       setWiderContainer(false)
     }
-  }, [videoContainerRef, windowWidth, windowHeight])
+  }, [videoContainer, windowWidth, windowHeight])
 
   // Play Controls
   const playVideo = () => {
@@ -155,7 +158,7 @@ const VideoPlayer = forwardRef((props, videoElement) => {
 
   return (
     <Box
-      ref={videoContainerRef}
+      ref={onVideoContainerRefChange}
       sx={{
         width: '100%',
         height: '100%',
