@@ -14,6 +14,7 @@ const AnnotationsSection = ({ mode, annotations, handleDelete }) => (
       <Box
         sx={{
           width: '100%',
+          maxWidth: mode === LINKAGE_MODES.EDIT ? '220px' : '100%',
           height: mode === LINKAGE_MODES.EDIT ? '100px' : '48px',
           overflowY: 'auto',
           marginTop: 0.5,

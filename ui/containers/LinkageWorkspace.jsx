@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
@@ -99,8 +99,11 @@ const LinkageWorkspace = () => {
   }
   const thumbnailURL = activeLinkage?.thumbnail && getThumbnailFullURL(activeLinkage?.thumbnail)
 
+  // Video DOM Node, with special reaction to the ref based on: https://stackoverflow.com/a/60066291/3954694
+  const [videoElement, setVideoElement] = useState(null)
+  const onVideoElementRefChange = useCallback((node) => setVideoElement(node), [])
+
   // Video State that we imperatively subscribe to
-  const videoElementRef = useRef(null)
   const videoFrameNumber = useStore((state) => state.videoFrameNumber)
   const setVideoFrameNumber = useStore((state) => state.setVideoFrameNumber)
   const [videoDuration, setVideoDuration] = useState(0)
@@ -115,15 +118,21 @@ const LinkageWorkspace = () => {
   }, [activeVideoURL])
 
   const seekToFrame = (frame) => {
-    if (videoElementRef.current) {
-      videoElementRef.current.currentTime = frame / videoFrameRate
-    }
+    if (!videoElement) return
+    videoElement.currentTime = frame / videoFrameRate
   }
+
+  useEffect(() => {
+    console.log('videoElement', videoElement)
+    // add a resize observer
+    // console.log(videoElement?.getBoundingClientRect())
+  }, [videoElement])
 
   // DashJS Instance Create/Destroy & Actions
   const mediaPlayerRef = useRef(null)
   const stopSubscriptionsRef = useRef(null)
   useEffect(() => {
+    if (!videoElement) return () => null
     if (!activeVideoURL) return () => null
 
     setActiveVideoLoading(true)
@@ -132,7 +141,7 @@ const LinkageWorkspace = () => {
       setVideoResolution(highestResolutionAvailable(mediaPlayerRef.current))
     }
 
-    mediaPlayerRef.current = initializePlayer(videoElementRef.current, activeVideoURL)
+    mediaPlayerRef.current = initializePlayer(videoElement, activeVideoURL)
     stopSubscriptionsRef.current = startSubscriptions(
       mediaPlayerRef.current,
       onStreamInitialized,
@@ -144,7 +153,7 @@ const LinkageWorkspace = () => {
       mediaPlayerRef.current.destroy()
       mediaPlayerRef.current = null
     }
-  }, [activeVideoURL])
+  }, [videoElement, activeVideoURL])
 
   // Convience function to be called from the LinkageSidebar
   const forceQualityTriggerNumber = useStore((state) => state.forceQualityTriggerNumber)
@@ -159,36 +168,34 @@ const LinkageWorkspace = () => {
     if (linkageMode === LINKAGE_MODES.CREATE) return
     if (!activeLinkageId) return
     if (!activeVideoURL) return
-    if (!videoElementRef.current) return
-
-    const video = videoElementRef.current
+    if (!videoElement) return
 
     // The video didn't change, so just seek to the new regionStart
     if (previousVideoURL.current === activeVideoURL) {
       seekToFrame(activeLinkage?.regionStart)
-      video.play()
+      videoElement.play()
       return
     }
 
     const seekAfterVideoHasDuration = () => {
       seekToFrame(activeLinkage?.regionStart)
-      video.play()
-      video.removeEventListener('durationchange', seekAfterVideoHasDuration)
+      videoElement.play()
+      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
 
-    video.addEventListener('durationchange', seekAfterVideoHasDuration)
+    videoElement.addEventListener('durationchange', seekAfterVideoHasDuration)
     previousVideoURL.current = activeVideoURL
 
     return () => {
-      video.removeEventListener('durationchange', seekAfterVideoHasDuration)
+      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-  }, [activeLinkageId])
+  }, [activeLinkageId, videoElement])
 
   // TODO: fix this
   // useEffect(() => {
-  //   if (!videoElementRef.current) return
+  //   if (!videoElement) return
   //   if (videoFrameNumber >= regionEnd) {
-  //     videoElementRef.current.pause()
+  //     videoElement.pause()
   //   }
   // }, [videoFrameNumber])
 
@@ -212,10 +219,10 @@ const LinkageWorkspace = () => {
   const setExportStillPreviewImage = useStore((state) => state.setExportStillPreviewImage)
 
   const handleExportStillClick = async () => {
-    videoElementRef.current.pause()
+    videoElement.pause()
     setExportStillPreviewImage(null)
     setExportStatus(null)
-    thumbnailFromVideoElement(videoElementRef.current, STILL_FRAME_PREVIEW_WIDTH).then(
+    thumbnailFromVideoElement(videoElement, STILL_FRAME_PREVIEW_WIDTH).then(
       setExportStillPreviewImage
     )
     setExportStillDialogOpen(true)
@@ -226,12 +233,10 @@ const LinkageWorkspace = () => {
     // I don't know why, but seeking pushes the video back one frame, so we account for that with a +1
     forceToHighestQuality(mediaPlayerRef.current, (videoFrameNumber + 1) / videoFrameRate)
     const captureThumbnail = () => {
-      thumbnailFromVideoElement(videoElementRef.current, STILL_FRAME_PREVIEW_WIDTH).then(
-        (imageBlob) => {
-          setExportStillPreviewImage(imageBlob)
-          mediaPlayerRef.current.off('canPlay', captureThumbnail)
-        }
-      )
+      thumbnailFromVideoElement(videoElement, STILL_FRAME_PREVIEW_WIDTH).then((imageBlob) => {
+        setExportStillPreviewImage(imageBlob)
+        mediaPlayerRef.current.off('canPlay', captureThumbnail)
+      })
     }
     mediaPlayerRef.current.on('canPlay', captureThumbnail)
   }
@@ -272,9 +277,8 @@ const LinkageWorkspace = () => {
   }
 
   const generateThumbnailsForEditDialog = async () => {
-    const video = videoElementRef.current
-    video.pause()
-    const prevTime = video.currentTime
+    videoElement.pause()
+    const prevTime = videoElement.currentTime
 
     // identify the 5 equally spaced frame numbers within the active region
     const startFrame = activeLinkage.regionStart
@@ -286,7 +290,7 @@ const LinkageWorkspace = () => {
     // An awaitable seek-to-frame function
     const waitForSeekToFrame = (frameNumber) =>
       new Promise((resolve) => {
-        video.addEventListener('seeked', resolve, { once: true })
+        videoElement.addEventListener('seeked', resolve, { once: true })
         seekToFrame(frameNumber)
       })
 
@@ -294,7 +298,7 @@ const LinkageWorkspace = () => {
     for (const frameNumber of frameNumbers) {
       await waitForSeekToFrame(frameNumber)
       const imageBlob = await thumbnailFromVideoElement(
-        video,
+        videoElement,
         THUMBNAIL_CHOICE_WIDTH,
         THUMBNAIL_CHOICE_HEIGHT
       )
@@ -304,7 +308,7 @@ const LinkageWorkspace = () => {
     }
 
     // Reset the user to wherever the playhead was before
-    video.currentTime = prevTime
+    videoElement.currentTime = prevTime
   }
 
   const saveThumbnailEdit = async (cropSpec) => {
@@ -331,7 +335,7 @@ const LinkageWorkspace = () => {
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
   const enableArrowDrawing = () => {
-    videoElementRef.current.pause()
+    videoElement.pause()
     setActiveDrawTool(DRAWING.ARROW)
   }
   const addAnnotation = ({ type, x1, y1, x2, y2 }) => {
@@ -376,7 +380,8 @@ const LinkageWorkspace = () => {
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ position: 'relative', flexGrow: 1 }}>
         <VideoPlayer
-          ref={videoElementRef}
+          ref={videoElement}
+          onVideoElementRefChange={onVideoElementRefChange}
           url={activeVideoURL}
           siblingHeights={[TIMELINE_HEIGHT, DETAILS_HEIGHT]}
           frameRate={videoFrameRate}
@@ -427,9 +432,7 @@ const LinkageWorkspace = () => {
             frameRate={videoFrameRate}
             regionStart={regionStart || activeLinkage?.regionStart}
             regionEnd={regionEnd || activeLinkage?.regionEnd}
-            setStart={() =>
-              setRegionStartAndCaptureThumbnail(videoFrameNumber, videoElementRef.current)
-            }
+            setStart={() => setRegionStartAndCaptureThumbnail(videoFrameNumber, videoElement)}
             setEnd={() => setRegionEnd(videoFrameNumber)}
             regionEditDialog={regionEditDialog}
             openRegionEditDialog={openRegionEditDialog}

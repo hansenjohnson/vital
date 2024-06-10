@@ -25,8 +25,9 @@ const controlIconStyle = {
   filter: `drop-shadow(${CONTENT_SHADOW})`,
 }
 
-const VideoPlayer = forwardRef((props, videoElementRef) => {
+const VideoPlayer = forwardRef((props, videoElement) => {
   const {
+    onVideoElementRefChange,
     url,
     siblingHeights,
     setVideoDuration,
@@ -57,14 +58,12 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
 
   // Play Controls
   const playVideo = () => {
-    const video = videoElementRef.current
-    if (!video) return
-    video.play()
+    if (!videoElement) return
+    videoElement.play()
   }
   const pauseVideo = () => {
-    const video = videoElementRef.current
-    if (!video) return
-    video.pause()
+    if (!videoElement) return
+    videoElement.pause()
   }
 
   const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
@@ -73,7 +72,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
   }
   const handleVideoCanPlay = () => {
     // Sometimes canplay gets in a race with play
-    if (videoElementRef.current.paused === true) {
+    if (videoElement.paused === true) {
       setVideoIs(VIDEO_STATES.PAUSED)
     }
   }
@@ -89,8 +88,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
 
   // Sync Video Element state with UI components
   useEffect(() => {
-    if (!videoElementRef.current) return
-    const videoElement = videoElementRef.current
+    if (!videoElement) return
 
     const reportOnDuration = () => {
       const durationAsFrames = Math.floor(videoElement.duration * frameRate)
@@ -125,31 +123,30 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
         videoElement.removeEventListener(event, handler)
       })
     }
-  }, [frameRate, url])
+  }, [videoElement, frameRate, url])
 
   // High-Frequency Timestamp Reporting
   useEffect(() => {
-    const video = videoElementRef.current
-    if (!video) return
+    if (!videoElement) return
 
     let callbackId
     const videoFrameCallback = (now, metadata) => {
       const timeInSeconds = metadata.mediaTime
       const frameNumber = Math.floor(timeInSeconds * frameRate)
       setCurrentFrameNumber(frameNumber)
-      callbackId = video.requestVideoFrameCallback(videoFrameCallback)
+      callbackId = videoElement.requestVideoFrameCallback(videoFrameCallback)
     }
     // Initial spawn
-    callbackId = video.requestVideoFrameCallback(videoFrameCallback)
-    return () => video.cancelVideoFrameCallback(callbackId)
-  }, [frameRate, url])
+    callbackId = videoElement.requestVideoFrameCallback(videoFrameCallback)
+    return () => videoElement.cancelVideoFrameCallback(callbackId)
+  }, [videoElement, frameRate, url])
 
   // Fullscreen Controls
   // Chromium renders default controls on Fullscreen Video,
   // so we don't need to implement our own exitFullscreen
   const enterFullscreen = () => {
-    if (!videoElementRef.current) return
-    videoElementRef.current.requestFullscreen()
+    if (!videoElement) return
+    videoElement.requestFullscreen()
   }
 
   if (!url) {
@@ -182,7 +179,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
         }}
       >
         <video
-          ref={videoElementRef}
+          ref={onVideoElementRefChange}
           style={{
             position: 'absolute',
             width: '100%',
