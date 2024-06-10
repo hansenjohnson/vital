@@ -339,6 +339,13 @@ const LinkageWorkspace = () => {
     videoElement.pause()
     setActiveDrawTool(DRAWING.ARROW)
   }
+  const navigateToAnnotation = (index) => {
+    videoElement.pause()
+    const annotation =
+      linkageMode === LINKAGE_MODES.CREATE ? annotations[index] : activeLinkage.annotations[index]
+    // Since seeking isn't frame accurate, skip ahead a few frames to ensure the annotation is visible
+    seekToFrame(annotation.frame + 3)
+  }
   const addAnnotation = ({ type, x1, y1, x2, y2 }) => {
     const newAnnotation = {
       type,
@@ -447,6 +454,7 @@ const LinkageWorkspace = () => {
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations.length ? annotations : activeLinkage?.annotations}
+            navigateToAnnotation={navigateToAnnotation}
             deleteAnnotation={deleteAnnotation}
             thumbnail={thumbnailURL}
             openThumbnailEditDialog={() => {

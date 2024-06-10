@@ -5,7 +5,7 @@ import SectionHeading from './SectionHeading'
 import AnnotationChip from './AnnotationChip'
 import { LINKAGE_MODES } from '../constants/routes'
 
-const AnnotationsSection = ({ mode, annotations, handleDelete }) => (
+const AnnotationsSection = ({ mode, annotations, handleClick, handleDelete }) => (
   <Box>
     <SectionHeading size={16}>Annotations</SectionHeading>
     {!annotations || annotations.length === 0 ? (
@@ -32,6 +32,7 @@ const AnnotationsSection = ({ mode, annotations, handleDelete }) => (
             <AnnotationChip
               key={annotationKey}
               annotationName={annotationKey}
+              onClick={() => handleClick(index)}
               onDelete={() => handleDelete(index)}
             />
           )

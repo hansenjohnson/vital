@@ -41,6 +41,7 @@ const LinkageDetailsBox = ({
   sightingName,
   openSightingDialog,
   annotations,
+  navigateToAnnotation,
   deleteAnnotation,
   thumbnail,
   openThumbnailEditDialog,
@@ -49,7 +50,12 @@ const LinkageDetailsBox = ({
   const theme = useTheme()
 
   const annotationsDisplay = (
-    <AnnotationsSection mode={mode} annotations={annotations} handleDelete={deleteAnnotation} />
+    <AnnotationsSection
+      mode={mode}
+      annotations={annotations}
+      handleClick={navigateToAnnotation}
+      handleDelete={deleteAnnotation}
+    />
   )
 
   const regionDisplayRef = useRef(null)
