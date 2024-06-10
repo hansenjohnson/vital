@@ -15,6 +15,7 @@ const ToolsContainer = () => {
   const [tool, setTool] = useState(TOOLS.LINK_ANNOTATE)
 
   const setRoute = useStore((state) => state.setRoute)
+  const selectedFolderId = useStore((state) => state.selectedFolderId)
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
@@ -54,6 +55,7 @@ const ToolsContainer = () => {
               color="secondary"
               onClick={() => setRoute(ROUTES.LINK_AND_ANNOTATE)}
               sx={{ flexShrink: 0, alignSelf: 'flex-end' }}
+              disabled={selectedFolderId == null}
             >
               Choose Folder
             </StyledButton>
