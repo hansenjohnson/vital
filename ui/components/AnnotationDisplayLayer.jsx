@@ -2,17 +2,15 @@ import { useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import { DRAWING } from '../constants/tools'
-import { drawArrow, drawEllipse } from '../utilities/drawing'
+import { drawArrow, drawEllipse, relativePointToAbsolute } from '../utilities/drawing'
 
 const DRAWING_ON_SCREEN_SECONDS = 1
 
-const AnnotationDisplayLayer = ({ annotations, currentFrame, frameRate, disabled }) => {
+const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate, disabled }) => {
   // Canvas Initialization
   const dpr = window.devicePixelRatio || 1
-  const containerRef = useRef(null)
   const canvasRef = useRef(null)
-  const { width: canvasWidth, height: canvasHeight } =
-    containerRef.current?.getBoundingClientRect() || { width: 0, height: 0 }
+  const { width: canvasWidth, height: canvasHeight } = rect || { width: 0, height: 0 }
 
   const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * frameRate
 
@@ -32,30 +30,26 @@ const AnnotationDisplayLayer = ({ annotations, currentFrame, frameRate, disabled
       // and then keep it on the screen for a bit, so the flash isn't so quick
       if (currentFrame < frame || currentFrame > frame + drawingOnScreenFrames) return
 
+      const absolutePoint1 = relativePointToAbsolute({ x: x1, y: y1 }, rect)
+      const absolutePoint2 = relativePointToAbsolute({ x: x2, y: y2 }, rect)
+
       if (type === DRAWING.ARROW) {
-        drawArrow(ctx, { x: x1, y: y1 }, { x: x2, y: y2 })
+        drawArrow(ctx, absolutePoint1, absolutePoint2)
       } else if (type === DRAWING.ELLIPSE) {
-        drawEllipse(ctx, { x: x1, y: y1 }, { x: x2, y: y2 })
+        drawEllipse(ctx, absolutePoint1, absolutePoint2)
       }
     })
-  }, [
-    canvasWidth,
-    canvasHeight,
-    dpr,
-    JSON.stringify(annotations),
-    drawingOnScreenFrames,
-    currentFrame,
-  ])
+  }, [dpr, JSON.stringify(rect), JSON.stringify(annotations), drawingOnScreenFrames, currentFrame])
 
   if (!annotations || !annotations.length || disabled) return null
   return (
     <Box
-      ref={containerRef}
       sx={{
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-        height: '100%',
+        position: 'fixed',
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
         zIndex: 3,
         userSelect: 'none',
         // useful for debugging

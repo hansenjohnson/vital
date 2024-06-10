@@ -45,3 +45,15 @@ export const drawEllipse = (ctx, point1, point2) => {
   ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2)
   ctx.stroke()
 }
+
+export const absolutePointToRelative = (absolutePoint, rect) => ({
+  x: absolutePoint.x / rect.width,
+  y: absolutePoint.y / rect.height,
+})
+
+export const relativePointToAbsolute = (relativePoint, rect) => ({
+  x: relativePoint.x * rect.width,
+  y: relativePoint.y * rect.height,
+})
+
+export const NORMALIZED_PRECISION = 4 // number of decimal places to keep when normalizing

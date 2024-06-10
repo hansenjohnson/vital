@@ -35,6 +35,7 @@ const VideoPlayer = forwardRef((props, videoElement) => {
     currentFrameNumber,
     setCurrentFrameNumber,
     setVideoRangesBuffered,
+    alertOnResize,
   } = props
   const theme = useTheme()
 
@@ -57,7 +58,12 @@ const VideoPlayer = forwardRef((props, videoElement) => {
     } else {
       setWiderContainer(false)
     }
-  }, [videoContainer, windowWidth, windowHeight])
+
+    // Wait one tick so that React can re-render the video element based on the new size,
+    // and more importantly, the new widerContainer
+    const timeoutId = setTimeout(alertOnResize, 0)
+    return () => clearTimeout(timeoutId)
+  }, [videoContainer, windowWidth, windowHeight, alertOnResize])
 
   // Play Controls
   const playVideo = () => {

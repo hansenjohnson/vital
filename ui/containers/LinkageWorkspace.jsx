@@ -102,6 +102,13 @@ const LinkageWorkspace = () => {
   // Video DOM Node, with special reaction to the ref based on: https://stackoverflow.com/a/60066291/3954694
   const [videoElement, setVideoElement] = useState(null)
   const onVideoElementRefChange = useCallback((node) => setVideoElement(node), [])
+  const [videoElementRect, setVideoElementRect] = useState(null)
+
+  const alertOnResize = useCallback(() => {
+    if (!videoElement) return
+    const { left, top, width, height } = videoElement.getBoundingClientRect()
+    setVideoElementRect({ left, top, width, height })
+  }, [videoElement])
 
   // Video State that we imperatively subscribe to
   const videoFrameNumber = useStore((state) => state.videoFrameNumber)
@@ -121,12 +128,6 @@ const LinkageWorkspace = () => {
     if (!videoElement) return
     videoElement.currentTime = frame / videoFrameRate
   }
-
-  useEffect(() => {
-    console.log('videoElement', videoElement)
-    // add a resize observer
-    // console.log(videoElement?.getBoundingClientRect())
-  }, [videoElement])
 
   // DashJS Instance Create/Destroy & Actions
   const mediaPlayerRef = useRef(null)
@@ -389,10 +390,11 @@ const LinkageWorkspace = () => {
           setVideoDuration={setVideoDuration}
           setCurrentFrameNumber={setVideoFrameNumber}
           setVideoRangesBuffered={setVideoRangesBuffered}
+          alertOnResize={alertOnResize}
         />
 
-        {/* TODO: find a way to keep these the same size as the video itself */}
         <AnnotationDisplayLayer
+          rect={videoElementRect}
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
@@ -401,7 +403,11 @@ const LinkageWorkspace = () => {
             videoFrameNumber > activeLinkage?.regionEnd
           }
         />
-        <AnnotationDrawingLayer tool={activeDrawTool} addAnnotation={addAnnotation} />
+        <AnnotationDrawingLayer
+          rect={videoElementRect}
+          tool={activeDrawTool}
+          addAnnotation={addAnnotation}
+        />
       </Box>
 
       <Box sx={{ flex: `0 0 ${TIMELINE_HEIGHT}px` }}>

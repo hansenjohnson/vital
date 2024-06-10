@@ -4,10 +4,16 @@ import CheckIcon from '@mui/icons-material/Check'
 import ClearIcon from '@mui/icons-material/Clear'
 
 import { DRAWING } from '../constants/tools'
-import { drawArrow, drawEllipse } from '../utilities/drawing'
+import {
+  drawArrow,
+  drawEllipse,
+  absolutePointToRelative,
+  relativePointToAbsolute,
+  NORMALIZED_PRECISION,
+} from '../utilities/drawing'
 import DrawingConfirmationChip from './DrawingConfirmationChip'
 
-const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
+const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
   // any reset needs
   useEffect(() => {
     if (tool === DRAWING.POINTER) {
@@ -19,10 +25,8 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
 
   // Canvas Initialization
   const dpr = window.devicePixelRatio || 1
-  const containerRef = useRef(null)
   const canvasRef = useRef(null)
-  const { width: canvasWidth, height: canvasHeight } =
-    containerRef.current?.getBoundingClientRect() || { width: 0, height: 0 }
+  const { width: canvasWidth, height: canvasHeight } = rect || { width: 0, height: 0 }
 
   // Pointer Events
   const [drawing, setDrawing] = useState(false)
@@ -31,13 +35,21 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
   const handlePointerDown = (event) => {
     if (confirming) return
     setDrawing(true)
-    setDragStart({ x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY })
-    setPointerPosition({ x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY })
+    const relativePoint = absolutePointToRelative(
+      { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
+      rect
+    )
+    setDragStart(relativePoint)
+    setPointerPosition(relativePoint)
   }
 
   const handlePointerMove = (event) => {
     if (!dragStart || !drawing || confirming) return
-    setPointerPosition({ x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY })
+    const relativePoint = absolutePointToRelative(
+      { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
+      rect
+    )
+    setPointerPosition(relativePoint)
   }
 
   const handlePointerUp = () => {
@@ -57,22 +69,25 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
 
     if (!dragStart) return
 
+    const absolutePoint1 = relativePointToAbsolute(dragStart, rect)
+    const absolutePoint2 = relativePointToAbsolute(pointerPosition, rect)
+
     if (tool === DRAWING.ARROW) {
-      drawArrow(ctx, dragStart, pointerPosition)
+      drawArrow(ctx, absolutePoint1, absolutePoint2)
     } else if (tool === DRAWING.ELLIPSE) {
-      drawEllipse(ctx, dragStart, pointerPosition)
+      drawEllipse(ctx, absolutePoint1, absolutePoint2)
     }
-  }, [tool, JSON.stringify(dragStart), JSON.stringify(pointerPosition)])
+  }, [tool, dpr, JSON.stringify(rect), JSON.stringify(dragStart), JSON.stringify(pointerPosition)])
 
   // Completion Events
   const [confirming, setConfirming] = useState(false)
   const onKeep = () => {
     addAnnotation({
       type: tool,
-      x1: parseInt(dragStart.x, 10),
-      y1: parseInt(dragStart.y, 10),
-      x2: parseInt(pointerPosition.x, 10),
-      y2: parseInt(pointerPosition.y, 10),
+      x1: dragStart.x.toFixed(NORMALIZED_PRECISION),
+      y1: dragStart.y.toFixed(NORMALIZED_PRECISION),
+      x2: pointerPosition.x.toFixed(NORMALIZED_PRECISION),
+      y2: pointerPosition.y.toFixed(NORMALIZED_PRECISION),
     })
     onDelete()
   }
@@ -87,10 +102,9 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
     if (tool === DRAWING.POINTER) return positionObject
 
     const allowanceNeeded = 100 + 12 // 12 for margin between buttons and graphic
-    const { width } = containerRef.current.getBoundingClientRect()
     const leftEdge = Math.min(dragStart.x, pointerPosition.x)
     const rightEdgeFromLeft = Math.max(dragStart.x, pointerPosition.x)
-    const rightEdge = width - rightEdgeFromLeft
+    const rightEdge = canvasWidth - rightEdgeFromLeft
     const topEdge = Math.min(dragStart.y, pointerPosition.y)
     const bottomEdge = Math.max(dragStart.y, pointerPosition.y)
     const middle = (bottomEdge - topEdge) / 2 + topEdge
@@ -110,12 +124,12 @@ const AnnotationDrawingLayer = ({ tool, addAnnotation }) => {
   if (tool === DRAWING.POINTER) return null
   return (
     <Box
-      ref={containerRef}
       sx={{
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-        height: '100%',
+        position: 'fixed',
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
         userSelect: 'none',
         zIndex: 8,
         // useful for debugging
