@@ -166,15 +166,23 @@ const LinkageWorkspace = () => {
   // Set the playhead to the region start when a Linkage is Selected
   const previousVideoURL = useRef(null)
   useEffect(() => {
-    if (linkageMode === LINKAGE_MODES.CREATE) return
-    if (!activeLinkageId) return
-    if (!activeVideoURL) return
-    if (!videoElement) return
+    const update = () => (previousVideoURL.current = activeVideoURL)
+
+    if (
+      linkageMode === LINKAGE_MODES.CREATE ||
+      !activeLinkageId ||
+      !activeVideoURL ||
+      !videoElement
+    ) {
+      update()
+      return
+    }
 
     // The video didn't change, so just seek to the new regionStart
     if (previousVideoURL.current === activeVideoURL) {
       seekToFrame(activeLinkage?.regionStart)
       videoElement.play()
+      update()
       return
     }
 
@@ -185,12 +193,12 @@ const LinkageWorkspace = () => {
     }
 
     videoElement.addEventListener('durationchange', seekAfterVideoHasDuration)
-    previousVideoURL.current = activeVideoURL
 
+    update()
     return () => {
       videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-  }, [activeLinkageId, videoElement])
+  }, [activeLinkageId, activeVideoURL, videoElement])
 
   // TODO: fix this
   // useEffect(() => {
