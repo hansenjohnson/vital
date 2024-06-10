@@ -37,6 +37,15 @@ const theme = createTheme({
       },
       name: 'tertiary',
     }),
+
+    plain: defaultTheme.palette.augmentColor({
+      color: {
+        dark: '#BBBBBB',
+        main: '#DDDDDD',
+        light: '#FFFFFF',
+      },
+      name: 'plain',
+    }),
   },
 
   spacing: 12,

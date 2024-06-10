@@ -36,7 +36,7 @@ class LinkageModel(SQL):
                        Annotation JSON,
                        ThumbnailFilePath TEXT,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
 
         self.load_table('linkage', linkage_create, self.file_path, 'LinkageId')
@@ -58,8 +58,8 @@ class LinkageModel(SQL):
             payload['Annotation'] = json.dumps(payload['Annotation'])
             query = """
                 INSERT INTO linkage
-                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath, CreatedBy, CreatedDate)
-                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath, '', :CreatedDate)
+                (CatalogVideoId, SightingId, StartTime, EndTime, Annotation, ThumbnailFilePath)
+                VALUES (:CatalogVideoId, :SightingId, :StartTime, :EndTime, :Annotation, :ThumbnailFilePath)
             """
             cursor.execute(query, payload)
             self.conn.commit()
@@ -107,15 +107,9 @@ class LinkageModel(SQL):
             print_err(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e
 
-    def get_linkages_by_sighting(self, year, month, day, observer_code):
+    def get_linkages_by_folder(self, year, month, day, observer_code):
         try:
-            sighting_query = ""
-            if month:
-                sighting_query += f" AND SightingMonth = {month}"
-            if day:
-                sighting_query += f" AND SightingDay = {day}"
-            if observer_code:
-                sighting_query += f" AND ObserverCode = '{observer_code}'"
+            folder_query = f"f.FolderYear = {year} AND f.FolderMonth = {month} AND f.FolderDay = {day} AND f.ObserverCode = '{observer_code}'"
 
             cursor = self.conn.cursor()
             cursor.execute(f"""
@@ -125,7 +119,8 @@ class LinkageModel(SQL):
                            FROM Linkage l
                            JOIN Sighting s ON l.SightingId = s.SightingId
                            JOIN Video v ON l.CatalogVideoId = v.CatalogVideoId
-                           WHERE s.SightingYear = {year}{sighting_query}
+                           JOIN Folder f ON v.CatalogFolderId = f.CatalogFolderId
+                           WHERE {folder_query}
             """)
             rows = cursor.fetchall()
             cursor.close()

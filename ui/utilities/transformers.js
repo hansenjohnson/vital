@@ -1,7 +1,6 @@
-export const yearMonthDayString = (year, month, day) =>
-  `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+import { yearMonthDayString } from './strings'
 
-export const transformCatalogFolderData = (folderRow) => {
+export const transformFolderData = (folderRow) => {
   return {
     id: folderRow.CatalogFolderId,
     date: yearMonthDayString(folderRow.FolderYear, folderRow.FolderMonth, folderRow.FolderDay),
@@ -12,15 +11,15 @@ export const transformCatalogFolderData = (folderRow) => {
   }
 }
 
-export const sortCatalogFolderData = (original) => {
+export const sortFolderData = (original) => {
   return original.toSorted((a, b) => {
     // Date DESC
     if (a.date < b.date) return 1
     if (a.date > b.date) return -1
 
     // Observer ASC
-    if (a.ObserverCode > b.ObserverCode) return 1
-    if (a.ObserverCode < b.ObserverCode) return -1
+    if (a.observer > b.observer) return 1
+    if (a.observer < b.observer) return -1
     return 0
   })
 }
@@ -32,6 +31,12 @@ export const transformVideoData = (videoRow) => {
     frameRate: videoRow.FrameRate,
     folderId: videoRow.CatalogFolderId,
   }
+}
+
+export const sortVideoData = (original) => {
+  return original.toSorted((a, b) => {
+    return a.fileName.localeCompare(b.fileName)
+  })
 }
 
 export const transformSightingData = (sightingRow) => {
@@ -72,8 +77,8 @@ export const sortSightingData = (original) => {
 
 export const transformLinkageData = (linkageRow) => ({
   id: linkageRow.LinkageId,
-  regionStart: linkageRow.StartTime,
-  regionEnd: linkageRow.EndTime,
+  regionStart: parseInt(linkageRow.StartTime, 10),
+  regionEnd: parseInt(linkageRow.EndTime, 10),
   annotations: JSON.parse(linkageRow.Annotation),
   thumbnail: linkageRow.ThumbnailFilePath,
   sighting: transformSightingData(linkageRow),
@@ -97,3 +102,10 @@ export const sortLinkageData = (original) => {
     return 0
   })
 }
+
+export const regionDataForLinkage = (linkage) => ({
+  id: linkage.id,
+  letter: linkage.sighting.letter,
+  start: linkage.regionStart,
+  end: linkage.regionEnd,
+})

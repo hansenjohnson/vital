@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, forwardRef } from 'react'
-import { MediaPlayer } from 'dashjs'
+import { useEffect, useCallback, useState, forwardRef } from 'react'
 import { useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -9,7 +8,7 @@ import PauseIcon from '@mui/icons-material/Pause'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
-import { getFrameRateFromDashPlayer, timecodeFromFrameNumber } from '../utilities/video'
+import { timecodeFromFrameNumber } from '../utilities/video'
 import BlankSlate from './BlankSlate'
 
 const PLAYER_CONTROLS_WIDTH = 150
@@ -26,29 +25,31 @@ const controlIconStyle = {
   filter: `drop-shadow(${CONTENT_SHADOW})`,
 }
 
-const VideoPlayer = forwardRef((props, videoElementRef) => {
+const VideoPlayer = forwardRef((props, videoElement) => {
   const {
+    onVideoElementRefChange,
     url,
-    changingActiveVideo,
-    setChangingActiveVideo,
     siblingHeights,
     setVideoDuration,
     frameRate,
-    setFrameRate,
     currentFrameNumber,
     setCurrentFrameNumber,
     setVideoRangesBuffered,
+    alertOnResize,
   } = props
   const theme = useTheme()
+
+  // Container DOM Node, with special reaction to the ref based on: https://stackoverflow.com/a/60066291/3954694
+  const [videoContainer, setVideoContainer] = useState(null)
+  const onVideoContainerRefChange = useCallback((node) => setVideoContainer(node), [])
 
   // Responding to Window Resize with a Lock to 16/9 Aspect Ratio
   const heightToLeaveForSiblings = siblingHeights.reduce((acc, height) => acc + height, 0)
   const { windowWidth, windowHeight } = useWindowSize()
-  const videoContainerRef = useRef(null)
   const [widerContainer, setWiderContainer] = useState(false)
   useEffect(() => {
-    if (!videoContainerRef.current) return
-    const { clientWidth, clientHeight } = videoContainerRef.current
+    if (!videoContainer) return
+    const { clientWidth, clientHeight } = videoContainer
     const videoContainerAspectRatio = clientWidth / clientHeight
     const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
     const enoughHeightForSiblings = windowHeight - clientHeight > heightToLeaveForSiblings
@@ -57,169 +58,113 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
     } else {
       setWiderContainer(false)
     }
-  }, [videoContainerRef, windowWidth, windowHeight])
 
-  // Video Player, Init/Destroy Loop, URL reactivity
-  const playerRef = useRef(null)
-  const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
-
-  useEffect(() => {
-    if (changingActiveVideo) {
-      setVideoIs(VIDEO_STATES.LOADING)
-    }
-  }, [changingActiveVideo])
-
-  const loadingFinished = () => {
-    // move immediatley from Loading to Playing because of Auto-Play
-    setVideoIs(VIDEO_STATES.PLAYING)
-    setChangingActiveVideo(false)
-  }
-
-  const videoStreamInitialized = () => {
-    const _frameRate = getFrameRateFromDashPlayer(playerRef.current)
-    setFrameRate(_frameRate)
-  }
-
-  const initializePlayer = (videoElement, url) => {
-    playerRef.current = MediaPlayer().create()
-    playerRef.current.initialize()
-    playerRef.current.on('canPlay', loadingFinished)
-    playerRef.current.on('streamInitialized', videoStreamInitialized)
-
-    playerRef.current.updateSettings({
-      streaming: {
-        buffer: {
-          bufferTimeAtTopQuality: 120,
-          bufferTimeAtTopQualityLongForm: 120,
-          bufferToKeep: 120,
-        },
-      },
-    })
-
-    if (videoElement) {
-      playerRef.current.attachView(videoElement)
-    }
-
-    if (url) {
-      console.log('Attaching Source:', url)
-      playerRef.current.attachSource(url)
-    }
-  }
-
-  const destroyPlayer = () => {
-    if (!playerRef.current) return
-    playerRef.current.off('canPlay', loadingFinished)
-    playerRef.current.off('streamInitialized', videoStreamInitialized)
-    playerRef.current.destroy()
-    playerRef.current = null
-  }
-
-  useEffect(() => {
-    setVideoIs(VIDEO_STATES.LOADING)
-    initializePlayer(videoElementRef.current, url)
-    return destroyPlayer
-  }, [url])
+    // Wait one tick so that React can re-render the video element based on the new size,
+    // and more importantly, the new widerContainer
+    const timeoutId = setTimeout(alertOnResize, 0)
+    return () => clearTimeout(timeoutId)
+  }, [videoContainer, windowWidth, windowHeight, alertOnResize])
 
   // Play Controls
   const playVideo = () => {
-    const video = videoElementRef.current
-    if (!video) return
-
-    video.play()
-    setVideoIs(VIDEO_STATES.PLAYING)
+    if (!videoElement) return
+    videoElement.play()
   }
   const pauseVideo = () => {
-    const video = videoElementRef.current
-    if (!video) return
-    video.pause()
+    if (!videoElement) return
+    videoElement.pause()
+  }
+
+  const [videoIs, setVideoIs] = useState(VIDEO_STATES.LOADING)
+  const handleLoadStart = () => {
+    setVideoIs(VIDEO_STATES.LOADING)
+  }
+  const handleVideoCanPlay = () => {
+    // Sometimes canplay gets in a race with play
+    if (videoElement.paused === true) {
+      setVideoIs(VIDEO_STATES.PAUSED)
+    }
+  }
+  const handleVideoPlay = () => {
+    setVideoIs(VIDEO_STATES.PLAYING)
+  }
+  const handleVideoPause = () => {
+    setVideoIs(VIDEO_STATES.PAUSED)
+  }
+  const handleVideoEnded = () => {
     setVideoIs(VIDEO_STATES.PAUSED)
   }
 
-  // Cached duration explained below in reportOnDuration function
-  const [cachedDuration, setCachedDuration] = useState(null)
-  useEffect(() => {
-    setCachedDuration(null)
-  }, [url])
-
   // Sync Video Element state with UI components
   useEffect(() => {
-    if (!videoElementRef.current) return
-
-    if (!!cachedDuration && frameRate) {
-      setVideoDuration(Math.floor(cachedDuration * frameRate))
-    }
+    if (!videoElement) return
 
     const reportOnDuration = () => {
-      if (!frameRate) {
-        // somtimes the duration event will come before we receive the frame rate
-        // however, the duration event will not trigger more than once per video
-        // so we cache that duration as seconds, and convert it to frames when we have the frame rate
-        setCachedDuration(videoElementRef.current?.duration)
-        return
-      }
-      const durationAsFrames = Math.floor(videoElementRef.current?.duration * frameRate)
+      const durationAsFrames = Math.floor(videoElement.duration * frameRate)
       setVideoDuration(durationAsFrames)
     }
 
     const reportOnBuffer = () => {
-      if (!frameRate) return
-      const bufferedRanges = Array.from(Array(videoElementRef.current?.buffered.length || 0)).map(
+      const bufferedRanges = Array.from(Array(videoElement.buffered.length || 0)).map(
         (_, index) => {
-          const bufferStartAsFrameNum = videoElementRef.current?.buffered.start(index) * frameRate
-          const bufferendAsFrameNum = videoElementRef.current?.buffered.end(index) * frameRate
+          const bufferStartAsFrameNum = videoElement.buffered.start(index) * frameRate
+          const bufferendAsFrameNum = videoElement.buffered.end(index) * frameRate
           return [bufferStartAsFrameNum, bufferendAsFrameNum]
         }
       )
       setVideoRangesBuffered(bufferedRanges)
     }
 
-    const handleVideoEnded = () => {
-      setVideoIs(VIDEO_STATES.PAUSED)
+    const listeners = {
+      durationchange: reportOnDuration,
+      progress: reportOnBuffer,
+      loadstart: handleLoadStart,
+      canplay: handleVideoCanPlay,
+      play: handleVideoPlay,
+      pause: handleVideoPause,
+      ended: handleVideoEnded,
     }
-
-    videoElementRef.current?.addEventListener('durationchange', reportOnDuration)
-    videoElementRef.current?.addEventListener('progress', reportOnBuffer)
-    videoElementRef.current?.addEventListener('ended', handleVideoEnded)
-
+    Object.entries(listeners).forEach(([event, handler]) => {
+      videoElement.addEventListener(event, handler)
+    })
     return () => {
-      videoElementRef.current?.removeEventListener('durationchange', reportOnDuration)
-      videoElementRef.current?.removeEventListener('progress', reportOnBuffer)
-      videoElementRef.current?.removeEventListener('ended', handleVideoEnded)
+      Object.entries(listeners).forEach(([event, handler]) => {
+        videoElement.removeEventListener(event, handler)
+      })
     }
-  }, [frameRate, url])
+  }, [videoElement, frameRate, url])
 
   // High-Frequency Timestamp Reporting
   useEffect(() => {
-    const video = videoElementRef.current
-    if (!video) return
+    if (!videoElement) return
 
     let callbackId
     const videoFrameCallback = (now, metadata) => {
       const timeInSeconds = metadata.mediaTime
       const frameNumber = Math.floor(timeInSeconds * frameRate)
       setCurrentFrameNumber(frameNumber)
-      callbackId = video.requestVideoFrameCallback(videoFrameCallback)
+      callbackId = videoElement.requestVideoFrameCallback(videoFrameCallback)
     }
     // Initial spawn
-    callbackId = video.requestVideoFrameCallback(videoFrameCallback)
-    return () => video.cancelVideoFrameCallback(callbackId)
-  }, [frameRate, url])
+    callbackId = videoElement.requestVideoFrameCallback(videoFrameCallback)
+    return () => videoElement.cancelVideoFrameCallback(callbackId)
+  }, [videoElement, frameRate, url])
 
   // Fullscreen Controls
   // Chromium renders default controls on Fullscreen Video,
   // so we don't need to implement our own exitFullscreen
   const enterFullscreen = () => {
-    if (!videoElementRef.current) return
-    videoElementRef.current.requestFullscreen()
+    if (!videoElement) return
+    videoElement.requestFullscreen()
   }
 
   if (!url) {
-    return <BlankSlate message="Select an Association to get started" />
+    return <BlankSlate message="Select a Video or Linkage to get started" messageWidth={100} />
   }
 
   return (
     <Box
-      ref={videoContainerRef}
+      ref={onVideoContainerRefChange}
       sx={{
         width: '100%',
         height: '100%',
@@ -243,7 +188,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
         }}
       >
         <video
-          ref={videoElementRef}
+          ref={onVideoElementRefChange}
           style={{
             position: 'absolute',
             width: '100%',
@@ -261,6 +206,7 @@ const VideoPlayer = forwardRef((props, videoElementRef) => {
           left: theme.spacing(-1),
           width: `calc(${PLAYER_CONTROLS_WIDTH}px + ${theme.spacing(3)})`,
           height: `${PLAYER_CONTROLS_HEIGHT}px`,
+          zIndex: 5,
         }}
       >
         {/* Video Controls Backdrop */}

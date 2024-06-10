@@ -1,25 +1,14 @@
 import { baseURL } from './config'
 import { postBlob } from './fetchers'
 import { leafPath, joinPath } from '../utilities/paths'
+import { catalogFolderString } from '../utilities/strings'
 
-const formulateSavePath = (
-  sightingId,
-  sightingDate,
-  videoFileName,
-  regionStart,
-  fileType = 'jpg'
-) => {
+const formulateSavePath = (catalogFolder, videoFileName, fileType = 'jpg') => {
+  const catalogFolderName = catalogFolderString(catalogFolder)
   const nonAlphaNumeric = /[^a-zA-Z0-9\-_]/g
-  const safeSightingId = `${sightingId}`.replace(nonAlphaNumeric, '_')
-  const safeSightingDate = `${sightingDate}`.replace(nonAlphaNumeric, '_')
   const safeVideoFileName = `${leafPath(videoFileName)}`.replace(nonAlphaNumeric, '_')
-  const safeRegionStart = `${regionStart}`.replace(nonAlphaNumeric, '_')
-  const path = joinPath([
-    safeSightingDate,
-    safeSightingId,
-    safeVideoFileName,
-    `${safeRegionStart}.${fileType}`,
-  ])
+  const semiUniqueId = `${Date.now()}`
+  const path = joinPath([catalogFolderName, safeVideoFileName, `${semiUniqueId}.${fileType}`])
   return path
 }
 

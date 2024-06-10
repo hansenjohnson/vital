@@ -10,7 +10,7 @@ folder_model = FolderModel()
 @bp.route('', methods=['GET'], strict_slashes=False)
 def get_folders():
     folders = folder_model.get_all_rows('folder')
-    return jsonify({"folders": folders})
+    return jsonify(folders)
 
 
 @bp.route('/<int:folder_id>', methods=['GET'])

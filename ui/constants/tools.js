@@ -1,4 +1,11 @@
+const DRAWING = {
+  POINTER: 'pointer',
+  ARROW: 'arrow',
+  ELLIPSE: 'ellipse',
+}
+
+export { DRAWING }
 export default {
-  ASSOCIATE_ANNOTATE: 'associate-annotate',
+  LINK_ANNOTATE: 'link-annotate',
   INGEST_TRANSCODE: 'ingest-transcode',
 }

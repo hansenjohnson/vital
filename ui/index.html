@@ -5,7 +5,7 @@
     <title>Video Catalog Suite</title>
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; img-src 'self' data: http://localhost:5000; connect-src 'self' http://localhost:5000;"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; img-src 'self' data: blob: http://127.0.0.1:5000; connect-src 'self' http://127.0.0.1:5000;"
     />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
     <style>
@@ -16,7 +16,7 @@
     </style>
   </head>
 
-  <body style="height: 100vh; background-color: #252525">
+  <body style="height: 100vh; margin: 0; background-color: #252525">
     <div id="root" style="height: 100%"></div>
     <script type="module" src="index.jsx"></script>
   </body>

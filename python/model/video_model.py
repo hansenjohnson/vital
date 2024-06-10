@@ -31,9 +31,9 @@ class VideoModel(SQL):
                        OriginalFileName TEXT,
                        OptimizedFileName TEXT,
                        FrameRate TEXT,
-                       Hidden INTEGER,
+                       Hidden BOOLEAN,
                        CreatedBy TEXT,
-                       CreatedDate TEXT
+                       CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
                     )"""
         self.load_table('video', video_model, self.file_path, 'CatalogVideoId')
 
