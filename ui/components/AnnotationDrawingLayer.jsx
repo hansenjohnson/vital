@@ -41,6 +41,7 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
     )
     setDragStart(relativePoint)
     setPointerPosition(relativePoint)
+    window.addEventListener('pointerup', handlePointerUp)
   }
 
   const handlePointerMove = (event) => {
@@ -55,6 +56,7 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
   const handlePointerUp = () => {
     setDrawing(false)
     setConfirming(true)
+    window.removeEventListener('pointerup', handlePointerUp)
   }
 
   // Main Drawing Loop
@@ -137,7 +139,6 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
     >
       <canvas
         ref={canvasRef}
