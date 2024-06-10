@@ -103,12 +103,15 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
     if (!confirming) return positionObject
     if (tool === DRAWING.POINTER) return positionObject
 
+    const { x: x1, y: y1 } = relativePointToAbsolute(dragStart, rect)
+    const { x: x2, y: y2 } = relativePointToAbsolute(pointerPosition, rect)
+
     const allowanceNeeded = 100 + 12 // 12 for margin between buttons and graphic
-    const leftEdge = Math.min(dragStart.x, pointerPosition.x)
-    const rightEdgeFromLeft = Math.max(dragStart.x, pointerPosition.x)
+    const leftEdge = Math.min(x1, x2)
+    const rightEdgeFromLeft = Math.max(x1, x2)
     const rightEdge = canvasWidth - rightEdgeFromLeft
-    const topEdge = Math.min(dragStart.y, pointerPosition.y)
-    const bottomEdge = Math.max(dragStart.y, pointerPosition.y)
+    const topEdge = Math.min(y1, y2)
+    const bottomEdge = Math.max(y1, y2)
     const middle = (bottomEdge - topEdge) / 2 + topEdge
 
     positionObject.top = middle - 30

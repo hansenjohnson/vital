@@ -30,8 +30,8 @@ const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate, di
       // and then keep it on the screen for a bit, so the flash isn't so quick
       if (currentFrame < frame || currentFrame > frame + drawingOnScreenFrames) return
 
-      const absolutePoint1 = relativePointToAbsolute({ x: x1, y: y1 }, rect)
-      const absolutePoint2 = relativePointToAbsolute({ x: x2, y: y2 }, rect)
+      const absolutePoint1 = relativePointToAbsolute({ x: parseFloat(x1), y: parseFloat(y1) }, rect)
+      const absolutePoint2 = relativePointToAbsolute({ x: parseFloat(x2), y: parseFloat(y2) }, rect)
 
       if (type === DRAWING.ARROW) {
         drawArrow(ctx, absolutePoint1, absolutePoint2)
