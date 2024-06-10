@@ -4,6 +4,8 @@ const initialState = {
   exportStillDialogOpen: false,
   exportStillPreviewImage: null,
   regionEditDialog: false,
+  confirmationDialogOpen: false,
+  confirmationDialogProps: null,
 }
 
 const createDialogsStore = (set) => ({
@@ -15,6 +17,9 @@ const createDialogsStore = (set) => ({
 
   setRegionEditDialog: valueSetter(set, 'regionEditDialog'),
   clearEditDialogs: () => set({ regionEditDialog: false }),
+
+  setConfirmationDialogOpen: valueSetter(set, 'confirmationDialogOpen'),
+  setConfirmationDialogProps: valueSetter(set, 'confirmationDialogProps'),
 })
 
 export default createDialogsStore

@@ -392,6 +392,14 @@ const LinkageWorkspace = () => {
     selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave)
   }
 
+  // Confirmation Dialog
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+  const openConfirmationDialog = (props) => {
+    setConfirmationDialogOpen(true)
+    setConfirmationDialogProps(props)
+  }
+
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ position: 'relative', flexGrow: 1 }}>
@@ -521,7 +529,13 @@ const LinkageWorkspace = () => {
           )}
           {linkageMode === LINKAGE_MODES.EDIT && (
             <StyledButton
-              onClick={() => deleteLinkage(activeLinkageId)}
+              onClick={() =>
+                openConfirmationDialog({
+                  title: 'Delete Linkage',
+                  body: 'Are you sure you want to delete this linkage?',
+                  onConfirm: () => deleteLinkage(activeLinkageId),
+                })
+              }
               color="error"
               disabled={!activeVideo || activeVideoLoading}
             >
