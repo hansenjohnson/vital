@@ -7,12 +7,12 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import Slide from '@mui/material/Slide'
+import Grow from '@mui/material/Grow'
 
 import StyledButton from './StyledButton'
 
 const Transition = forwardRef(function Transition(props, ref) {
-  return <Slide direction="down" ref={ref} {...props} />
+  return <Grow ref={ref} {...props} />
 })
 
 const ConfirmationDialog = ({ open, title, body, onClose, onConfirm }) => {

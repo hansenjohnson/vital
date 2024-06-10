@@ -5,6 +5,7 @@ import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
 
 import useStore from '../store'
 import { getSelectedFolder } from '../store/folders'
+import { isSaveable } from '../store/linkages'
 import thumbnailsAPI from '../api/thumbnails'
 import { LINKAGE_MODES, VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
@@ -55,6 +56,10 @@ const LinkageSidebar = () => {
   const viewMode = useStore((state) => state.viewMode)
   const setViewMode = useStore((state) => state.setViewMode)
 
+  const savable = useStore(isSaveable)
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+
   // Make by-video groups available
   const linkageGroups = linkages.reduce((acc, linkage) => {
     const groupName = linkage.video.fileName
@@ -72,9 +77,22 @@ const LinkageSidebar = () => {
   const setLinkageMode = useStore((state) => state.setLinkageMode)
   const thumbnailCacheBuster = useStore((state) => state.thumbnailCacheBuster)
   const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
+
   const playVideoOnly = (videoId) => {
-    setLinkageMode(LINKAGE_MODES.BLANK)
-    selectLinkageVideoSighting(null, videoId, null)
+    const action = () => {
+      setLinkageMode(LINKAGE_MODES.BLANK)
+      selectLinkageVideoSighting(null, videoId, null)
+    }
+    if (!savable) {
+      action()
+    } else {
+      setConfirmationDialogProps({
+        title: 'Unsaved Changes',
+        body: 'You have unsaved changes. Are you sure you want to switch the video?',
+        onConfirm: action,
+      })
+      setConfirmationDialogOpen(true)
+    }
   }
 
   const getThumbnailFullURL = (partialPath) => {
@@ -178,6 +196,7 @@ const LinkageSidebar = () => {
               <Box key={id} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
                 <VideoGroupHeader
                   name={videoBaseName}
+                  // TODO: if/when you implement this, add a confirmation dialog
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}

@@ -3,6 +3,7 @@ import Box from '@mui/material/Box'
 
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
+import { isSaveable } from '../store/linkages'
 import ROUTES from '../constants/routes'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { TITLES } from '../constants/routes'
@@ -18,11 +19,28 @@ const Navbar = ({ width }) => {
 
   const title = TITLES[route]
 
+  const savable = useStore(isSaveable)
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+
   const handleToolsClick = () => {
-    setSettingsOpen(false)
-    if (route === ROUTES.TOOLS) return
-    setRoute(ROUTES.TOOLS)
-    resetStore()
+    const action = () => {
+      setSettingsOpen(false)
+      if (route === ROUTES.TOOLS) return
+      setRoute(ROUTES.TOOLS)
+      resetStore()
+    }
+
+    if (!savable) {
+      action()
+    } else {
+      setConfirmationDialogProps({
+        title: 'Unsaved Changes',
+        body: 'You have unsaved changes. Are you sure you want to navigate back home?',
+        onConfirm: action,
+      })
+      setConfirmationDialogOpen(true)
+    }
   }
 
   if (width === 0) return null
