@@ -126,6 +126,7 @@ const LinkageWorkspace = () => {
 
   const seekToFrame = (frame) => {
     if (!videoElement) return
+    setAutoPause(false)
     videoElement.currentTime = frame / videoFrameRate
   }
 
@@ -193,8 +194,12 @@ const LinkageWorkspace = () => {
       return
     }
 
+    const enableAutoPause = () =>
+      videoElement.addEventListener('seeked', () => setAutoPause(true), { once: true })
+
     // The video didn't change, so just seek to the new regionStart
     if (linkageChanged && !videoURLChanged) {
+      enableAutoPause()
       seekToFrame(activeLinkage.regionStart)
       videoElement.play()
       update()
@@ -212,25 +217,29 @@ const LinkageWorkspace = () => {
     // the video and the linkage changed at the same time, so we need to wait
     // for that video to be avaialble before we can perform the seek
     const seekAfterVideoHasDuration = () => {
+      enableAutoPause()
       seekToFrame(activeLinkage.regionStart)
       videoElement.play()
-      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-    videoElement.addEventListener('durationchange', seekAfterVideoHasDuration)
-
+    videoElement.addEventListener('durationchange', seekAfterVideoHasDuration, { once: true })
     update()
-    return () => {
-      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
-    }
   }, [JSON.stringify(activeLinkage), activeVideoURL, videoElement, skipAutoSeek])
 
-  // TODO: fix this
-  // useEffect(() => {
-  //   if (!videoElement) return
-  //   if (videoFrameNumber >= regionEnd) {
-  //     videoElement.pause()
-  //   }
-  // }, [videoFrameNumber])
+  // When viewing a linkage, pause the video at the end of the region
+  // Auto-pause is enabled as a counter to auto-seek
+  const autoPause = useStore((state) => state.autoPause)
+  const setAutoPause = useStore((state) => state.setAutoPause)
+  useEffect(() => {
+    if (!videoElement) return
+    if (!activeLinkage) return
+    if (!autoPause) return
+    if (videoFrameNumber >= activeLinkage.regionEnd) {
+      videoElement.pause()
+      setAutoPause(false)
+      // Note: Due to runtime delays, this might pause the video a few frames later
+      // than the region end, but I felt it was too jarring to re-seek after the pause
+    }
+  }, [videoElement, JSON.stringify(activeLinkage), autoPause, videoFrameNumber])
 
   // Linkage Mode & Selection Handling
   const viewMode = useStore((state) => state.viewMode)
