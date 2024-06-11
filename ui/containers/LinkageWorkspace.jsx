@@ -164,13 +164,20 @@ const LinkageWorkspace = () => {
   }, [forceQualityTriggerNumber])
 
   // Set the playhead to the region start when a Linkage is Selected
+  const previousLinkageId = useRef(null)
   const previousVideoURL = useRef(null)
   useEffect(() => {
-    const update = () => (previousVideoURL.current = activeVideoURL)
+    const update = () => {
+      previousLinkageId.current = activeLinkage?.id
+      previousVideoURL.current = activeVideoURL
+    }
+
+    const linkageChanged = previousLinkageId.current !== activeLinkage?.id
+    const videoURLChanged = previousVideoURL.current !== activeVideoURL
 
     if (
       linkageMode === LINKAGE_MODES.CREATE ||
-      !activeLinkageId ||
+      !activeLinkage ||
       !activeVideoURL ||
       !videoElement
     ) {
@@ -179,26 +186,35 @@ const LinkageWorkspace = () => {
     }
 
     // The video didn't change, so just seek to the new regionStart
-    if (previousVideoURL.current === activeVideoURL) {
-      seekToFrame(activeLinkage?.regionStart)
+    if (linkageChanged && !videoURLChanged) {
+      seekToFrame(activeLinkage.regionStart)
       videoElement.play()
       update()
       return
     }
 
+    // A URL change without a linkage change does not present evidence of needing to seek
+    // We catch this case here since we need to know if the url changed in the above case
+    if (!linkageChanged && videoURLChanged) {
+      update()
+      return
+    }
+
+    // At this point the change is either that we now have a new VideoElement node, or
+    // the video and the linkage changed at the same time, so we need to wait
+    // for that video to be avaialble before we can perform the seek
     const seekAfterVideoHasDuration = () => {
-      seekToFrame(activeLinkage?.regionStart)
+      seekToFrame(activeLinkage.regionStart)
       videoElement.play()
       videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-
     videoElement.addEventListener('durationchange', seekAfterVideoHasDuration)
 
     update()
     return () => {
       videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-  }, [activeLinkageId, activeVideoURL, videoElement])
+  }, [JSON.stringify(activeLinkage), activeVideoURL, videoElement])
 
   // TODO: fix this
   // useEffect(() => {
