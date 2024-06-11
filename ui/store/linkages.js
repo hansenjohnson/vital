@@ -65,7 +65,7 @@ const createLinkagesStore = (set, get) => ({
   setAnnotations: valueSetter(set, 'annotations'),
 
   // Used for Linkage Viewing/Editing
-  selectLinkageVideoSighting: (linkageId, videoId, sightingId) => {
+  selectLinkageVideoSighting: (linkageId, videoId, sightingId, skipAutoSeek = false) => {
     const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool } = get()
     clearCreatedLinkage()
     clearEditDialogs()
@@ -75,6 +75,7 @@ const createLinkagesStore = (set, get) => ({
       activeLinkageId: linkageId,
       activeVideoId: videoId,
       selectedSightingId: sightingId,
+      skipAutoSeek,
     })
   },
 

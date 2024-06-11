@@ -163,13 +163,18 @@ const LinkageWorkspace = () => {
     forceToHighestQuality(mediaPlayerRef.current, (videoFrameNumber + 1) / videoFrameRate)
   }, [forceQualityTriggerNumber])
 
-  // Set the playhead to the region start when a Linkage is Selected
+  // Set the playhead to the region start when a Linkage is Selected, aka Auto-Seek
+  // We provide the software the ability to forego this functionality with the skipAutoSeek attribute
+  const skipAutoSeek = useStore((state) => state.skipAutoSeek)
+  const setSkipAutoSeek = useStore((state) => state.setSkipAutoSeek)
   const previousLinkageId = useRef(null)
   const previousVideoURL = useRef(null)
+  const previousSkipAutoSeek = useRef(null)
   useEffect(() => {
     const update = () => {
       previousLinkageId.current = activeLinkage?.id
       previousVideoURL.current = activeVideoURL
+      previousSkipAutoSeek.current = skipAutoSeek
     }
 
     const linkageChanged = previousLinkageId.current !== activeLinkage?.id
@@ -179,8 +184,11 @@ const LinkageWorkspace = () => {
       linkageMode === LINKAGE_MODES.CREATE ||
       !activeLinkage ||
       !activeVideoURL ||
-      !videoElement
+      !videoElement ||
+      skipAutoSeek ||
+      (previousSkipAutoSeek.current === true && skipAutoSeek === false)
     ) {
+      setSkipAutoSeek(false)
       update()
       return
     }
@@ -214,7 +222,7 @@ const LinkageWorkspace = () => {
     return () => {
       videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-  }, [JSON.stringify(activeLinkage), activeVideoURL, videoElement])
+  }, [JSON.stringify(activeLinkage), activeVideoURL, videoElement, skipAutoSeek])
 
   // TODO: fix this
   // useEffect(() => {
@@ -405,7 +413,7 @@ const LinkageWorkspace = () => {
   const saveAndTransitionToEdit = async () => {
     const sightingIdBeforeSave = selectedSightingId
     const newLinkageId = await saveLinkage(true)
-    selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave)
+    selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave, true)
   }
 
   // Confirmation Dialog

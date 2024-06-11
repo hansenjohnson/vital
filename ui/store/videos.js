@@ -7,6 +7,7 @@ const initialState = {
   activeVideoId: null,
   videoFrameNumber: 0,
 
+  skipAutoSeek: false,
   forceQualityTriggerNumber: 0,
 }
 
@@ -25,6 +26,8 @@ const createVideosStore = (set, get) => ({
   setActiveVideo: (id) => set({ activeVideoId: id }),
 
   setVideoFrameNumber: valueSetter(set, 'videoFrameNumber'),
+
+  setSkipAutoSeek: valueSetter(set, 'skipAutoSeek'),
 
   triggerForceToHighestQuality: () =>
     set((state) => ({ forceQualityTriggerNumber: state.forceQualityTriggerNumber + 1 })),
