@@ -51,12 +51,18 @@ const createLinkagesStore = (set, get) => ({
   },
 
   deleteLinkage: async (linkageId) => {
-    const success = await linkagesAPI.deleteLinkage(linkageId)
-    if (success) {
-      const { loadLinkages, selectLinkageVideoSighting, activeVideoId } = get()
-      selectLinkageVideoSighting(null, activeVideoId, null)
-      loadLinkages()
+    const statusCode = await linkagesAPI.deleteLinkage(linkageId)
+    if (statusCode === 409) {
+      get().makeAlert(
+        'Linakge deletion failed.\nIt appears that you have the linkage data file open.\nPlease close it before proceeding.',
+        'error'
+      )
     }
+    if (statusCode !== 200) return
+
+    const { loadLinkages, selectLinkageVideoSighting, activeVideoId } = get()
+    selectLinkageVideoSighting(null, activeVideoId, null)
+    loadLinkages()
   },
 
   // Used for Linkage Creation only
@@ -112,7 +118,7 @@ const createLinkagesStore = (set, get) => ({
     const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, temporaryThumbnail)
     if (!thumbnailStatus) return
 
-    const saveData = await linkagesAPI.create({
+    const response = await linkagesAPI.create({
       CatalogVideoId: activeVideo.id,
       StartTime: regionStart,
       EndTime: regionEnd,
@@ -121,14 +127,21 @@ const createLinkagesStore = (set, get) => ({
       ThumbnailFilePath: thumbnailPartialPath,
     })
 
-    const saveStatus = 'LinkageId' in saveData
-    if (!saveStatus) return
+    if (response.status === 409) {
+      get().makeAlert(
+        `Linakge creation failed.
+        It appears that you have the linkage data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
+    if (response.status !== 200) return null
 
     clearCreatedLinkage(clearAll)
     clearEditDialogs()
     setActiveDrawTool(DRAWING.POINTER)
     await loadLinkages()
-    return saveData['LinkageId']
+    return response?.data?.['LinkageId']
   },
 
   clearCreatedLinkage: (clearAll = false) => {
@@ -141,7 +154,18 @@ const createLinkagesStore = (set, get) => ({
 
   updateLinkage: async (linkageId, payload) => {
     const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages } = get()
-    await linkagesAPI.update(linkageId, payload)
+    const status = await linkagesAPI.update(linkageId, payload)
+
+    if (status === 409) {
+      get().makeAlert(
+        `Linakge update failed.
+        It appears that you have the linkage data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
+    if (status !== 200) return
+
     clearCreatedLinkage()
     clearEditDialogs()
     setActiveDrawTool(DRAWING.POINTER)

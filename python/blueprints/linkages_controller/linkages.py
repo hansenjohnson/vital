@@ -30,6 +30,8 @@ def create_linkage():
     try:
         linkage_id = linkage_model.create_linkage(payload)
         return jsonify({"LinkageId": linkage_id}), 200
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 409
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -40,6 +42,8 @@ def update_linkage(linkage_id):
     try:
         linkage_model.update_linkage(linkage_id, payload)
         return jsonify({"message": "Linkage updated successfully"}), 200
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 409
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -49,6 +53,8 @@ def delete_linkage_by_id(linkage_id):
     try:
         linkage_model.delete_linkage_by_id(linkage_id)
         return jsonify({"message": "Linkage deleted successfully"}), 200
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 409
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 

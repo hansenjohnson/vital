@@ -16,7 +16,7 @@ export const postJSON = async (url, data) => {
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return response.ok
+    return response.status
   } catch (error) {
     console.error(`Error with POST to ${url}:`, error?.message || error)
     return false
@@ -30,7 +30,7 @@ export const putJson = async (url, data) => {
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify(data),
     })
-    return response.ok
+    return response.status
   } catch (error) {
     console.error(`Error with PUT to ${url}:`, error?.message || error)
     return false
@@ -48,7 +48,7 @@ export const postJSONWithResponse = async (url, data) => {
       console.warn(`Issue with POST to ${url}`)
     }
     const responseData = await response.json()
-    return responseData
+    return { status: response.status, data: responseData }
   } catch (error) {
     console.error(`Error with POST to ${url}:`, error?.message || error)
     return null
@@ -73,7 +73,7 @@ export const deleteThis = async (url) => {
     const response = await fetch(url, {
       method: 'DELETE',
     })
-    return response.ok
+    return response.status
   } catch (error) {
     console.error(`Error with DELETE to ${url}:`, error?.message || error)
     return null

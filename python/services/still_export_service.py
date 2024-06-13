@@ -56,7 +56,7 @@ class StillExportService:
             command = [
                 self.ffmpeg_path,
                 '-loglevel', 'error',
-                '-n',
+                '-y', # hmm, maybe we need to tell the user if it already exists?
                 '-ss', timestamp,
                 '-i', video_file_path,
                 '-frames:v', '1',
@@ -81,6 +81,12 @@ class StillExportService:
                 print_out(f"Frame extracted successfully and saved to {output_image_path}")
             else:
                 raise Exception(f"Failed to extract frame from video: {video_name}")
+        except PermissionError as e:
+            # If the Still Export table could not be updated, delete the created image
+            # as to not confuse the user with orphaned outputs
+            if os.path.exists(output_file_path):
+                os.remove(output_file_path)
+            raise e
         except Exception as e:
             print_err(f"An error occurred: {e}")
             raise e

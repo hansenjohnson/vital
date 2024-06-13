@@ -64,11 +64,14 @@ class LinkageModel(SQL):
             cursor.execute(query, payload)
             self.conn.commit()
 
-            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
+            self.flush_to_excel()
 
             lastrowid = cursor.lastrowid
             cursor.close()
             return lastrowid
+        except PermissionError as e:
+            self.refresh_table()
+            raise e
         except Exception as e:
             print_err(f"Failed to execute SQL query create_linkage: {e}")
             raise e
@@ -90,7 +93,10 @@ class LinkageModel(SQL):
             cursor.execute(query, values)
             self.conn.commit()
 
-            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
+            self.flush_to_excel()
+        except PermissionError as e:
+            self.refresh_table()
+            raise e
         except Exception as e:
             print_err(f"Failed to execute SQL query update_linkage: {e}")
             raise e
@@ -101,8 +107,11 @@ class LinkageModel(SQL):
             cursor.execute(f"DELETE FROM linkage WHERE LinkageId = {linkage_id}")
             self.conn.commit()
 
-            self.flush_to_excel('linkage', self.file_path, self.worksheet_name)
+            self.flush_to_excel()
             cursor.close()
+        except PermissionError as e:
+            self.refresh_table()
+            raise e
         except Exception as e:
             print_err(f"Failed to execute SQL query delete_linkage_by_id: {e}")
             raise e
@@ -128,3 +137,6 @@ class LinkageModel(SQL):
         except Exception as e:
             print_err(f"Failed to execute SQL query get_linkages_by_sighting: {e}")
         return None
+
+    def flush_to_excel(self):
+        return super().flush_to_excel('linkage', self.file_path, self.worksheet_name)

@@ -13,6 +13,7 @@ import Tools from './containers/Tools'
 import LinkageAnnotationPage from './containers/LinkageAnnotationPage'
 import Navbar from './containers/Navbar'
 import CenteredLoadingCircle from './components/CenteredLoadingCircle'
+import AlertDialog from './components/AlertDialog'
 
 const App = () => {
   const [serverReachable, route] = useStore(
@@ -44,6 +45,11 @@ const App = () => {
     [JSON.stringify(_titlebarRect), JSON.stringify(windowSize)]
   )
 
+  // Alert Dialog
+  const alertDialogOpen = useStore((state) => state.alertDialogOpen)
+  const alertDialogProps = useStore((state) => state.alertDialogProps)
+  const closeAlert = useStore((state) => state.closeAlert)
+
   // Prevent app from rendering until server is reachable or if settings are not available yet
   return (
     <>
@@ -58,6 +64,7 @@ const App = () => {
           </>
         )}
       </Box>
+      <AlertDialog open={alertDialogOpen} onClose={closeAlert} {...alertDialogProps} />
     </>
   )
 }

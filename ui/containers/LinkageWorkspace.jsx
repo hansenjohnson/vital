@@ -284,10 +284,19 @@ const LinkageWorkspace = () => {
   }
 
   const [exportStatus, setExportStatus] = useState(null)
+  const makeAlert = useStore((state) => state.makeAlert)
   const exportStillFrame = async (fileName) => {
     setExportStatus('exporting')
     const status = await stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
-    setExportStatus(status === true ? 'success' : 'error')
+    setExportStatus(status === 200 ? 'success' : 'error')
+    if (status === 409) {
+      makeAlert(
+        `Export Still Frame failed.
+        It appears that you have the Still Exports data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
   }
 
   // Active Linkage Property Editing
@@ -422,6 +431,7 @@ const LinkageWorkspace = () => {
   const saveAndTransitionToEdit = async () => {
     const sightingIdBeforeSave = selectedSightingId
     const newLinkageId = await saveLinkage(true)
+    if (!newLinkageId) return
     selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave, true)
   }
 

@@ -6,9 +6,11 @@ const initialState = {
   regionEditDialog: false,
   confirmationDialogOpen: false,
   confirmationDialogProps: null,
+  alertDialogOpen: false,
+  alertDialogProps: null,
 }
 
-const createDialogsStore = (set) => ({
+const createDialogsStore = (set, get) => ({
   ...initialState,
   resetDialogsStore: () => set(initialState),
 
@@ -20,6 +22,15 @@ const createDialogsStore = (set) => ({
 
   setConfirmationDialogOpen: valueSetter(set, 'confirmationDialogOpen'),
   setConfirmationDialogProps: valueSetter(set, 'confirmationDialogProps'),
+
+  makeAlert: (body, variant = undefined) => {
+    if (get().alertDialogOpen) return // prevent a new dialog from overwritting an existing one
+    set({
+      alertDialogOpen: true,
+      alertDialogProps: { body, variant },
+    })
+  },
+  closeAlert: () => set({ alertDialogOpen: false }),
 })
 
 export default createDialogsStore
