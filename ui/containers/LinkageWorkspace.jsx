@@ -287,7 +287,12 @@ const LinkageWorkspace = () => {
   const makeAlert = useStore((state) => state.makeAlert)
   const exportStillFrame = async (fileName) => {
     setExportStatus('exporting')
-    const status = await stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
+    const status = await stillExportsAPI.create(
+      activeVideoId,
+      `${fileName}.jpg`,
+      videoFrameNumber,
+      selectedSightingId
+    )
     setExportStatus(status === 200 ? 'success' : 'error')
     if (status === 409) {
       makeAlert(

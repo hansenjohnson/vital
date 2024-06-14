@@ -30,6 +30,7 @@ class StillExportModel(SQL):
                     CREATE TABLE still_export  (
                        StillExportId INTEGER PRIMARY KEY AUTOINCREMENT,
                        CatalogVideoId INTEGER,
+                       SightingId INTEGER,
                        FileName TEXT,
                        FileLocation TEXT,
                        FrameNumber INTEGER,
@@ -43,9 +44,9 @@ class StillExportModel(SQL):
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO still_export
-                    (CatalogVideoId, FileName, FileLocation, FrameNumber)
+                    (CatalogVideoId, FileName, FileLocation, FrameNumber, SightingId)
                 VALUES
-                    (:CatalogVideoId, :FileName, :FileLocation, :FrameNumber)
+                    (:CatalogVideoId, :FileName, :FileLocation, :FrameNumber, :SightingId)
             """
             cursor.execute(query, payload)
             self.conn.commit()
