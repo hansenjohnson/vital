@@ -172,7 +172,31 @@ const createLinkagesStore = (set, get) => ({
   },
 
   updateLinkage: async (linkageId, payload) => {
-    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages } = get()
+    const state = get()
+    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages, makeAlert } =
+      state
+    const activeVideo = getActiveVideo(state)
+    const activeLinkage = getActiveLinkage(state)
+
+    // Check that all annotations are within the new region
+    if ('StartTime' in payload || 'EndTime' in payload) {
+      const drawingOnScreenFrames =
+        DRAWING_ON_SCREEN_SECONDS * frameRateFromStr(activeVideo.frameRate)
+      const annotationsOutsideRegion = activeLinkage.annotations.some(
+        (annotation) =>
+          annotation.frame < payload.StartTime ||
+          annotation.frame > payload.EndTime - drawingOnScreenFrames
+      )
+      if (annotationsOutsideRegion) {
+        makeAlert(
+          `Some annotations are outside the edited video region, or too close to the end of the region.
+          Please adjust either the region or the annotations before saving.`,
+          'warning'
+        )
+        return
+      }
+    }
+
     const status = await linkagesAPI.update(linkageId, payload)
 
     if (status === 409) {
