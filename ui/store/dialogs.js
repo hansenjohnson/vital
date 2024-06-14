@@ -23,11 +23,11 @@ const createDialogsStore = (set, get) => ({
   setConfirmationDialogOpen: valueSetter(set, 'confirmationDialogOpen'),
   setConfirmationDialogProps: valueSetter(set, 'confirmationDialogProps'),
 
-  makeAlert: (body, variant = undefined) => {
+  makeAlert: (body, variant = undefined, id = undefined) => {
     if (get().alertDialogOpen) return // prevent a new dialog from overwritting an existing one
     set({
       alertDialogOpen: true,
-      alertDialogProps: { body, variant },
+      alertDialogProps: { body, variant, id },
     })
   },
   closeAlert: () => set({ alertDialogOpen: false }),
