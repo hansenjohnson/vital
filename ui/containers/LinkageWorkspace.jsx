@@ -33,6 +33,7 @@ import {
   THUMBNAIL_WIDTH,
 } from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
+import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
 
 import videosAPI from '../api/videos'
 import thumbnailsAPI from '../api/thumbnails'
@@ -388,6 +389,7 @@ const LinkageWorkspace = () => {
   }
 
   // Annotation Draw Handling
+  const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * videoFrameRate
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
   const selectDrawTool = (tool) => {
@@ -469,15 +471,15 @@ const LinkageWorkspace = () => {
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
-          disabled={
-            videoFrameNumber < activeLinkage?.regionStart ||
-            videoFrameNumber > activeLinkage?.regionEnd
-          }
         />
         <AnnotationDrawingLayer
           rect={videoElementRect}
           tool={activeDrawTool}
           addAnnotation={addAnnotation}
+          disabled={
+            videoFrameNumber < activeLinkage?.regionStart ||
+            videoFrameNumber > activeLinkage?.regionEnd - drawingOnScreenFrames
+          }
         />
       </Box>
 
