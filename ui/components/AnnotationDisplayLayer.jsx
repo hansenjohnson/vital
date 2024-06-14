@@ -4,7 +4,7 @@ import Box from '@mui/material/Box'
 import { DRAWING } from '../constants/tools'
 import { drawArrow, drawEllipse, relativePointToAbsolute } from '../utilities/drawing'
 
-const DRAWING_ON_SCREEN_SECONDS = 1
+const DRAWING_ON_SCREEN_SECONDS = 0.5
 
 const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate, disabled }) => {
   // Canvas Initialization
