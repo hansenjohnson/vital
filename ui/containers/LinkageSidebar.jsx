@@ -184,7 +184,6 @@ const LinkageSidebar = () => {
       </Box>
 
       <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-        <Box sx={{ marginTop: '2px' }} />
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
 
         {viewMode === VIEW_MODES.BY_VIDEO &&
@@ -192,8 +191,19 @@ const LinkageSidebar = () => {
             const { id, fileName } = video
             const videoBaseName = leafPath(fileName).split('.')[0]
             const linkagesForGroup = linkageGroups[fileName]
+            let marginBottom = 0
+            if (linkagesForGroup?.length > 0 && index < videos.length - 1) {
+              marginBottom = 1
+            }
             return (
-              <Box key={id} sx={{ marginTop: index > 0 ? '2px' : 0 }}>
+              <Box
+                key={id}
+                sx={{
+                  marginBottom,
+                  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0px -4px 8px -8px rgba(0, 0, 0, 0.7)',
+                }}
+              >
                 <VideoGroupHeader
                   name={videoBaseName}
                   // TODO: if/when you implement this, add a confirmation dialog
@@ -206,7 +216,7 @@ const LinkageSidebar = () => {
               </Box>
             )
           })}
-        <Box sx={{ marginBottom: '4px' }} />
+        <Box sx={{ marginBottom: 1 }} />
       </Box>
     </Sidebar>
   )
