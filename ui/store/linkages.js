@@ -10,6 +10,8 @@ import { thumbnailFromVideoElement } from '../utilities/image'
 import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
 import { THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH } from '../constants/dimensions'
 import { DRAWING } from '../constants/tools'
+import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
+import { frameRateFromStr } from '../utilities/video'
 
 const initialState = {
   viewMode: VIEW_MODES.BY_VIDEO,
@@ -108,8 +110,25 @@ const createLinkagesStore = (set, get) => ({
       clearEditDialogs,
       setActiveDrawTool,
       loadLinkages,
+      makeAlert,
     } = state
     const activeVideo = getActiveVideo(state)
+
+    // Check that all annotations are within the created region
+    const drawingOnScreenFrames =
+      DRAWING_ON_SCREEN_SECONDS * frameRateFromStr(activeVideo.frameRate)
+    const annotationsOutsideRegion = annotations.some(
+      (annotation) =>
+        annotation.frame < regionStart || annotation.frame > regionEnd - drawingOnScreenFrames
+    )
+    if (annotationsOutsideRegion) {
+      makeAlert(
+        `Some annotations are outside the selected video region, or too close to the end of the region.
+        Please adjust before saving.`,
+        'warning'
+      )
+      return
+    }
 
     const thumbnailPartialPath = thumbnailsAPI.formulateSavePath(
       getSelectedFolder(state),
@@ -128,7 +147,7 @@ const createLinkagesStore = (set, get) => ({
     })
 
     if (response.status === 409) {
-      get().makeAlert(
+      makeAlert(
         `Linakge creation failed.
         It appears that you have the linkage data file open.
         Please close it before proceeding.`,
