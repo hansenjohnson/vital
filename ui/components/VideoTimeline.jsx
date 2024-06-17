@@ -217,7 +217,7 @@ const VideoTimeline = ({
         onPointerLeave={() => setShowClickLine(false)}
       >
         {/* Clickable Scrubber/Seeker */}
-        <Box sx={{ width: '100%', height: '100%' }} onClick={seekToPointerEvent} />
+        <Box sx={{ width: '100%', height: '100%', zIndex: 9 }} onClick={seekToPointerEvent} />
         {showClickLine && (
           <Box
             sx={{
@@ -229,6 +229,7 @@ const VideoTimeline = ({
               backgroundColor: 'secondary.main',
               opacity: 0.4,
               pointerEvents: 'none',
+              zIndex: 9,
             }}
           />
         )}
@@ -244,6 +245,8 @@ const VideoTimeline = ({
             backgroundColor: 'tertiary.dark',
             opacity: 0.1,
             borderRadius: '4px',
+            pointerEvents: 'none',
+            zIndex: 7,
             visibility:
               regionStart == null || regionEnd == null || showActiveRegionAsLine
                 ? 'hidden'
