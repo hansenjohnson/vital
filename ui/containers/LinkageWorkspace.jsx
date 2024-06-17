@@ -33,6 +33,7 @@ import {
   THUMBNAIL_WIDTH,
 } from '../constants/dimensions'
 import SETTING_KEYS from '../constants/settingKeys'
+import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
 
 import videosAPI from '../api/videos'
 import thumbnailsAPI from '../api/thumbnails'
@@ -126,6 +127,7 @@ const LinkageWorkspace = () => {
 
   const seekToFrame = (frame) => {
     if (!videoElement) return
+    setAutoPause(false)
     videoElement.currentTime = frame / videoFrameRate
   }
 
@@ -163,50 +165,93 @@ const LinkageWorkspace = () => {
     forceToHighestQuality(mediaPlayerRef.current, (videoFrameNumber + 1) / videoFrameRate)
   }, [forceQualityTriggerNumber])
 
-  // Set the playhead to the region start when a Linkage is Selected
+  // Set the playhead to the region start when a Linkage is Selected, aka Auto-Seek
+  // We provide the software the ability to forego this functionality with the skipAutoSeek attribute
+  const skipAutoSeek = useStore((state) => state.skipAutoSeek)
+  const setSkipAutoSeek = useStore((state) => state.setSkipAutoSeek)
+  const previousLinkageId = useRef(null)
   const previousVideoURL = useRef(null)
+  const previousSkipAutoSeek = useRef(null)
+  const autoPauseOnLinkageId = useRef(null)
   useEffect(() => {
-    const update = () => (previousVideoURL.current = activeVideoURL)
+    const update = () => {
+      previousLinkageId.current = activeLinkage?.id
+      previousVideoURL.current = activeVideoURL
+      previousSkipAutoSeek.current = skipAutoSeek
+    }
+
+    const linkageChanged = previousLinkageId.current !== activeLinkage?.id
+    const videoURLChanged = previousVideoURL.current !== activeVideoURL
 
     if (
       linkageMode === LINKAGE_MODES.CREATE ||
-      !activeLinkageId ||
+      !activeLinkage ||
       !activeVideoURL ||
-      !videoElement
+      !videoElement ||
+      skipAutoSeek ||
+      (previousSkipAutoSeek.current === true && skipAutoSeek === false)
     ) {
+      setSkipAutoSeek(false)
       update()
       return
     }
+
+    const enableAutoPause = (pairWithId) =>
+      videoElement.addEventListener(
+        'seeked',
+        () => {
+          // There is a delay in syncing React state to VideoElement state, so we wait 100ms to compensate.
+          // Otherwise we will auto-pause prematurely when seeking to a linkage before the selected one.
+          setTimeout(() => (autoPauseOnLinkageId.current = pairWithId), 100)
+          setAutoPause(true)
+        },
+        { once: true }
+      )
 
     // The video didn't change, so just seek to the new regionStart
-    if (previousVideoURL.current === activeVideoURL) {
-      seekToFrame(activeLinkage?.regionStart)
+    if (linkageChanged && !videoURLChanged) {
+      enableAutoPause(activeLinkage.id)
+      seekToFrame(activeLinkage.regionStart)
       videoElement.play()
       update()
       return
     }
 
+    // A URL change without a linkage change does not present evidence of needing to seek
+    // We catch this case here since we need to know if the url changed in the above case
+    if (!linkageChanged && videoURLChanged) {
+      update()
+      return
+    }
+
+    // At this point the change is either that we now have a new VideoElement node, or
+    // the video and the linkage changed at the same time, so we need to wait
+    // for that video to be avaialble before we can perform the seek
     const seekAfterVideoHasDuration = () => {
-      seekToFrame(activeLinkage?.regionStart)
+      enableAutoPause(activeLinkage.id)
+      seekToFrame(activeLinkage.regionStart)
       videoElement.play()
-      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
     }
-
-    videoElement.addEventListener('durationchange', seekAfterVideoHasDuration)
-
+    videoElement.addEventListener('durationchange', seekAfterVideoHasDuration, { once: true })
     update()
-    return () => {
-      videoElement.removeEventListener('durationchange', seekAfterVideoHasDuration)
-    }
-  }, [activeLinkageId, activeVideoURL, videoElement])
+  }, [JSON.stringify(activeLinkage), activeVideoURL, videoElement, skipAutoSeek])
 
-  // TODO: fix this
-  // useEffect(() => {
-  //   if (!videoElement) return
-  //   if (videoFrameNumber >= regionEnd) {
-  //     videoElement.pause()
-  //   }
-  // }, [videoFrameNumber])
+  // When viewing a linkage, pause the video at the end of the region
+  // Auto-pause is enabled as a counter to auto-seek
+  const autoPause = useStore((state) => state.autoPause)
+  const setAutoPause = useStore((state) => state.setAutoPause)
+  useEffect(() => {
+    if (!videoElement) return
+    if (!activeLinkage) return
+    if (!autoPause) return
+    if (autoPauseOnLinkageId.current !== activeLinkage.id) return
+    if (videoFrameNumber >= activeLinkage.regionEnd) {
+      videoElement.pause()
+      setAutoPause(false)
+      // Note: Due to runtime delays, this might pause the video a few frames later
+      // than the region end, but I felt it was too jarring to re-seek after the pause
+    }
+  }, [videoElement, JSON.stringify(activeLinkage), autoPause, videoFrameNumber])
 
   // Linkage Mode & Selection Handling
   const viewMode = useStore((state) => state.viewMode)
@@ -251,10 +296,24 @@ const LinkageWorkspace = () => {
   }
 
   const [exportStatus, setExportStatus] = useState(null)
+  const makeAlert = useStore((state) => state.makeAlert)
   const exportStillFrame = async (fileName) => {
     setExportStatus('exporting')
-    const status = await stillExportsAPI.create(activeVideoId, `${fileName}.jpg`, videoFrameNumber)
-    setExportStatus(status === true ? 'success' : 'error')
+    const status = await stillExportsAPI.create(
+      activeVideoId,
+      `${fileName}.jpg`,
+      videoFrameNumber,
+      selectedSightingId
+    )
+    setExportStatus(status === 200 ? 'success' : 'error')
+    if (status === 409) {
+      makeAlert(
+        `Export Still Frame failed.
+        It appears that you have the Still Exports data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
   }
 
   // Active Linkage Property Editing
@@ -341,6 +400,7 @@ const LinkageWorkspace = () => {
   }
 
   // Annotation Draw Handling
+  const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * videoFrameRate
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
   const selectDrawTool = (tool) => {
@@ -389,7 +449,8 @@ const LinkageWorkspace = () => {
   const saveAndTransitionToEdit = async () => {
     const sightingIdBeforeSave = selectedSightingId
     const newLinkageId = await saveLinkage(true)
-    selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave)
+    if (!newLinkageId) return
+    selectLinkageVideoSighting(newLinkageId, activeVideo.id, sightingIdBeforeSave, true)
   }
 
   // Confirmation Dialog
@@ -421,15 +482,15 @@ const LinkageWorkspace = () => {
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
-          disabled={
-            videoFrameNumber < activeLinkage?.regionStart ||
-            videoFrameNumber > activeLinkage?.regionEnd
-          }
         />
         <AnnotationDrawingLayer
           rect={videoElementRect}
           tool={activeDrawTool}
           addAnnotation={addAnnotation}
+          disabled={
+            videoFrameNumber < activeLinkage?.regionStart ||
+            videoFrameNumber > activeLinkage?.regionEnd - drawingOnScreenFrames
+          }
         />
       </Box>
 

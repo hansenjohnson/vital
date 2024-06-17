@@ -18,8 +18,10 @@ const LinkageAnnotationPage = () => {
   const sightings = useStore((state) => state.sightings)
   const loadSightings = useStore((state) => state.loadSightings)
   const selectedFolderId = useStore((state) => state.selectedFolderId)
+  const selectLinkageVideoSighting = useStore((state) => state.selectLinkageVideoSighting)
   useEffect(() => {
     if (!selectedFolderId) return
+    selectLinkageVideoSighting(null, null, null)
     loadSightings()
   }, [selectedFolderId])
 

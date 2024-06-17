@@ -2,11 +2,10 @@ import { useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import { DRAWING } from '../constants/tools'
+import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
 import { drawArrow, drawEllipse, relativePointToAbsolute } from '../utilities/drawing'
 
-const DRAWING_ON_SCREEN_SECONDS = 1
-
-const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate, disabled }) => {
+const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate }) => {
   // Canvas Initialization
   const dpr = window.devicePixelRatio || 1
   const canvasRef = useRef(null)
@@ -41,7 +40,7 @@ const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate, di
     })
   }, [dpr, JSON.stringify(rect), JSON.stringify(annotations), drawingOnScreenFrames, currentFrame])
 
-  if (!annotations || !annotations.length || disabled) return null
+  if (!annotations || !annotations.length || !rect) return null
   return (
     <Box
       sx={{

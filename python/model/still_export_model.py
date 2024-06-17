@@ -30,6 +30,7 @@ class StillExportModel(SQL):
                     CREATE TABLE still_export  (
                        StillExportId INTEGER PRIMARY KEY AUTOINCREMENT,
                        CatalogVideoId INTEGER,
+                       SightingId INTEGER,
                        FileName TEXT,
                        FileLocation TEXT,
                        FrameNumber INTEGER,
@@ -43,14 +44,20 @@ class StillExportModel(SQL):
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO still_export
-                    (CatalogVideoId, FileName, FileLocation, FrameNumber)
+                    (CatalogVideoId, FileName, FileLocation, FrameNumber, SightingId)
                 VALUES
-                    (:CatalogVideoId, :FileName, :FileLocation, :FrameNumber)
+                    (:CatalogVideoId, :FileName, :FileLocation, :FrameNumber, :SightingId)
             """
             cursor.execute(query, payload)
             self.conn.commit()
-            self.flush_to_excel('still_export', self.file_path, self.worksheet_name)
+            self.flush_to_excel()
             cursor.close()
+        except PermissionError as e:
+            self.refresh_table()
+            raise e
         except Exception as e:
             print_err(f"Failed to execute SQL query create_still_export: {e}")
             raise e
+
+    def flush_to_excel(self):
+        return super().flush_to_excel('still_export', self.file_path, self.worksheet_name)

@@ -1,0 +1,1 @@
+export const DRAWING_ON_SCREEN_SECONDS = 0.5

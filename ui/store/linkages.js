@@ -10,6 +10,8 @@ import { thumbnailFromVideoElement } from '../utilities/image'
 import { VIEW_MODES, LINKAGE_MODES } from '../constants/routes'
 import { THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH } from '../constants/dimensions'
 import { DRAWING } from '../constants/tools'
+import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
+import { frameRateFromStr } from '../utilities/video'
 
 const initialState = {
   viewMode: VIEW_MODES.BY_VIDEO,
@@ -51,12 +53,18 @@ const createLinkagesStore = (set, get) => ({
   },
 
   deleteLinkage: async (linkageId) => {
-    const success = await linkagesAPI.deleteLinkage(linkageId)
-    if (success) {
-      const { loadLinkages, selectLinkageVideoSighting, activeVideoId } = get()
-      selectLinkageVideoSighting(null, activeVideoId, null)
-      loadLinkages()
+    const statusCode = await linkagesAPI.deleteLinkage(linkageId)
+    if (statusCode === 409) {
+      get().makeAlert(
+        'Linakge deletion failed.\nIt appears that you have the linkage data file open.\nPlease close it before proceeding.',
+        'error'
+      )
     }
+    if (statusCode !== 200) return
+
+    const { loadLinkages, selectLinkageVideoSighting, activeVideoId } = get()
+    selectLinkageVideoSighting(null, activeVideoId, null)
+    loadLinkages()
   },
 
   // Used for Linkage Creation only
@@ -65,7 +73,7 @@ const createLinkagesStore = (set, get) => ({
   setAnnotations: valueSetter(set, 'annotations'),
 
   // Used for Linkage Viewing/Editing
-  selectLinkageVideoSighting: (linkageId, videoId, sightingId) => {
+  selectLinkageVideoSighting: (linkageId, videoId, sightingId, skipAutoSeek = false) => {
     const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool } = get()
     clearCreatedLinkage()
     clearEditDialogs()
@@ -75,6 +83,7 @@ const createLinkagesStore = (set, get) => ({
       activeLinkageId: linkageId,
       activeVideoId: videoId,
       selectedSightingId: sightingId,
+      skipAutoSeek,
     })
   },
 
@@ -101,8 +110,25 @@ const createLinkagesStore = (set, get) => ({
       clearEditDialogs,
       setActiveDrawTool,
       loadLinkages,
+      makeAlert,
     } = state
     const activeVideo = getActiveVideo(state)
+
+    // Check that all annotations are within the created region
+    const drawingOnScreenFrames =
+      DRAWING_ON_SCREEN_SECONDS * frameRateFromStr(activeVideo.frameRate)
+    const annotationsOutsideRegion = annotations.some(
+      (annotation) =>
+        annotation.frame < regionStart || annotation.frame > regionEnd - drawingOnScreenFrames
+    )
+    if (annotationsOutsideRegion) {
+      makeAlert(
+        `Some annotations are outside the selected video region, or too close to the end of the region.
+        Please adjust before saving.`,
+        'warning'
+      )
+      return
+    }
 
     const thumbnailPartialPath = thumbnailsAPI.formulateSavePath(
       getSelectedFolder(state),
@@ -111,7 +137,7 @@ const createLinkagesStore = (set, get) => ({
     const thumbnailStatus = await thumbnailsAPI.save(thumbnailPartialPath, temporaryThumbnail)
     if (!thumbnailStatus) return
 
-    const saveData = await linkagesAPI.create({
+    const response = await linkagesAPI.create({
       CatalogVideoId: activeVideo.id,
       StartTime: regionStart,
       EndTime: regionEnd,
@@ -120,14 +146,21 @@ const createLinkagesStore = (set, get) => ({
       ThumbnailFilePath: thumbnailPartialPath,
     })
 
-    const saveStatus = 'LinkageId' in saveData
-    if (!saveStatus) return
+    if (response.status === 409) {
+      makeAlert(
+        `Linakge creation failed.
+        It appears that you have the linkage data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
+    if (response.status !== 200) return null
 
     clearCreatedLinkage(clearAll)
     clearEditDialogs()
     setActiveDrawTool(DRAWING.POINTER)
     await loadLinkages()
-    return saveData['LinkageId']
+    return response?.data?.['LinkageId']
   },
 
   clearCreatedLinkage: (clearAll = false) => {
@@ -139,8 +172,43 @@ const createLinkagesStore = (set, get) => ({
   },
 
   updateLinkage: async (linkageId, payload) => {
-    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages } = get()
-    await linkagesAPI.update(linkageId, payload)
+    const state = get()
+    const { clearCreatedLinkage, clearEditDialogs, setActiveDrawTool, loadLinkages, makeAlert } =
+      state
+    const activeVideo = getActiveVideo(state)
+    const activeLinkage = getActiveLinkage(state)
+
+    // Check that all annotations are within the new region
+    if ('StartTime' in payload || 'EndTime' in payload) {
+      const drawingOnScreenFrames =
+        DRAWING_ON_SCREEN_SECONDS * frameRateFromStr(activeVideo.frameRate)
+      const annotationsOutsideRegion = activeLinkage.annotations.some(
+        (annotation) =>
+          annotation.frame < payload.StartTime ||
+          annotation.frame > payload.EndTime - drawingOnScreenFrames
+      )
+      if (annotationsOutsideRegion) {
+        makeAlert(
+          `Some annotations are outside the edited video region, or too close to the end of the region.
+          Please adjust either the region or the annotations before saving.`,
+          'warning'
+        )
+        return
+      }
+    }
+
+    const status = await linkagesAPI.update(linkageId, payload)
+
+    if (status === 409) {
+      get().makeAlert(
+        `Linakge update failed.
+        It appears that you have the linkage data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
+    if (status !== 200) return
+
     clearCreatedLinkage()
     clearEditDialogs()
     setActiveDrawTool(DRAWING.POINTER)

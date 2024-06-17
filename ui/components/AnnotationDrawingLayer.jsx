@@ -13,7 +13,7 @@ import {
 } from '../utilities/drawing'
 import DrawingConfirmationChip from './DrawingConfirmationChip'
 
-const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
+const AnnotationDrawingLayer = ({ rect, tool, addAnnotation, disabled = false }) => {
   // any reset needs
   useEffect(() => {
     if (tool === DRAWING.POINTER) {
@@ -32,6 +32,7 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
   const [drawing, setDrawing] = useState(false)
   const [dragStart, setDragStart] = useState(null)
   const [pointerPosition, setPointerPosition] = useState(null)
+  const [disabledPosition, setDisabledPosition] = useState(null)
   const handlePointerDown = (event) => {
     if (confirming) return
     setDrawing(true)
@@ -45,6 +46,9 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
   }
 
   const handlePointerMove = (event) => {
+    if (disabled) {
+      setDisabledPosition({ x: event.clientX, y: event.clientY })
+    }
     if (!dragStart || !drawing || confirming) return
     const relativePoint = absolutePointToRelative(
       { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
@@ -57,6 +61,10 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
     setDrawing(false)
     setConfirming(true)
     window.removeEventListener('pointerup', handlePointerUp)
+  }
+
+  const handlePointerOut = () => {
+    setDisabledPosition(null)
   }
 
   // Main Drawing Loop
@@ -136,12 +144,14 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
         width: rect.width,
         height: rect.height,
         userSelect: 'none',
+        cursor: disabled ? 'not-allowed' : 'crosshair',
         zIndex: 8,
         // useful for debugging
         // backgroundColor: 'rgba(255, 0, 0, 0.3)',
       }}
-      onPointerDown={handlePointerDown}
+      onPointerDown={disabled ? undefined : handlePointerDown}
       onPointerMove={handlePointerMove}
+      onPointerOut={handlePointerOut}
     >
       <canvas
         ref={canvasRef}
@@ -173,6 +183,22 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation }) => {
             label="Delete"
             icon={<ClearIcon sx={{ fontSize: 'inherit', color: 'error.main' }} />}
             onClick={onDelete}
+          />
+        </Box>
+      )}
+
+      {disabled && disabledPosition && (
+        <Box
+          sx={(theme) => ({
+            position: 'fixed',
+            top: `calc(${disabledPosition.y}px + ${theme.spacing(1)})`,
+            left: `calc(${disabledPosition.x}px + ${theme.spacing(1)})`,
+          })}
+        >
+          <DrawingConfirmationChip
+            label={
+              <Box sx={{ marginRight: 0.5, color: 'error.main' }}>Outside of Video Region</Box>
+            }
           />
         </Box>
       )}

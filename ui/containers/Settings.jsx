@@ -11,6 +11,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 
+import useStore from '../store'
 import useSettingsStore from '../store/settings'
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
@@ -47,12 +48,45 @@ const SettingsContainer = () => {
     openDialog()
   }, [loading, open])
 
+  // Once the settings are initialized, perform a followup check for any open files
+  // Then proceed to check again every 10 seconds in case the user opens a file later
+  const makeAlert = useStore((state) => state.makeAlert)
+  const alertDialogOpen = useStore((state) => state.alertDialogOpen)
+  const alertDialogProps = useStore((state) => state.alertDialogProps)
+  const closeAlert = useStore((state) => state.closeAlert)
+  useEffect(() => {
+    if (!initialized) return
+
+    const checkThenAlert = async () => {
+      const anyOpen = await settingsAPI.checkForOpenFiles()
+
+      // If no files are open, but the alert is open from a previous warning of this type, close it
+      if (!anyOpen) {
+        if (alertDialogOpen && alertDialogProps?.id === 'open-files-warning') {
+          closeAlert()
+        }
+        return
+      }
+
+      makeAlert(
+        'It appears that you have some of the data files open (Excel).\nPlease close them before proceeding.',
+        'warning',
+        'open-files-warning'
+      )
+    }
+
+    checkThenAlert()
+    const intervalId = setInterval(checkThenAlert, 10_000)
+    return () => clearInterval(intervalId)
+  }, [initialized, alertDialogOpen, alertDialogProps])
+
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
 
   const [submitting, setSubmitting] = useState(false)
   const handleSubmit = async () => {
     setSubmitting(true)
-    const successful = await settingsAPI.save(settings)
+    const status = await settingsAPI.save(settings)
+    const successful = status === 200
     if (successful && initialized) {
       return window.api.reloadWindow()
     } else if (successful) {
@@ -107,6 +141,8 @@ const SettingsContainer = () => {
         {!initialized && (
           <Alert severity="warning" sx={{ marginBottom: 1 }}>
             You must initially populate these settings in order to use the Application.
+            <br />
+            Please close these Excel files if you have them open.
           </Alert>
         )}
 

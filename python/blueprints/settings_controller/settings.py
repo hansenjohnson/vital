@@ -39,6 +39,19 @@ def create_or_update_settings():
         return response, status
 
 
+@bp.route('/open_files', methods=['GET'])
+def check_for_open_files():
+    try:
+        linkage_model.flush_to_excel()
+        still_export_model.flush_to_excel()
+
+        return '', 200
+    except PermissionError as e:
+        return '', 409
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bp.route('/<key>', methods=['GET'])
 def get_settings(key=None):
     response, status = jsonify({"message": "An unexpected error occurred"}), 500
