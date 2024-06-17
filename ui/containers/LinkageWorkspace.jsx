@@ -172,6 +172,7 @@ const LinkageWorkspace = () => {
   const previousLinkageId = useRef(null)
   const previousVideoURL = useRef(null)
   const previousSkipAutoSeek = useRef(null)
+  const autoPauseOnLinkageId = useRef(null)
   useEffect(() => {
     const update = () => {
       previousLinkageId.current = activeLinkage?.id
@@ -195,12 +196,21 @@ const LinkageWorkspace = () => {
       return
     }
 
-    const enableAutoPause = () =>
-      videoElement.addEventListener('seeked', () => setAutoPause(true), { once: true })
+    const enableAutoPause = (pairWithId) =>
+      videoElement.addEventListener(
+        'seeked',
+        () => {
+          // There is a delay in syncing React state to VideoElement state, so we wait 100ms to compensate.
+          // Otherwise we will auto-pause prematurely when seeking to a linkage before the selected one.
+          setTimeout(() => (autoPauseOnLinkageId.current = pairWithId), 100)
+          setAutoPause(true)
+        },
+        { once: true }
+      )
 
     // The video didn't change, so just seek to the new regionStart
     if (linkageChanged && !videoURLChanged) {
-      enableAutoPause()
+      enableAutoPause(activeLinkage.id)
       seekToFrame(activeLinkage.regionStart)
       videoElement.play()
       update()
@@ -218,7 +228,7 @@ const LinkageWorkspace = () => {
     // the video and the linkage changed at the same time, so we need to wait
     // for that video to be avaialble before we can perform the seek
     const seekAfterVideoHasDuration = () => {
-      enableAutoPause()
+      enableAutoPause(activeLinkage.id)
       seekToFrame(activeLinkage.regionStart)
       videoElement.play()
     }
@@ -234,6 +244,7 @@ const LinkageWorkspace = () => {
     if (!videoElement) return
     if (!activeLinkage) return
     if (!autoPause) return
+    if (autoPauseOnLinkageId.current !== activeLinkage.id) return
     if (videoFrameNumber >= activeLinkage.regionEnd) {
       videoElement.pause()
       setAutoPause(false)
