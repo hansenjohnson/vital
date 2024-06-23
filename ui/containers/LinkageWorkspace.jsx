@@ -613,7 +613,7 @@ const LinkageWorkspace = () => {
               variant="contained"
               disabled={!saveable}
             >
-              Save Linkage
+              Save & View
             </StyledButton>
           )}
           {linkageMode === LINKAGE_MODES.EDIT && (

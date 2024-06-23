@@ -4,11 +4,13 @@ from model.folder_model import FolderModel
 from model.video_model import VideoModel
 from settings.settings_enum import SettingsEnum
 from utils.file_path import catalog_folder_path
+from utils.file_path import video_file_path
 
 bp = Blueprint('videos', __name__)
 settings_service = SettingsService()
 video_model = VideoModel()
 folder_model = FolderModel()
+
 
 @bp.route('/<int:catalog_folder_id>/<path:file>', methods=['GET'])
 def get_video_by_id(catalog_folder_id, file):
@@ -21,3 +23,8 @@ def get_video_files_by_folder_id(folder_id):
     rows = video_model.get_videos_by_folder_id(folder_id)
     return jsonify({"videos": rows})
 
+
+@bp.route('/path/<int:catalog_video_id>', methods=['GET'])
+def get_video_file_path(catalog_video_id):
+    file_path = video_file_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
+    return jsonify({"file_path": file_path})

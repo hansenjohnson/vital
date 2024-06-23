@@ -10,6 +10,12 @@ const getList = async (catalogFolderId) => {
   return data ? data['videos'] : []
 }
 
+const getVideoPath = async (videoId) => {
+  const data = await getJSON(`${baseURL}/videos/path/${videoId}`)
+
+  return data['file_path'] ? data['file_path'] : []
+}
+
 export default {
   getVideoURL,
   getList,

@@ -16,6 +16,7 @@ import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
 import { joinPath, folderSlash } from '../utilities/paths'
 import StyledButton from './StyledButton'
 import SettingInput from './SettingInput'
+import FileTypes from "../constants/fileTypes";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Grow ref={ref} {...props} />
@@ -177,6 +178,14 @@ const ExportStillDialog = ({
               {exportStatus === 'success' && 'Success'}
               {exportStatus === 'error' && 'Failed'}
             </StyledButton>
+            {exportStatus === 'success' && (
+              <StyledButton
+                variant="contained"
+                onClick={() => window.api.selectFile(FileTypes.FILE)}
+              >
+                Open in Folder
+            </StyledButton>
+            )}
           </Box>
         </Box>
       </DialogContent>

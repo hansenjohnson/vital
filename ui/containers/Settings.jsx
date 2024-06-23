@@ -9,6 +9,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton'
 
 import useStore from '../store'
@@ -29,6 +30,8 @@ const SettingsContainer = () => {
   const [settings, setOneSetting] = useSettingsStore(
     useShallow((state) => [state.settings, state.setOneSetting])
   )
+
+  const version = window.api.getVersion()
 
   // Determine if settings are initialized, open the dialog otherwise
   // as the app is unusable without them
@@ -249,16 +252,19 @@ const SettingsContainer = () => {
       </DialogContent>
 
       <DialogActions>
-        <Button
-          onClick={handleSubmit}
-          disabled={!Object.values(settings).every((setting) => !!setting) || submitting}
-          startIcon={
-            submitting && <CircularProgress color="inherit" size={16} sx={{ marginRight: 1 }} />
-          }
-          sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
-        >
-          {initialized ? 'Save & Reload' : 'Save'}
-        </Button>
+        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+          <Typography variant="body2">Version: {version}</Typography>
+          <Button
+            onClick={handleSubmit}
+            disabled={!Object.values(settings).every((setting) => !!setting) || submitting}
+            startIcon={
+              submitting && <CircularProgress color="inherit" size={16} sx={{ marginRight: 1 }} />
+            }
+            sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
+          >
+            {initialized ? 'Save & Reload' : 'Save'}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   )

@@ -16,14 +16,23 @@ import StyledSelect from '../components/StyledSelect'
 import LinkageListItem from '../components/LinkageListItem'
 import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
+import FileTypes from "../constants/fileTypes";
+import useSettingsStore from "../store/settings";
+import { useShallow } from "zustand/react/shallow";
 
 const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
 
+
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
+
+
+  const [settings] = useSettingsStore(
+    useShallow((state) => [state.settings])
+  )
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -210,7 +219,14 @@ const LinkageSidebar = () => {
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
+                  onShowInFileBrowser={async (currentVideoId) => {
+                    console.log(currentVideoId)
+                    console.log(selectedFolder)
+                    console.log(videos.find((video) => video.id === currentVideoId).fileName)
+                    await window.api.selectFile(FileTypes.FILE)
+                  }}
                   isPlaying={id === activeVideoId}
+                  videoId={id}
                 />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}
               </Box>
