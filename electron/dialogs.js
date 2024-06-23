@@ -1,6 +1,6 @@
 import { ipcMain, dialog } from 'electron'
 
-ipcMain.handle('open-file-dialog', async (event, type, location = null) => {
+ipcMain.handle('open-file-dialog', async (event, type, filePath) => {
   let properties = []
   if (type === 'folder') {
     properties = ['openDirectory']
@@ -13,9 +13,12 @@ ipcMain.handle('open-file-dialog', async (event, type, location = null) => {
     filters = [{ name: 'Excel', extensions: ['xlsx', 'xls', 'csv'] }]
   }
 
-  console.log('location', location)
+  const options = { properties, filters }
+  if (filePath !== null) {
+    options.defaultPath = filePath
+  }
 
-  const { canceled, filePaths } = await dialog.showOpenDialog({ properties, filters, defaultPath: location })
+  const { canceled, filePaths } = await dialog.showOpenDialog(options)
   if (!canceled) {
     return filePaths[0]
   }

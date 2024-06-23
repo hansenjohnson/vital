@@ -19,4 +19,5 @@ const getVideoPath = async (videoId) => {
 export default {
   getVideoURL,
   getList,
+  getVideoPath,
 }

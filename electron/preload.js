@@ -4,7 +4,7 @@ import packageJson from '../package.json';
 // Custom APIs for renderer
 const api = {
   reloadWindow: () => ipcRenderer.send('reload-window'),
-  selectFile: (type) => ipcRenderer.invoke('open-file-dialog', type, location),
+  selectFile: (type, filePath) => ipcRenderer.invoke('open-file-dialog', type, filePath),
   getVersion: () => packageJson.version,
 }
 

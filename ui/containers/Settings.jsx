@@ -154,7 +154,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH, filePath)
           }}
@@ -165,7 +165,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH, filePath)
           }}
@@ -176,7 +176,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.LINKAGE_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.LINKAGE_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.LINKAGE_FILE_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.LINKAGE_FILE_PATH, filePath)
           }}
@@ -187,7 +187,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.SIGHTING_FILE_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
           }}
@@ -198,7 +198,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILL_EXPORT_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL)
+            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.STILL_EXPORT_FILE_PATH, filePath)
           }}
@@ -211,7 +211,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS, filePath)
           }}
@@ -221,7 +221,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS, filePath)
           }}
@@ -234,7 +234,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.THUMBNAIL_DIR_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
           }}
@@ -244,7 +244,7 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILLEXPORT_DIR_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.STILLEXPORT_DIR_PATH])
             if (!filePath) return
             setOneSetting(SETTING_KEYS.STILLEXPORT_DIR_PATH, filePath)
           }}

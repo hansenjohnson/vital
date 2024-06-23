@@ -20,6 +20,8 @@ import FileTypes from "../constants/fileTypes";
 import useSettingsStore from "../store/settings";
 import { useShallow } from "zustand/react/shallow";
 
+import videosAPI from '../api/videos'
+
 const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
@@ -219,14 +221,11 @@ const LinkageSidebar = () => {
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
-                  onShowInFileBrowser={async (currentVideoId) => {
-                    console.log(currentVideoId)
-                    console.log(selectedFolder)
-                    console.log(videos.find((video) => video.id === currentVideoId).fileName)
-                    await window.api.selectFile(FileTypes.FILE)
+                  onShowInFileBrowser={async () => {
+                    const filePath = await videosAPI.getVideoPath(video.id)
+                    await window.api.selectFile(FileTypes.FILE, filePath)
                   }}
                   isPlaying={id === activeVideoId}
-                  videoId={id}
                 />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}
               </Box>

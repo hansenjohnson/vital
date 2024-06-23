@@ -17,6 +17,8 @@ import { joinPath, folderSlash } from '../utilities/paths'
 import StyledButton from './StyledButton'
 import SettingInput from './SettingInput'
 import FileTypes from "../constants/fileTypes";
+import useSettingsStore from "../store/settings";
+import {useShallow} from "zustand/react/shallow";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Grow ref={ref} {...props} />
@@ -181,7 +183,9 @@ const ExportStillDialog = ({
             {exportStatus === 'success' && (
               <StyledButton
                 variant="contained"
-                onClick={() => window.api.selectFile(FileTypes.FILE)}
+                onClick={async () =>{
+                  await window.api.selectFile(FileTypes.FILE, joinPath([stillExportDir, subFolder]))
+                }}
               >
                 Open in Folder
             </StyledButton>
