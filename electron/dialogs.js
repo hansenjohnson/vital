@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron'
+import { ipcMain, dialog, shell } from 'electron'
 
 ipcMain.handle('open-file-dialog', async (event, type, filePath) => {
   let properties = []
@@ -20,6 +20,9 @@ ipcMain.handle('open-file-dialog', async (event, type, filePath) => {
 
   const { canceled, filePaths } = await dialog.showOpenDialog(options)
   if (!canceled) {
+    if (type === 'file') {
+      await shell.openPath(filePaths[0])
+    }
     return filePaths[0]
   }
   return ''
