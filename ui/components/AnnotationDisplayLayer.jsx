@@ -5,7 +5,13 @@ import { DRAWING } from '../constants/tools'
 import { DRAWING_ON_SCREEN_SECONDS } from '../constants/times'
 import { drawArrow, drawEllipse, relativePointToAbsolute } from '../utilities/drawing'
 
-const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate }) => {
+const AnnotationDisplayLayer = ({
+  rect,
+  annotations,
+  hoveredAnnotation,
+  currentFrame,
+  frameRate,
+}) => {
   // Canvas Initialization
   const dpr = window.devicePixelRatio || 1
   const canvasRef = useRef(null)
@@ -22,8 +28,9 @@ const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate }) 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    annotations.forEach((annotation) => {
+    annotations.forEach((annotation, index) => {
       const { frame, type, x1, y1, x2, y2 } = annotation
+      const isHovered = hoveredAnnotation === index
 
       // Draw the annotation graphic on the frame whence it was drawn
       // and then keep it on the screen for a bit, so the flash isn't so quick
@@ -33,12 +40,19 @@ const AnnotationDisplayLayer = ({ rect, annotations, currentFrame, frameRate }) 
       const absolutePoint2 = relativePointToAbsolute({ x: parseFloat(x2), y: parseFloat(y2) }, rect)
 
       if (type === DRAWING.ARROW) {
-        drawArrow(ctx, absolutePoint1, absolutePoint2)
+        drawArrow(ctx, absolutePoint1, absolutePoint2, isHovered)
       } else if (type === DRAWING.ELLIPSE) {
-        drawEllipse(ctx, absolutePoint1, absolutePoint2)
+        drawEllipse(ctx, absolutePoint1, absolutePoint2, isHovered)
       }
     })
-  }, [dpr, JSON.stringify(rect), JSON.stringify(annotations), drawingOnScreenFrames, currentFrame])
+  }, [
+    dpr,
+    JSON.stringify(rect),
+    JSON.stringify(annotations),
+    drawingOnScreenFrames,
+    currentFrame,
+    hoveredAnnotation,
+  ])
 
   if (!annotations || !annotations.length || !rect) return null
   return (

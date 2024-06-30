@@ -427,9 +427,15 @@ const LinkageWorkspace = () => {
   const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * videoFrameRate
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
+  const hoverAnnotationIndex = useStore((state) => state.hoverAnnotationIndex)
+  const setHoverAnnotationIndex = useStore((state) => state.setHoverAnnotationIndex)
   const selectDrawTool = (tool) => {
     videoElement.pause()
     setActiveDrawTool(tool)
+  }
+  const hoverAnnotation = (index) => {
+    if (linkageMode !== LINKAGE_MODES.EDIT) return
+    setHoverAnnotationIndex(index)
   }
   const navigateToAnnotation = (index) => {
     videoElement.pause()
@@ -504,6 +510,7 @@ const LinkageWorkspace = () => {
         <AnnotationDisplayLayer
           rect={videoElementRect}
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
+          hoveredAnnotation={hoverAnnotationIndex}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
         />
@@ -555,6 +562,7 @@ const LinkageWorkspace = () => {
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations.length ? annotations : activeLinkage?.annotations}
+            hoverAnnotation={hoverAnnotation}
             navigateToAnnotation={navigateToAnnotation}
             deleteAnnotation={deleteAnnotation}
             thumbnail={thumbnailURL}

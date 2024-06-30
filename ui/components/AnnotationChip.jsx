@@ -1,6 +1,6 @@
 import Chip from '@mui/material/Chip'
 
-const AnnotationChip = ({ annotationName, onClick, onDelete }) => {
+const AnnotationChip = ({ annotationName, onHover, onClick, onDelete }) => {
   return (
     <Chip
       label={annotationName}
@@ -17,6 +17,8 @@ const AnnotationChip = ({ annotationName, onClick, onDelete }) => {
       }}
       onClick={onClick}
       onDelete={onDelete}
+      onPointerOver={() => onHover(true)}
+      onPointerOut={() => onHover(false)}
     />
   )
 }
