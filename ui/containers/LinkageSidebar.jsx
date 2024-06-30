@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
@@ -20,6 +20,16 @@ import ViewModeTab from '../components/ViewModeTab'
 import videosAPI from '../api/videos'
 
 const LinkageSidebar = () => {
+  const scrollContainerRef = useRef(null)
+  const [scrollbarWidth, setScrollbarWidth] = useState(0)
+  useEffect(() => {
+    const observer = new ResizeObserver(([mutation]) => {
+      setScrollbarWidth(mutation.target.offsetWidth - mutation.target.clientWidth)
+    })
+    observer.observe(scrollContainerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
@@ -186,7 +196,7 @@ const LinkageSidebar = () => {
         </Box>
       </Box>
 
-      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+      <Box ref={scrollContainerRef} sx={{ flexGrow: 1, overflowY: 'auto' }}>
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
 
         {viewMode === VIEW_MODES.BY_VIDEO &&
@@ -209,6 +219,7 @@ const LinkageSidebar = () => {
               >
                 <VideoGroupHeader
                   name={videoBaseName}
+                  scrollbarWidth={scrollbarWidth || 0}
                   // TODO: if/when you implement this, add a confirmation dialog
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
