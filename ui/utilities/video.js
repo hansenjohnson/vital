@@ -33,3 +33,9 @@ export const timecodeFromFrameNumber = (frameNumber, frameRate, showFrames = tru
   }
   return timecode
 }
+
+export const jumpToPrevFrame = (videoElement, videoFrameRate) =>
+  (videoElement.currentTime -= 1 / videoFrameRate)
+
+export const jumpToNextFrame = (videoElement, videoFrameRate) =>
+  (videoElement.currentTime += 1 / videoFrameRate)
