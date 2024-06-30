@@ -15,7 +15,12 @@ import { useValueAndSetter } from '../store/utils'
 
 import { leafPath } from '../utilities/paths'
 import { catalogFolderString } from '../utilities/strings'
-import { frameRateFromStr, timecodeFromFrameNumber } from '../utilities/video'
+import {
+  frameRateFromStr,
+  timecodeFromFrameNumber,
+  jumpToPrevFrame,
+  jumpToNextFrame,
+} from '../utilities/video'
 import { thumbnailFromVideoElement, thumbnailFromBitmap } from '../utilities/image'
 import {
   initializePlayer,
@@ -157,6 +162,23 @@ const LinkageWorkspace = () => {
       mediaPlayerRef.current = null
     }
   }, [videoElement, activeVideoURL])
+
+  // Video Hotkeys
+  useEffect(() => {
+    const registerHotkeys = (event) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        videoElement.pause()
+        jumpToPrevFrame(videoElement, videoFrameRate)
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        videoElement.pause()
+        jumpToNextFrame(videoElement, videoFrameRate)
+      }
+    }
+    window.addEventListener('keydown', registerHotkeys)
+    return () => window.removeEventListener('keydown', registerHotkeys)
+  }, [videoElement, videoFrameRate])
 
   // Convience function to be called from the LinkageSidebar
   const forceQualityTriggerNumber = useStore((state) => state.forceQualityTriggerNumber)
