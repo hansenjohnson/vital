@@ -14,7 +14,6 @@ import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
 import Skeleton from '@mui/material/Skeleton'
 import Typography from '@mui/material/Typography'
 
-import FILE_TYPES from '../constants/fileTypes'
 import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
 import { joinPath, folderSlash } from '../utilities/paths'
 import StyledButton from './StyledButton'
@@ -42,6 +41,7 @@ const ExportStillDialog = ({
   exportStatus, // One of: null, 'exporting', 'success', or 'error'
 }) => {
   const [fileName, setFileName] = useState('')
+  const [fileNameWithExtension, setFileNameWithExtension] = useState('')
 
   // Set default file name when dialog is opened
   useEffect(() => {
@@ -171,10 +171,12 @@ const ExportStillDialog = ({
                 variant="text"
                 sx={{ fontSize: '12px', height: 'max-content' }}
                 onClick={async () => {
-                  await window.api.selectFile(
-                    FILE_TYPES.FILE,
-                    joinPath([stillExportDir, subFolder])
-                  )
+                  const fullPathToImage = joinPath([
+                    stillExportDir,
+                    subFolder,
+                    fileNameWithExtension,
+                  ])
+                  await window.api.showFileInFolder(fullPathToImage)
                 }}
               >
                 Open in File Browser
@@ -187,7 +189,10 @@ const ExportStillDialog = ({
             </Box>
             <StyledButton
               variant="contained"
-              onClick={() => handleExport(fileName)}
+              onClick={async () => {
+                const _fileNameWithExtension = await handleExport(fileName)
+                setFileNameWithExtension(_fileNameWithExtension)
+              }}
               disabled={exportStatus !== null}
             >
               {exportStatus === null && 'Export'}

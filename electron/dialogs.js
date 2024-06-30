@@ -20,10 +20,11 @@ ipcMain.handle('open-file-dialog', async (event, type, filePath) => {
 
   const { canceled, filePaths } = await dialog.showOpenDialog(options)
   if (!canceled) {
-    if (type === 'file') {
-      await shell.openPath(filePaths[0])
-    }
     return filePaths[0]
   }
   return ''
+})
+
+ipcMain.on('show-file-in-folder', (event, filePath) => {
+  shell.showItemInFolder(filePath)
 })

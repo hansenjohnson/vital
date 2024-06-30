@@ -299,9 +299,10 @@ const LinkageWorkspace = () => {
   const makeAlert = useStore((state) => state.makeAlert)
   const exportStillFrame = async (fileName) => {
     setExportStatus('exporting')
+    const fileNameWithExtension = `${fileName}.jpg`
     const status = await stillExportsAPI.create(
       activeVideoId,
-      `${fileName}.jpg`,
+      fileNameWithExtension,
       videoFrameNumber,
       selectedSightingId
     )
@@ -314,6 +315,7 @@ const LinkageWorkspace = () => {
         'error'
       )
     }
+    return fileNameWithExtension
   }
 
   // Active Linkage Property Editing

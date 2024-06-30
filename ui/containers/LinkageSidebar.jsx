@@ -7,7 +7,6 @@ import useStore from '../store'
 import { getSelectedFolder } from '../store/folders'
 import { isSaveable } from '../store/linkages'
 import thumbnailsAPI from '../api/thumbnails'
-import FILE_TYPES from '../constants/fileTypes'
 import { LINKAGE_MODES, VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
 import { viewSuffixString } from '../utilities/strings'
@@ -216,8 +215,7 @@ const LinkageSidebar = () => {
                   onPlay={() => playVideoOnly(video.id)}
                   onShowInFileBrowser={async () => {
                     const filePath = await videosAPI.getVideoPath(video.id)
-                    if (!filePath) return
-                    await window.api.selectFile(FILE_TYPES.FILE, filePath)
+                    await window.api.showFileInFolder(filePath)
                   }}
                   isPlaying={id === activeVideoId}
                 />
