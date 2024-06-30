@@ -1,9 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import packageJson from '../package.json'
 
 // Custom APIs for renderer
 const api = {
   reloadWindow: () => ipcRenderer.send('reload-window'),
-  selectFile: (type) => ipcRenderer.invoke('open-file-dialog', type),
+  selectFile: (type, filePath) => ipcRenderer.invoke('open-file-dialog', type, filePath),
+  showFileInFolder: (filePath) => ipcRenderer.send('show-file-in-folder', filePath),
+  getVersion: () => packageJson.version,
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -36,11 +36,13 @@ def catalog_folder_path(catalog_folder_id, settings_enum):
 
     return os.path.join(base_folder_path, f"{folder_year_range[0]}-{folder_year_range[1]}", str(folder_year), folder_catalog_name)
 
-
-def video_file_path(catalog_video_id, settings_enum):
+"""
+Note: in this function, file_type refers to the column name in the video table
+"""
+def video_file_path(catalog_video_id, settings_enum, file_type):
     video_by_id = video_model.get_video_by_id(catalog_video_id)
 
     catalog_folder_id = video_by_id['CatalogFolderId']
     folder_path = catalog_folder_path(catalog_folder_id, settings_enum)
 
-    return os.path.join(folder_path, video_by_id['OptimizedFileName'])
+    return os.path.join(folder_path, video_by_id[file_type])

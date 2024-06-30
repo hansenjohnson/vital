@@ -1,9 +1,19 @@
+const white90 = 'rgba(255, 255, 255, 0.9)'
 const softerRed = 'rgba(240, 10, 10, 0.9)'
 const lineWidth = 4
 
-export const drawArrow = (ctx, point1, point2) => {
-  ctx.strokeStyle = softerRed
-  ctx.lineWidth = lineWidth
+export const drawArrow = (ctx, point1, point2, hoverHighlight = false, highlightOnly = false) => {
+  if (hoverHighlight) {
+    drawArrow(ctx, point1, point2, false, true)
+  }
+  if (highlightOnly) {
+    ctx.strokeStyle = white90
+    ctx.lineWidth = lineWidth * 2
+  } else {
+    ctx.strokeStyle = softerRed
+    ctx.lineWidth = lineWidth
+  }
+
   ctx.beginPath()
   ctx.moveTo(point1.x, point1.y)
   ctx.lineTo(point2.x, point2.y)
@@ -33,7 +43,7 @@ export const drawArrow = (ctx, point1, point2) => {
   ctx.stroke()
 }
 
-export const drawEllipse = (ctx, point1, point2) => {
+export const drawEllipse = (ctx, point1, point2, hoverHighlight = false) => {
   const radiusX = Math.abs(point2.x - point1.x) / 2
   const radiusY = Math.abs(point2.y - point1.y) / 2
   const x = Math.min(point1.x, point2.x) + radiusX
@@ -41,9 +51,19 @@ export const drawEllipse = (ctx, point1, point2) => {
 
   ctx.strokeStyle = softerRed
   ctx.lineWidth = lineWidth
+
   ctx.beginPath()
   ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2)
   ctx.stroke()
+
+  if (hoverHighlight) {
+    const halfLine = lineWidth / 2
+    ctx.strokeStyle = white90
+    ctx.lineWidth = halfLine
+    ctx.beginPath()
+    ctx.ellipse(x, y, radiusX + halfLine, radiusY + halfLine, 0, 0, Math.PI * 2)
+    ctx.stroke()
+  }
 }
 
 export const absolutePointToRelative = (absolutePoint, rect) => ({

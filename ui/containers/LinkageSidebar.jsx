@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import SmartDisplayIcon from '@mui/icons-material/SmartDisplay'
@@ -17,13 +17,26 @@ import LinkageListItem from '../components/LinkageListItem'
 import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
+import videosAPI from '../api/videos'
+
 const LinkageSidebar = () => {
+  const scrollContainerRef = useRef(null)
+  const [scrollbarWidth, setScrollbarWidth] = useState(0)
+  useEffect(() => {
+    const observer = new ResizeObserver(([mutation]) => {
+      setScrollbarWidth(mutation.target.offsetWidth - mutation.target.clientWidth)
+    })
+    observer.observe(scrollContainerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
 
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
+
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -183,7 +196,7 @@ const LinkageSidebar = () => {
         </Box>
       </Box>
 
-      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+      <Box ref={scrollContainerRef} sx={{ flexGrow: 1, overflowY: 'auto' }}>
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
 
         {viewMode === VIEW_MODES.BY_VIDEO &&
@@ -206,10 +219,15 @@ const LinkageSidebar = () => {
               >
                 <VideoGroupHeader
                   name={videoBaseName}
+                  scrollbarWidth={scrollbarWidth || 0}
                   // TODO: if/when you implement this, add a confirmation dialog
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
+                  onShowInFileBrowser={async () => {
+                    const filePath = await videosAPI.getVideoPath(video.id)
+                    await window.api.showFileInFolder(filePath)
+                  }}
                   isPlaying={id === activeVideoId}
                 />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}

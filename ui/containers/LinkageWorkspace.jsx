@@ -15,7 +15,12 @@ import { useValueAndSetter } from '../store/utils'
 
 import { leafPath } from '../utilities/paths'
 import { catalogFolderString } from '../utilities/strings'
-import { frameRateFromStr, timecodeFromFrameNumber } from '../utilities/video'
+import {
+  frameRateFromStr,
+  timecodeFromFrameNumber,
+  jumpToPrevFrame,
+  jumpToNextFrame,
+} from '../utilities/video'
 import { thumbnailFromVideoElement, thumbnailFromBitmap } from '../utilities/image'
 import {
   initializePlayer,
@@ -50,7 +55,7 @@ import AnnotationDrawingLayer from '../components/AnnotationDrawingLayer'
 import ToolsButtonGroup from '../components/ToolsButtonGroup'
 
 const TIMELINE_HEIGHT = 48
-const DETAILS_HEIGHT = 245
+const DETAILS_HEIGHT = 252
 
 const LinkageWorkspace = () => {
   const activeVideoId = useStore((state) => state.activeVideoId)
@@ -157,6 +162,32 @@ const LinkageWorkspace = () => {
       mediaPlayerRef.current = null
     }
   }, [videoElement, activeVideoURL])
+
+  // Video Hotkeys
+  useEffect(() => {
+    const registerHotkeys = (event) => {
+      if (!videoElement) return
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        videoElement.pause()
+        jumpToPrevFrame(videoElement, videoFrameRate)
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        videoElement.pause()
+        jumpToNextFrame(videoElement, videoFrameRate)
+      } else if (event.key === ' ') {
+        event.preventDefault()
+        event.target.blur()
+        if (videoElement.paused) {
+          videoElement.play()
+        } else {
+          videoElement.pause()
+        }
+      }
+    }
+    window.addEventListener('keydown', registerHotkeys)
+    return () => window.removeEventListener('keydown', registerHotkeys)
+  }, [videoElement, videoFrameRate])
 
   // Convience function to be called from the LinkageSidebar
   const forceQualityTriggerNumber = useStore((state) => state.forceQualityTriggerNumber)
@@ -299,9 +330,10 @@ const LinkageWorkspace = () => {
   const makeAlert = useStore((state) => state.makeAlert)
   const exportStillFrame = async (fileName) => {
     setExportStatus('exporting')
+    const fileNameWithExtension = `${fileName}.jpg`
     const status = await stillExportsAPI.create(
       activeVideoId,
-      `${fileName}.jpg`,
+      fileNameWithExtension,
       videoFrameNumber,
       selectedSightingId
     )
@@ -314,6 +346,7 @@ const LinkageWorkspace = () => {
         'error'
       )
     }
+    return fileNameWithExtension
   }
 
   // Active Linkage Property Editing
@@ -403,9 +436,18 @@ const LinkageWorkspace = () => {
   const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * videoFrameRate
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
+  const hoverAnnotationIndex = useStore((state) => state.hoverAnnotationIndex)
+  const setHoverAnnotationIndex = useStore((state) => state.setHoverAnnotationIndex)
   const selectDrawTool = (tool) => {
     videoElement.pause()
     setActiveDrawTool(tool)
+  }
+  const hoverAnnotation = (index) => {
+    if (linkageMode === LINKAGE_MODES.EDIT) {
+      setHoverAnnotationIndex(index)
+    } else {
+      setHoverAnnotationIndex(null)
+    }
   }
   const navigateToAnnotation = (index) => {
     videoElement.pause()
@@ -425,8 +467,9 @@ const LinkageWorkspace = () => {
     }
     if (linkageMode === LINKAGE_MODES.EDIT) {
       const newAnnotations = [...activeLinkage.annotations, newAnnotation]
-      updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
-    } else if (linkageMode === LINKAGE_MODES.CREATE) {
+      return updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    }
+    if (linkageMode === LINKAGE_MODES.CREATE) {
       setAnnotations([...annotations, newAnnotation])
     }
   }
@@ -480,6 +523,7 @@ const LinkageWorkspace = () => {
         <AnnotationDisplayLayer
           rect={videoElementRect}
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
+          hoveredAnnotation={hoverAnnotationIndex}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
         />
@@ -531,6 +575,7 @@ const LinkageWorkspace = () => {
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations.length ? annotations : activeLinkage?.annotations}
+            hoverAnnotation={hoverAnnotation}
             navigateToAnnotation={navigateToAnnotation}
             deleteAnnotation={deleteAnnotation}
             thumbnail={thumbnailURL}
@@ -613,7 +658,7 @@ const LinkageWorkspace = () => {
               variant="contained"
               disabled={!saveable}
             >
-              Save Linkage
+              Save & View
             </StyledButton>
           )}
           {linkageMode === LINKAGE_MODES.EDIT && (

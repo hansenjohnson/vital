@@ -2,18 +2,24 @@ import path from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import log from 'electron-log/main'
+import ElectronStore from 'electron-store'
 
 import { launchPythonServer, killPythonServer } from './childProcesses'
 
 log.initialize()
 log.info(`App Launched at  ${new Date()}`)
 
+const settings = new ElectronStore()
+
 let pythonServer
 
 function createWindow() {
+  const { x, y, width, height, isMaximized } = settings.get('window') || {}
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    x: x || undefined,
+    y: y || undefined,
+    width: width || 1200,
+    height: height || 800,
     show: false,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
@@ -28,6 +34,9 @@ function createWindow() {
       contextIsolation: true,
     },
   })
+  if (isMaximized) {
+    mainWindow.maximize()
+  }
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -49,6 +58,12 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
+
+  mainWindow.on('close', () => {
+    const { x, y, width, height } = mainWindow.getBounds()
+    const isMaximized = mainWindow.isMaximized()
+    settings.set('window', { x, y, width, height, isMaximized })
+  })
 }
 
 // This method will be called when Electron has finished

@@ -9,8 +9,10 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen'
 
 import useWindowSize from '../hooks/useWindowSize'
 import { timecodeFromFrameNumber } from '../utilities/video'
+import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import BlankSlate from './BlankSlate'
 
+const MORE_TRUE_TITLEBAR_HEIGHT = TITLEBAR_HEIGHT - 0.5
 const PLAYER_CONTROLS_WIDTH = 150
 const PLAYER_CONTROLS_HEIGHT = 50
 const CONTENT_SHADOW = '0px 0px 4px rgba(255, 255, 255, 0.7)'
@@ -52,7 +54,8 @@ const VideoPlayer = forwardRef((props, videoElement) => {
     const { clientWidth, clientHeight } = videoContainer
     const videoContainerAspectRatio = clientWidth / clientHeight
     const tooMuchAspectRatio = videoContainerAspectRatio > 16 / 9
-    const enoughHeightForSiblings = windowHeight - clientHeight > heightToLeaveForSiblings
+    const enoughHeightForSiblings =
+      windowHeight - MORE_TRUE_TITLEBAR_HEIGHT - clientHeight >= heightToLeaveForSiblings
     if (!enoughHeightForSiblings || tooMuchAspectRatio) {
       setWiderContainer(true)
     } else {
