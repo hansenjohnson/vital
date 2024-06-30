@@ -443,8 +443,11 @@ const LinkageWorkspace = () => {
     setActiveDrawTool(tool)
   }
   const hoverAnnotation = (index) => {
-    if (linkageMode !== LINKAGE_MODES.EDIT) return
-    setHoverAnnotationIndex(index)
+    if (linkageMode === LINKAGE_MODES.EDIT) {
+      setHoverAnnotationIndex(index)
+    } else {
+      setHoverAnnotationIndex(null)
+    }
   }
   const navigateToAnnotation = (index) => {
     videoElement.pause()
