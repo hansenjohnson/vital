@@ -7,6 +7,7 @@ import useStore from '../store'
 import { getSelectedFolder } from '../store/folders'
 import { isSaveable } from '../store/linkages'
 import thumbnailsAPI from '../api/thumbnails'
+import FILE_TYPES from '../constants/fileTypes'
 import { LINKAGE_MODES, VIEW_MODES } from '../constants/routes'
 import { leafPath } from '../utilities/paths'
 import { viewSuffixString } from '../utilities/strings'
@@ -16,9 +17,6 @@ import StyledSelect from '../components/StyledSelect'
 import LinkageListItem from '../components/LinkageListItem'
 import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
-import FileTypes from "../constants/fileTypes";
-import useSettingsStore from "../store/settings";
-import { useShallow } from "zustand/react/shallow";
 
 import videosAPI from '../api/videos'
 
@@ -27,14 +25,9 @@ const LinkageSidebar = () => {
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
 
-
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
 
-
-  const [settings] = useSettingsStore(
-    useShallow((state) => [state.settings])
-  )
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -223,7 +216,8 @@ const LinkageSidebar = () => {
                   onPlay={() => playVideoOnly(video.id)}
                   onShowInFileBrowser={async () => {
                     const filePath = await videosAPI.getVideoPath(video.id)
-                    await window.api.selectFile(FileTypes.FILE, filePath)
+                    if (!filePath) return
+                    await window.api.selectFile(FILE_TYPES.FILE, filePath)
                   }}
                   isPlaying={id === activeVideoId}
                 />

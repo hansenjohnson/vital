@@ -9,7 +9,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import Typography from '@mui/material/Typography';
+import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 
 import useStore from '../store'
@@ -154,7 +154,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH, filePath)
           }}
@@ -165,7 +168,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH, filePath)
           }}
@@ -176,7 +182,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.LINKAGE_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.LINKAGE_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.LINKAGE_FILE_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.LINKAGE_FILE_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.LINKAGE_FILE_PATH, filePath)
           }}
@@ -187,7 +196,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.SIGHTING_FILE_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.SIGHTING_FILE_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.SIGHTING_FILE_PATH, filePath)
           }}
@@ -198,7 +210,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILL_EXPORT_FILE_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.EXCEL, settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.STILL_EXPORT_FILE_PATH, filePath)
           }}
@@ -211,7 +226,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS, filePath)
           }}
@@ -221,7 +239,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS, filePath)
           }}
@@ -234,7 +255,10 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.THUMBNAIL_DIR_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.THUMBNAIL_DIR_PATH, filePath)
           }}
@@ -244,27 +268,30 @@ const SettingsContainer = () => {
           value={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILLEXPORT_DIR_PATH)}
           onFolderClick={async () => {
-            const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, settings[SETTING_KEYS.STILLEXPORT_DIR_PATH])
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]
+            )
             if (!filePath) return
             setOneSetting(SETTING_KEYS.STILLEXPORT_DIR_PATH, filePath)
           }}
         />
       </DialogContent>
 
-      <DialogActions>
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography variant="body2">Version: {version}</Typography>
-          <Button
-            onClick={handleSubmit}
-            disabled={!Object.values(settings).every((setting) => !!setting) || submitting}
-            startIcon={
-              submitting && <CircularProgress color="inherit" size={16} sx={{ marginRight: 1 }} />
-            }
-            sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
-          >
-            {initialized ? 'Save & Reload' : 'Save'}
-          </Button>
-        </Box>
+      <DialogActions sx={{ justifyContent: 'space-between' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ marginLeft: 1.5 }}>
+          Software Version: {version}
+        </Typography>
+        <Button
+          onClick={handleSubmit}
+          disabled={!Object.values(settings).every((setting) => !!setting) || submitting}
+          startIcon={
+            submitting && <CircularProgress color="inherit" size={16} sx={{ marginRight: 1 }} />
+          }
+          sx={{ paddingLeft: 1.5, paddingRight: 1.5 }}
+        >
+          {initialized ? 'Save & Reload' : 'Save'}
+        </Button>
       </DialogActions>
     </Dialog>
   )

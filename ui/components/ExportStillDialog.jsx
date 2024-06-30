@@ -1,24 +1,24 @@
 import { useState, forwardRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import IconButton from '@mui/material/IconButton'
 import Grow from '@mui/material/Grow'
-import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
-import Skeleton from '@mui/material/Skeleton'
+import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import CheckIcon from '@mui/icons-material/Check'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred'
+import Skeleton from '@mui/material/Skeleton'
+import Typography from '@mui/material/Typography'
 
+import FILE_TYPES from '../constants/fileTypes'
 import { STILL_FRAME_PREVIEW_WIDTH } from '../constants/dimensions'
 import { joinPath, folderSlash } from '../utilities/paths'
 import StyledButton from './StyledButton'
 import SettingInput from './SettingInput'
-import FileTypes from "../constants/fileTypes";
-import useSettingsStore from "../store/settings";
-import {useShallow} from "zustand/react/shallow";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Grow ref={ref} {...props} />
@@ -165,7 +165,22 @@ const ExportStillDialog = ({
             />
           </Box>
 
-          <Box sx={{ alignSelf: 'flex-end', display: 'flex', gap: 1 }}>
+          <Box sx={{ alignSelf: 'flex-end', display: 'flex', gap: 1, alignItems: 'center' }}>
+            {exportStatus === 'success' && (
+              <Button
+                variant="text"
+                sx={{ fontSize: '12px', height: 'max-content' }}
+                onClick={async () => {
+                  await window.api.selectFile(
+                    FILE_TYPES.FILE,
+                    joinPath([stillExportDir, subFolder])
+                  )
+                }}
+              >
+                Open in File Browser
+                <OpenInNewIcon sx={{ marginLeft: 0.5, fontSize: '14px' }} />
+              </Button>
+            )}
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {exportStatus === 'success' && <CheckIcon color="success" />}
               {exportStatus === 'error' && <ReportGmailerrorredIcon color="error" />}
@@ -176,20 +191,10 @@ const ExportStillDialog = ({
               disabled={exportStatus !== null}
             >
               {exportStatus === null && 'Export'}
-              {exportStatus === 'exporting' && 'Export'}
+              {exportStatus === 'exporting' && 'Exporting...'}
               {exportStatus === 'success' && 'Success'}
               {exportStatus === 'error' && 'Failed'}
             </StyledButton>
-            {exportStatus === 'success' && (
-              <StyledButton
-                variant="contained"
-                onClick={async () =>{
-                  await window.api.selectFile(FileTypes.FILE, joinPath([stillExportDir, subFolder]))
-                }}
-              >
-                Open in Folder
-            </StyledButton>
-            )}
           </Box>
         </Box>
       </DialogContent>

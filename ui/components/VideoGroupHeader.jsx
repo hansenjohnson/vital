@@ -53,6 +53,7 @@ const VideoGroupHeader = ({ name, onHide, onReload, onShowInFileBrowser, onPlay,
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               wordBreak: 'keep-all',
+              userSelect: 'none',
             }}
           >
             {name}
