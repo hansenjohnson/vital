@@ -166,6 +166,7 @@ const LinkageWorkspace = () => {
   // Video Hotkeys
   useEffect(() => {
     const registerHotkeys = (event) => {
+      if (!videoElement) return
       if (event.key === 'ArrowLeft') {
         event.preventDefault()
         videoElement.pause()
@@ -174,6 +175,14 @@ const LinkageWorkspace = () => {
         event.preventDefault()
         videoElement.pause()
         jumpToNextFrame(videoElement, videoFrameRate)
+      } else if (event.key === ' ') {
+        event.preventDefault()
+        event.target.blur()
+        if (videoElement.paused) {
+          videoElement.play()
+        } else {
+          videoElement.pause()
+        }
       }
     }
     window.addEventListener('keydown', registerHotkeys)
@@ -427,9 +436,18 @@ const LinkageWorkspace = () => {
   const drawingOnScreenFrames = DRAWING_ON_SCREEN_SECONDS * videoFrameRate
   const activeDrawTool = useStore((state) => state.activeDrawTool)
   const setActiveDrawTool = useStore((state) => state.setActiveDrawTool)
+  const hoverAnnotationIndex = useStore((state) => state.hoverAnnotationIndex)
+  const setHoverAnnotationIndex = useStore((state) => state.setHoverAnnotationIndex)
   const selectDrawTool = (tool) => {
     videoElement.pause()
     setActiveDrawTool(tool)
+  }
+  const hoverAnnotation = (index) => {
+    if (linkageMode === LINKAGE_MODES.EDIT) {
+      setHoverAnnotationIndex(index)
+    } else {
+      setHoverAnnotationIndex(null)
+    }
   }
   const navigateToAnnotation = (index) => {
     videoElement.pause()
@@ -449,8 +467,9 @@ const LinkageWorkspace = () => {
     }
     if (linkageMode === LINKAGE_MODES.EDIT) {
       const newAnnotations = [...activeLinkage.annotations, newAnnotation]
-      updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
-    } else if (linkageMode === LINKAGE_MODES.CREATE) {
+      return updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    }
+    if (linkageMode === LINKAGE_MODES.CREATE) {
       setAnnotations([...annotations, newAnnotation])
     }
   }
@@ -504,6 +523,7 @@ const LinkageWorkspace = () => {
         <AnnotationDisplayLayer
           rect={videoElementRect}
           annotations={annotations.length ? annotations : activeLinkage?.annotations}
+          hoveredAnnotation={hoverAnnotationIndex}
           currentFrame={videoFrameNumber}
           frameRate={videoFrameRate}
         />
@@ -555,6 +575,7 @@ const LinkageWorkspace = () => {
             sightingName={sightingName}
             openSightingDialog={() => setSightingsDialogOpen(true)}
             annotations={annotations.length ? annotations : activeLinkage?.annotations}
+            hoverAnnotation={hoverAnnotation}
             navigateToAnnotation={navigateToAnnotation}
             deleteAnnotation={deleteAnnotation}
             thumbnail={thumbnailURL}

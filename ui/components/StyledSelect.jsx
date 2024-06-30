@@ -17,6 +17,11 @@ const StyledSelect = ({ label, value, handleChange, options }) => (
       value={value}
       label={label}
       onChange={handleChange}
+      SelectDisplayProps={{
+        // This prevents key events from opening the menu
+        // We do this to allow the spacebar to be used for other purposes
+        onKeyDown: () => null,
+      }}
       sx={(theme) => ({
         color: 'inherit',
         fontFamily: theme.typography.monoFamily,

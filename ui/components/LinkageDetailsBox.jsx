@@ -41,6 +41,7 @@ const LinkageDetailsBox = ({
   sightingName,
   openSightingDialog,
   annotations,
+  hoverAnnotation,
   navigateToAnnotation,
   deleteAnnotation,
   thumbnail,
@@ -53,6 +54,7 @@ const LinkageDetailsBox = ({
     <AnnotationsSection
       mode={mode}
       annotations={annotations}
+      handleHover={hoverAnnotation}
       handleClick={navigateToAnnotation}
       handleDelete={deleteAnnotation}
     />

@@ -30,6 +30,7 @@ const initialState = {
 
   // Annotation Drawing
   activeDrawTool: DRAWING.POINTER,
+  hoverAnnotationIndex: null,
 }
 
 const createLinkagesStore = (set, get) => ({
@@ -222,6 +223,7 @@ const createLinkagesStore = (set, get) => ({
   },
 
   setActiveDrawTool: valueSetter(set, 'activeDrawTool'),
+  setHoverAnnotationIndex: valueSetter(set, 'hoverAnnotationIndex'),
 })
 
 const getActiveLinkage = ({ linkages, activeLinkageId }) =>

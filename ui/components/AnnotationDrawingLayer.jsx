@@ -91,8 +91,8 @@ const AnnotationDrawingLayer = ({ rect, tool, addAnnotation, disabled = false })
 
   // Completion Events
   const [confirming, setConfirming] = useState(false)
-  const onKeep = () => {
-    addAnnotation({
+  const onKeep = async () => {
+    await addAnnotation({
       type: tool,
       x1: dragStart.x.toFixed(NORMALIZED_PRECISION),
       y1: dragStart.y.toFixed(NORMALIZED_PRECISION),
