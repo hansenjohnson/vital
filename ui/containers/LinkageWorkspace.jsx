@@ -166,6 +166,7 @@ const LinkageWorkspace = () => {
   // Video Hotkeys
   useEffect(() => {
     const registerHotkeys = (event) => {
+      if (!videoElement) return
       if (event.key === 'ArrowLeft') {
         event.preventDefault()
         videoElement.pause()
@@ -174,6 +175,14 @@ const LinkageWorkspace = () => {
         event.preventDefault()
         videoElement.pause()
         jumpToNextFrame(videoElement, videoFrameRate)
+      } else if (event.key === ' ') {
+        event.preventDefault()
+        event.target.blur()
+        if (videoElement.paused) {
+          videoElement.play()
+        } else {
+          videoElement.pause()
+        }
       }
     }
     window.addEventListener('keydown', registerHotkeys)

@@ -48,6 +48,18 @@ const LinkageAnnotationPage = () => {
   const confirmationDialogProps = useStore((state) => state.confirmationDialogProps)
   const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
 
+  // Spacebar capture/overwrite
+  useEffect(() => {
+    const registerHotkeys = (event) => {
+      if (event.key === ' ') {
+        event.preventDefault()
+        event.target.blur()
+      }
+    }
+    window.addEventListener('keydown', registerHotkeys)
+    return () => window.removeEventListener('keydown', registerHotkeys)
+  }, [])
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <LinkageSidebar />
