@@ -55,7 +55,7 @@ import AnnotationDrawingLayer from '../components/AnnotationDrawingLayer'
 import ToolsButtonGroup from '../components/ToolsButtonGroup'
 
 const TIMELINE_HEIGHT = 48
-const DETAILS_HEIGHT = 245
+const DETAILS_HEIGHT = 252
 
 const LinkageWorkspace = () => {
   const activeVideoId = useStore((state) => state.activeVideoId)
