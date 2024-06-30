@@ -26,5 +26,5 @@ def get_video_files_by_folder_id(folder_id):
 
 @bp.route('/path/<int:catalog_video_id>', methods=['GET'])
 def get_video_file_path(catalog_video_id):
-    file_path = video_file_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value, 'OriginalFileName')
+    file_path = video_file_path(catalog_video_id, SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value, 'OptimizedFileName')
     return jsonify({"file_path": file_path})
