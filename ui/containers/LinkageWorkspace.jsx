@@ -455,8 +455,9 @@ const LinkageWorkspace = () => {
     }
     if (linkageMode === LINKAGE_MODES.EDIT) {
       const newAnnotations = [...activeLinkage.annotations, newAnnotation]
-      updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
-    } else if (linkageMode === LINKAGE_MODES.CREATE) {
+      return updateLinkage(activeLinkageId, { Annotation: JSON.stringify(newAnnotations) })
+    }
+    if (linkageMode === LINKAGE_MODES.CREATE) {
       setAnnotations([...annotations, newAnnotation])
     }
   }
