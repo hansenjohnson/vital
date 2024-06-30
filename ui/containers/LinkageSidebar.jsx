@@ -17,6 +17,8 @@ import LinkageListItem from '../components/LinkageListItem'
 import VideoGroupHeader from '../components/VideoGroupHeader'
 import ViewModeTab from '../components/ViewModeTab'
 
+import videosAPI from '../api/videos'
+
 const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
@@ -24,6 +26,7 @@ const LinkageSidebar = () => {
 
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
+
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -210,6 +213,10 @@ const LinkageSidebar = () => {
                   onHide={() => null}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
+                  onShowInFileBrowser={async () => {
+                    const filePath = await videosAPI.getVideoPath(video.id)
+                    await window.api.showFileInFolder(filePath)
+                  }}
                   isPlaying={id === activeVideoId}
                 />
                 {linkagesForGroup && linkagesForGroup.map(makeLinkageItem)}

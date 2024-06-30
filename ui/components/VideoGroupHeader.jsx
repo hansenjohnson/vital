@@ -53,6 +53,7 @@ const VideoGroupHeader = ({ name, onHide, onReload, onShowInFileBrowser, onPlay,
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               wordBreak: 'keep-all',
+              userSelect: 'none',
             }}
           >
             {name}
@@ -118,9 +119,9 @@ const VideoGroupHeader = ({ name, onHide, onReload, onShowInFileBrowser, onPlay,
           Reload at Highest Quality
         </MenuItem>
         <MenuItem
-          onClick={() => {
+          onClick={async () => {
             closeMenu()
-            onShowInFileBrowser()
+            await onShowInFileBrowser()
           }}
         >
           Show in File Browser
