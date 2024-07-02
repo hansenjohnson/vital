@@ -160,6 +160,16 @@ const VideoPlayer = forwardRef((props, videoElement) => {
     if (!videoElement) return
     videoElement.requestFullscreen()
   }
+  useEffect(() => {
+    if (!videoElement) return
+    const fullscreenChanged = () => {
+      if (!document.fullscreenElement) {
+        alertOnResize()
+      }
+    }
+    document.addEventListener('fullscreenchange', fullscreenChanged)
+    return () => document.removeEventListener('fullscreenchange', fullscreenChanged)
+  }, [videoElement])
 
   if (!url) {
     return <BlankSlate message="Select a Video or Linkage to get started" messageWidth={100} />
