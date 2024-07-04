@@ -37,6 +37,18 @@ const LinkageSidebar = () => {
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
 
+  const [hiddenVideos, setHiddenVideos] = useState([]);
+  const hideVideo = (videoId) => {
+    setConfirmationDialogProps({
+      title: 'Hide Video',
+      body: 'Are you sure you want to hide this video?',
+      onConfirm: () => {
+        setHiddenVideos((prevHiddenVideos) => [...prevHiddenVideos, videoId]);
+      },
+    });
+    setConfirmationDialogOpen(true);
+  };
+
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -200,7 +212,9 @@ const LinkageSidebar = () => {
         {viewMode === VIEW_MODES.BY_SIGHTING && linkages.map(makeLinkageItem)}
 
         {viewMode === VIEW_MODES.BY_VIDEO &&
-          videos.map((video, index) => {
+          videos
+            .filter((video) => !hiddenVideos.includes(video.id))
+            .map((video, index) => {
             const { id, fileName } = video
             const videoBaseName = leafPath(fileName).split('.')[0]
             const linkagesForGroup = linkageGroups[fileName]
@@ -221,7 +235,7 @@ const LinkageSidebar = () => {
                   name={videoBaseName}
                   scrollbarWidth={scrollbarWidth || 0}
                   // TODO: if/when you implement this, add a confirmation dialog
-                  onHide={() => null}
+                  onHide={() => hideVideo(video.id)}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
                   onShowInFileBrowser={async () => {
