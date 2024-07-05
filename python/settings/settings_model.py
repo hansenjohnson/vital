@@ -5,7 +5,6 @@ import os
 class SettingsModel:
     def __init__(self):
         self.config = configparser.ConfigParser()
-        print(os.getenv('APPDATA'))
         self.file_path = os.path.join(os.getenv('APPDATA'), 'VITAL', 'settings.ini')
         os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
         self.config.read(self.file_path)
