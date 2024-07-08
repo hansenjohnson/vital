@@ -34,7 +34,8 @@ class SightingModel(SQL):
                        SightingDay INTEGER,
                        ObserverCode TEXT,
                        SightingTime INTEGER,
-                       SightingLetter TEXT
+                       SightingLetter TEXT,
+                       FieldEGNo INTEGER
                     )"""
         self.load_table('sighting', sighting_create, self.file_path, 'SightingId')
 
