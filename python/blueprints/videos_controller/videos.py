@@ -1,4 +1,4 @@
-from flask import Blueprint, send_from_directory, jsonify
+from flask import Blueprint, send_from_directory, jsonify, request
 from settings.settings_service import SettingsService
 from model.folder_model import FolderModel
 from model.video_model import VideoModel
@@ -31,3 +31,15 @@ def get_video_file_path(catalog_video_id):
 
     file_path = video_file_path(catalog_video_id, base, column)
     return jsonify({"file_path": file_path})
+
+
+@bp.route('/<int:catalog_video_id>', methods=['PUT'])
+def update_video(catalog_video_id):
+    payload = request.json
+    try:
+        video_model.update_hidden(catalog_video_id, payload['hidden'])
+        return jsonify({"message": "Video updated successfully"}), 200
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 409
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

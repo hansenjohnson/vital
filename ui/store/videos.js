@@ -25,6 +25,19 @@ const createVideosStore = (set, get) => ({
     set({ videos: sortedData })
   },
 
+  updateVideo: async (videoId, data) => {
+    const statusCode = await videosAPI.update(videoId, data)
+    if (statusCode === 409) {
+      get().makeAlert(
+        `Video update failed.
+        It appears that you have the video data file open.
+        Please close it before proceeding.`,
+        'error'
+      )
+    }
+    await this.loadVideos()
+  },
+
   setActiveVideo: (id) => set({ activeVideoId: id }),
 
   setVideoFrameNumber: valueSetter(set, 'videoFrameNumber'),
@@ -38,6 +51,7 @@ const createVideosStore = (set, get) => ({
 
 const getActiveVideo = ({ videos, activeVideoId }) =>
   videos.find((video) => video.id === activeVideoId)
+
 
 export { getActiveVideo }
 export default createVideosStore
