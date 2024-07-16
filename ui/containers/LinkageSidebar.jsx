@@ -33,18 +33,20 @@ const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
+  const loadVideos = useStore((state) => state.loadVideos)
+  const updateVideo = useStore((state) => state.updateVideo)
 
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
 
   const hideVideo = async (video) => {
     const payload = { ...video, hidden: true }
-    const updateLinkage = useStore((state) => state.updateVideo)
     setConfirmationDialogProps({
       title: 'Hide Video',
       body: 'Are you sure you want to hide this video?',
-      onConfirm: () => {
-        updateLinkage(video.id, payload)
+      onConfirm: async () => {
+        await updateVideo(video.id, payload)
+        await loadVideos()
       },
     })
     setConfirmationDialogOpen(true)
@@ -71,7 +73,6 @@ const LinkageSidebar = () => {
   const linkages = useStore((state) => state.linkages)
   const loadLinkages = useStore((state) => state.loadLinkages)
   const videos = useStore((state) => state.videos)
-  const loadVideos = useStore((state) => state.loadVideos)
   useEffect(() => {
     if (viewSuffix == null) return
     loadLinkages()

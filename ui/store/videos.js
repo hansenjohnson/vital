@@ -35,7 +35,6 @@ const createVideosStore = (set, get) => ({
         'error'
       )
     }
-    await this.loadVideos()
   },
 
   setActiveVideo: (id) => set({ activeVideoId: id }),

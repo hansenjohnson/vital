@@ -20,7 +20,7 @@ function createWindow() {
     y: y || undefined,
     width: width || 1200,
     height: height || 800,
-    show: false,
+    show: true,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     titleBarOverlay: {

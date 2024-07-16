@@ -1,7 +1,5 @@
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
-from utils.prints import print_err
-
 
 class VideoModel(SQL):
     _instance = None
@@ -62,7 +60,7 @@ class VideoModel(SQL):
     def update_video(self, video_id, payload):
         try:
             cursor = self.conn.cursor()
-            cursor.execute(f"UPDATE video SET FrameRate = {payload['frame_rate']}, Hidden = {payload['hidden']} WHERE CatalogVideoId = {video_id}")
+            cursor.execute(f"UPDATE video SET FrameRate = {payload['frameRate']}, Hidden = {payload['hidden']} WHERE CatalogVideoId = {video_id}")
             self.conn.commit()
             cursor.close()
             self.flush_to_excel()

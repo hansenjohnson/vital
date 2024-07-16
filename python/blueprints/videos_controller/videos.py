@@ -37,7 +37,7 @@ def get_video_file_path(catalog_video_id):
 def update_video(catalog_video_id):
     payload = request.json
     try:
-        video_model.update_hidden(catalog_video_id, payload['hidden'])
+        video_model.update_video(catalog_video_id, payload)
         return jsonify({"message": "Video updated successfully"}), 200
     except PermissionError as e:
         return jsonify({"error": str(e)}), 409
