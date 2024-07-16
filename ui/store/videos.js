@@ -51,6 +51,5 @@ const createVideosStore = (set, get) => ({
 const getActiveVideo = ({ videos, activeVideoId }) =>
   videos.find((video) => video.id === activeVideoId)
 
-
 export { getActiveVideo }
 export default createVideosStore
