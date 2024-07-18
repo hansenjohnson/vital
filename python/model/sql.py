@@ -16,7 +16,7 @@ class SQL:
 
     def __init__(self):
         self.df = pd.DataFrame()
-        self.conn = sqlite3.connect('video_catalog.db', check_same_thread=False)
+        self.conn = sqlite3.connect('vital.db', check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.worksheet_name = None
 
