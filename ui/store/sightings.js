@@ -38,7 +38,12 @@ const getSelectedSighting = ({ sightings, selectedSightingId }) =>
 
 const getSelectedSightingName = (state) => {
   const sighting = getSelectedSighting(state)
-  return sighting ? `${sighting.date} ${sighting.observer} ${sighting.letter}` : ''
+  if (!sighting) return ''
+  let name = `${sighting.time} Letter ${sighting.letter}`
+  if (sighting.egno) {
+    name += ` EGNo ${sighting.egno}`
+  }
+  return name
 }
 
 const selectedSightingHasOverlap = (state) => {
