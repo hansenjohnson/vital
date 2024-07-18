@@ -33,9 +33,24 @@ const LinkageSidebar = () => {
   const folders = useStore((state) => state.folders)
   const selectFolder = useStore((state) => state.selectFolder)
   const selectedFolder = useStore((state) => getSelectedFolder(state))
+  const loadVideos = useStore((state) => state.loadVideos)
+  const updateVideo = useStore((state) => state.updateVideo)
 
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
+
+  const hideVideo = async (video) => {
+    const payload = { ...video, hidden: true }
+    setConfirmationDialogProps({
+      title: 'Hide Video',
+      body: 'Are you sure you want to hide this video?',
+      onConfirm: async () => {
+        await updateVideo(video.id, payload)
+        await loadVideos()
+      },
+    })
+    setConfirmationDialogOpen(true)
+  }
 
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
@@ -58,7 +73,6 @@ const LinkageSidebar = () => {
   const linkages = useStore((state) => state.linkages)
   const loadLinkages = useStore((state) => state.loadLinkages)
   const videos = useStore((state) => state.videos)
-  const loadVideos = useStore((state) => state.loadVideos)
   useEffect(() => {
     if (viewSuffix == null) return
     loadLinkages()
@@ -220,8 +234,7 @@ const LinkageSidebar = () => {
                 <VideoGroupHeader
                   name={videoBaseName}
                   scrollbarWidth={scrollbarWidth || 0}
-                  // TODO: if/when you implement this, add a confirmation dialog
-                  onHide={() => null}
+                  onHide={() => hideVideo(video)}
                   onReload={triggerForceToHighestQuality}
                   onPlay={() => playVideoOnly(video.id)}
                   onShowInFileBrowser={async () => {

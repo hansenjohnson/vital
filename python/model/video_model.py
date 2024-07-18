@@ -1,7 +1,5 @@
 from model.sql import SQL
 from settings.settings_enum import SettingsEnum
-from utils.prints import print_err
-
 
 class VideoModel(SQL):
     _instance = None
@@ -40,7 +38,7 @@ class VideoModel(SQL):
     def get_videos_by_folder_id(self, folder_id):
         try:
             cursor = self.conn.cursor()
-            cursor.execute(f'SELECT * FROM video WHERE CatalogFolderId = {folder_id}')
+            cursor.execute(f'SELECT * FROM video WHERE CatalogFolderId = {folder_id} AND Hidden = False')
             rows = cursor.fetchall()
             cursor.close()
             return [dict(row) for row in rows]
@@ -58,3 +56,16 @@ class VideoModel(SQL):
         except Exception as e:
             print_err(f"Failed to execute SQL query get_video_by_id: {e}")
         return None
+
+    def update_video(self, video_id, payload):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(f"UPDATE video SET FrameRate = {payload['frameRate']}, Hidden = {payload['hidden']} WHERE CatalogVideoId = {video_id}")
+            self.conn.commit()
+            cursor.close()
+            self.flush_to_excel()
+        except Exception as e:
+            print_err(f"Failed to execute SQL query update_video: {e}")
+
+    def flush_to_excel(self):
+        return super().flush_to_excel('video', self.file_path, self.worksheet_name)
