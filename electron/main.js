@@ -20,7 +20,7 @@ function createWindow() {
     y: y || undefined,
     width: width || 1200,
     height: height || 800,
-    show: true,
+    show: false,
     autoHideMenuBar: true,
     titleBarStyle: 'hidden',
     titleBarOverlay: {
@@ -34,12 +34,39 @@ function createWindow() {
       contextIsolation: true,
     },
   })
-  if (isMaximized) {
-    mainWindow.maximize()
-  }
 
+  // Register event handlers before calling any actions in-line
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  mainWindow.webContents.once('did-finish-load', () => {
+    mainWindow.show()
+  })
+
+  mainWindow.on('show', () => {
+    // Apply the Maximize setting if it was saved this way
+    // Only call this once the window is shown since this secrely shows the window if it is not already
+    if (isMaximized) {
+      mainWindow.maximize()
+    }
+  })
+
+  mainWindow.on('close', () => {
+    const bounds = mainWindow.getBounds()
+    const newIsMaximized = mainWindow.isMaximized()
+    if (newIsMaximized) {
+      // use previously saved values so that unmaximizing restores the window to the correct size
+      settings.set('window', { x, y, width, height, isMaximized: newIsMaximized })
+    } else {
+      settings.set('window', {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        isMaximized,
+      })
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -47,23 +74,19 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  if (process.env.OPEN_DEVTOOLS === 'true' && is.dev) {
-    mainWindow.webContents.openDevTools({ mode: 'right' })
-  }
+  // --- Perform Window Actions Below this line ---
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    // HMR from electron-vite in development
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
+    // pre-built local html file in production
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 
-  mainWindow.on('close', () => {
-    const { x, y, width, height } = mainWindow.getBounds()
-    const isMaximized = mainWindow.isMaximized()
-    settings.set('window', { x, y, width, height, isMaximized })
-  })
+  if (process.env.OPEN_DEVTOOLS === 'true' && is.dev) {
+    mainWindow.webContents.openDevTools({ mode: 'right' })
+  }
 }
 
 // This method will be called when Electron has finished
