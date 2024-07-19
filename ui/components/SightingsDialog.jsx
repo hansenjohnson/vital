@@ -28,10 +28,11 @@ const Transition = forwardRef(function Transition(props, ref) {
 const TableHeader = ({ mode }) => (
   <TableHead>
     <TableRow>
+      <TableCell>Time</TableCell>
+      <TableCell>Letter</TableCell>
+      <TableCell>Field EGNo</TableCell>
       <TableCell>Date</TableCell>
-      <TableCell align="left">Observer</TableCell>
-      <TableCell align="right">Time</TableCell>
-      <TableCell align="right">Letter</TableCell>
+      <TableCell>Observer</TableCell>
       {/* To hold text indicating the currently "saved" sighting id */}
       {mode === LINKAGE_MODES.EDIT && <TableCell align="right" sx={{ width: '100px' }}></TableCell>}
       <TableCell
@@ -69,7 +70,7 @@ const SightingsDialog = ({
     }
   }
 
-  const makeTableRow = ({ id, date, observer, time, letter }) => {
+  const makeTableRow = ({ id, date, observer, time, letter, egno }) => {
     const showAsSelected = newSightingId !== null ? id === newSightingId : id === selectedSightingId
     const showAsOverlap = newSightingHasOverlap && id === newSightingId
     return (
@@ -79,22 +80,11 @@ const SightingsDialog = ({
           '&:last-child td, &:last-child th': { border: 0 },
         }}
       >
-        <TableCell
-          sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}
-          component="th"
-          scope="row"
-        >
-          {date}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="left">
-          {observer}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="right">
-          {time}
-        </TableCell>
-        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }} align="right">
-          {letter}
-        </TableCell>
+        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{time}</TableCell>
+        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{letter}</TableCell>
+        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{egno}</TableCell>
+        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{date}</TableCell>
+        <TableCell sx={{ fontFamily: "'Sometype Mono Variable', monopace" }}>{observer}</TableCell>
         {mode === LINKAGE_MODES.EDIT && (
           <TableCell
             sx={{

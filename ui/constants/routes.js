@@ -4,8 +4,8 @@ const ROUTES = {
 }
 
 const TITLES = {
-  [ROUTES.TOOLS]: 'Video Catalog Suite',
-  [ROUTES.LINK_AND_ANNOTATE]: 'Link and Annotate Videos',
+  [ROUTES.TOOLS]: 'Video and Image Tool for tracking Animal Lives',
+  [ROUTES.LINK_AND_ANNOTATE]: 'VITAL - Link and Annotate Videos',
 }
 
 const VIEW_MODES = {

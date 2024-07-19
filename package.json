@@ -1,7 +1,7 @@
 {
-  "name": "video-catalog-suite",
-  "version": "1.2.0",
-  "description": "ingest and annotate images and videos of animals",
+  "name": "vital",
+  "version": "1.3.0",
+  "description": "Video and Image Tool for tracking Animal Lives",
   "author": "Ben Zenker and Matt Crawford",
   "main": "./out/main/main.js",
   "scripts": {

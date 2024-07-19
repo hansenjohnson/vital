@@ -1,4 +1,4 @@
-# video-catalog-suite
+# VITAL - Video and Image Tool for tracking Animal Lives
 
 New England Aquarium has requested custom-made software to manage, ingest, and annotate images and videos of marine mammals. There are two sub-tools: a Video Annotation and Recall Tool, and a Data Ingestion Tool.
 

@@ -1,5 +1,5 @@
-appId: com.new-england-aquarium.video-catalog-suite
-productName: Video Catalog Suite
+appId: com.new-england-aquarium.vital
+productName: VITAL
 directories:
   buildResources: electron/buildResources
 files:
@@ -13,7 +13,7 @@ files:
 extraFiles:
   - bin
 win:
-  executableName: video-catalog-suite
+  executableName: vital
 nsis:
   runAfterFinish: false
 npmRebuild: false
