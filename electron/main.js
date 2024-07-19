@@ -64,7 +64,7 @@ function createWindow() {
         y: bounds.y,
         width: bounds.width,
         height: bounds.height,
-        isMaximized,
+        isMaximized: newIsMaximized,
       })
     }
   })
