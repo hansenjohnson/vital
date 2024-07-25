@@ -58,4 +58,13 @@ const useJobStore = create((set, get) => ({
   setSteps: valueSetter(set, 'steps'),
 }))
 
+const canParse = (state) => {
+  const { sourceFolder, jobMode, localOutputFolder } = state
+  if (!sourceFolder) return false
+  if (jobMode === JOB_MODES.UNSET) return false
+  if (jobMode === JOB_MODES.BY_IMAGE && !localOutputFolder) return false
+  return true
+}
+
+export { canParse }
 export default useJobStore

@@ -2,10 +2,10 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import TOOLS from '../constants/tools'
-import ROUTES from '../constants/routes'
+import ROUTES, { JOB_MODES } from '../constants/routes'
 
 import useStore from '../store'
-import useJobStore from '../store/job'
+import useJobStore, { canParse } from '../store/job'
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import DescriptionBox from '../components/DescriptionBox'
@@ -14,9 +14,8 @@ import ChooseFolderBrowser from './ChooseFolderBrowser'
 import ChooseIngestInputs from './ChooseIngestInputs'
 
 const ToolsContainer = () => {
-  const resetJobStore = useJobStore((state) => state.reset)
-
   const [tool, _setTool] = useState(TOOLS.INGEST_TRANSCODE)
+  const resetJobStore = useJobStore((state) => state.reset)
   const setTool = (newTool) => {
     if (newTool !== TOOLS.INGEST_TRANSCODE) {
       resetJobStore()
@@ -25,8 +24,15 @@ const ToolsContainer = () => {
   }
 
   const setRoute = useStore((state) => state.setRoute)
+
   const selectedFolderId = useStore((state) => state.selectedFolderId)
+
   const jobMode = useJobStore((state) => state.jobMode)
+  const canParseJob = useJobStore(canParse)
+  let parseButtonText = 'Parse Files'
+  if (jobMode !== JOB_MODES.UNSET) {
+    parseButtonText = `Parse ${jobMode[0].toUpperCase() + jobMode.slice(1)}s`
+  }
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
@@ -85,9 +91,9 @@ const ToolsContainer = () => {
               color="secondary"
               onClick={() => setRoute(ROUTES.INGEST)}
               sx={{ flexShrink: 0, alignSelf: 'flex-end' }}
-              // disabled={selectedFolderId == null}
+              disabled={!canParseJob}
             >
-              Parse {jobMode[0].toUpperCase() + jobMode.slice(1)}s
+              {parseButtonText}
             </StyledButton>
           </>
         )}
