@@ -19,5 +19,18 @@ const LINKAGE_MODES = {
   EDIT: 'edit',
 }
 
-export { TITLES, VIEW_MODES, LINKAGE_MODES }
+const JOB_PHASES = {
+  INPUTS: 'inputs',
+  PARSING: 'parsing',
+  OPTIONS: 'options',
+  EXECUTION: 'execution',
+}
+
+const JOB_MODES = {
+  UNSET: 'unset',
+  BY_IMAGE: 'image',
+  BY_VIDEO: 'video',
+}
+
+export { TITLES, VIEW_MODES, LINKAGE_MODES, JOB_MODES, JOB_PHASES }
 export default ROUTES
