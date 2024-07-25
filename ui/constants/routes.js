@@ -1,11 +1,13 @@
 const ROUTES = {
   TOOLS: 'tools',
   LINK_AND_ANNOTATE: 'link-and-annotate',
+  INGEST: 'ingest',
 }
 
 const TITLES = {
   [ROUTES.TOOLS]: 'Video and Image Tool for tracking Animal Lives',
   [ROUTES.LINK_AND_ANNOTATE]: 'VITAL - Link and Annotate Videos',
+  [ROUTES.INGEST]: 'VITAL - Ingest and Transcode new media',
 }
 
 const VIEW_MODES = {
