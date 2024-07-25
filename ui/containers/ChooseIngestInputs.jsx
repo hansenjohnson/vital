@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Box from '@mui/material/Box'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -10,8 +10,12 @@ import SETTING_KEYS from '../constants/settingKeys'
 import { JOB_MODES } from '../constants/routes'
 import useJobStore from '../store/job'
 import useSettingsStore from '../store/settings'
+import useWindowSize from '../hooks/useWindowSize'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import StyledButton from '../components/StyledButton'
+import IngestInputsLineDrawing, {
+  VerticalLineBetweenDots,
+} from '../components/IngestInputsLineDrawing'
 
 const JobModeButton = ({ value, children }) => (
   <ToggleButton
@@ -34,10 +38,11 @@ const JobModeButton = ({ value, children }) => (
   </ToggleButton>
 )
 
-const BubbleListItem = ({ children }) => (
-  <Box sx={{ display: 'flex' }}>
+const BubbleListItem = ({ children, lastItem = false }) => (
+  <Box sx={{ display: 'flex', position: 'relative' }}>
     <RadioButtonUncheckedIcon fontSize="small" sx={{ marginTop: '2px', marginRight: 2 }} />
     <Box sx={{ fontWeight: 500 }}>{children}</Box>
+    {!lastItem && <VerticalLineBetweenDots />}
   </Box>
 )
 
@@ -58,8 +63,17 @@ const ChooseIngestInputs = () => {
   const localOutputFolder = useJobStore((state) => state.localOutputFolder)
   const setLocalOutputFolder = useJobStore((state) => state.setLocalOutputFolder)
 
+  const containerRef = useRef(null)
+  const windowSize = useWindowSize()
+  const [pixelsToSourceInputMiddle, setPixelsTo] = useState(0)
+  useEffect(() => {
+    const rect = containerRef.current.getBoundingClientRect()
+    setPixelsTo(parseInt(rect.width / 2, 10))
+  }, [JSON.stringify(windowSize)])
+
   return (
     <Box
+      ref={containerRef}
       sx={{
         flexGrow: 1,
         minHeight: 0,
@@ -70,6 +84,7 @@ const ChooseIngestInputs = () => {
         marginBottom: 2,
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
       }}
     >
       <FilePathSettingInput
@@ -132,14 +147,14 @@ const ChooseIngestInputs = () => {
               {settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
             </Box>
           </BubbleListItem>
-          <BubbleListItem>
+          <BubbleListItem lastItem={jobMode === JOB_MODES.BY_VIDEO}>
             Optimized {jobMode}s exported to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
               {settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
             </Box>
           </BubbleListItem>
           {jobMode === JOB_MODES.BY_IMAGE && (
-            <BubbleListItem>
+            <BubbleListItem lastItem>
               Optimized {jobMode}s&nbsp;<em>locally</em>&nbsp;exported to
               <FilePathSettingInput
                 value={localOutputFolder}
@@ -153,6 +168,14 @@ const ChooseIngestInputs = () => {
             </BubbleListItem>
           )}
         </Box>
+      )}
+
+      {/* Line Drawing */}
+      {jobMode !== JOB_MODES.UNSET && (
+        <IngestInputsLineDrawing
+          jobMode={jobMode}
+          pixelsToSourceInputMiddle={pixelsToSourceInputMiddle}
+        />
       )}
     </Box>
   )
