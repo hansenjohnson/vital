@@ -2,20 +2,14 @@ import { create } from 'zustand'
 
 import { valueSetter } from './utils'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
+import ingestAPI from '../api/ingest'
 
-const useJobStore = create((set) => ({
+const initialState = {
   phase: JOB_PHASES.INPUTS,
-  setPhase: valueSetter(set, 'phase'),
-
   sourceFolder: '',
-  setSourceFolder: valueSetter(set, 'sourceFolder'),
-
+  numFiles: { images: null, videos: null },
   jobMode: JOB_MODES.UNSET,
-  setJobMode: valueSetter(set, 'jobMode'),
-
   localOutputFolder: '',
-  setLocalOutputFolder: valueSetter(set, 'localOutputFolder'),
-
   batchRenameRules: {
     trimStart: 0,
     trimEnd: 0,
@@ -26,13 +20,34 @@ const useJobStore = create((set) => ({
     findString: '',
     replaceString: '',
   },
-  setBatchRenameRules: valueSetter(set, 'batchRenameRules'),
-
   compressionBuckets: {
     small: {},
     medium: {},
     large: {},
   },
+  steps: [],
+}
+
+const useJobStore = create((set, get) => ({
+  ...initialState,
+  reset: () => set(initialState),
+
+  setPhase: valueSetter(set, 'phase'),
+
+  setSourceFolder: valueSetter(set, 'sourceFolder'),
+
+  countFiles: async () => {
+    const { sourceFolder } = get()
+    const numFiles = await ingestAPI.countFiles(sourceFolder)
+    set({ numFiles })
+  },
+
+  setJobMode: valueSetter(set, 'jobMode'),
+
+  setLocalOutputFolder: valueSetter(set, 'localOutputFolder'),
+
+  setBatchRenameRules: valueSetter(set, 'batchRenameRules'),
+
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
 
   /** Step Schema:
@@ -40,7 +55,6 @@ const useJobStore = create((set) => ({
    * - newName: str | optional
    * - transcodeSettings: {}
    */
-  steps: [],
   setSteps: valueSetter(set, 'steps'),
 }))
 
