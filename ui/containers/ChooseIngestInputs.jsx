@@ -6,8 +6,10 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 
 import FILE_TYPES from '../constants/fileTypes'
+import SETTING_KEYS from '../constants/settingKeys'
 import { JOB_MODES } from '../constants/routes'
 import useJobStore from '../store/job'
+import useSettingsStore from '../store/settings'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import StyledButton from '../components/StyledButton'
 
@@ -33,14 +35,9 @@ const JobModeButton = ({ value, children }) => (
 )
 
 const BubbleListItem = ({ children }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-    }}
-  >
-    <RadioButtonUncheckedIcon fontSize="small" sx={{ marginRight: 2 }} />
-    {children}
+  <Box sx={{ display: 'flex' }}>
+    <RadioButtonUncheckedIcon fontSize="small" sx={{ marginTop: '2px', marginRight: 2 }} />
+    <Box sx={{ fontWeight: 500 }}>{children}</Box>
   </Box>
 )
 
@@ -56,12 +53,19 @@ const ChooseIngestInputs = () => {
   const jobMode = useJobStore((state) => state.jobMode)
   const setJobMode = useJobStore((state) => state.setJobMode)
 
+  const settings = useSettingsStore((state) => state.settings)
+
+  const localOutputFolder = useJobStore((state) => state.localOutputFolder)
+  const setLocalOutputFolder = useJobStore((state) => state.setLocalOutputFolder)
+
   return (
     <Box
       sx={{
         flexGrow: 1,
         minHeight: 0,
         width: '100%',
+        overflow: 'hidden',
+        overflowY: 'auto',
         marginTop: 2,
         marginBottom: 2,
         display: 'flex',
@@ -116,17 +120,36 @@ const ChooseIngestInputs = () => {
       </Box>
 
       {jobMode !== JOB_MODES.UNSET && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <BubbleListItem>Parse {jobMode} metadata</BubbleListItem>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <BubbleListItem>Review {jobMode} metadata</BubbleListItem>
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem>Set compression settings</BubbleListItem>
           )}
           <BubbleListItem>Transcode {jobMode} files</BubbleListItem>
-          <BubbleListItem>Original {jobMode}s copied to</BubbleListItem>
-          <BubbleListItem>Optimized {jobMode}s exported to</BubbleListItem>
+          <BubbleListItem>
+            Original {jobMode}s copied to
+            <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
+              {settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
+            </Box>
+          </BubbleListItem>
+          <BubbleListItem>
+            Optimized {jobMode}s exported to
+            <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
+              {settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
+            </Box>
+          </BubbleListItem>
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem>
               Optimized {jobMode}s&nbsp;<em>locally</em>&nbsp;exported to
+              <FilePathSettingInput
+                value={localOutputFolder}
+                onChange={(event) => setLocalOutputFolder(event.target.value)}
+                onFolderClick={async () => {
+                  const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, sourceFolder)
+                  if (!filePath) return
+                  setLocalOutputFolder(filePath)
+                }}
+              />
             </BubbleListItem>
           )}
         </Box>

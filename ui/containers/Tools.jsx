@@ -31,7 +31,7 @@ const ToolsContainer = () => {
   const canParseJob = useJobStore(canParse)
   let parseButtonText = 'Parse Files'
   if (jobMode !== JOB_MODES.UNSET) {
-    parseButtonText = `Parse ${jobMode[0].toUpperCase() + jobMode.slice(1)}s`
+    parseButtonText = `Review ${jobMode[0].toUpperCase() + jobMode.slice(1)}s`
   }
 
   return (
