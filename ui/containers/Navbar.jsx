@@ -3,6 +3,7 @@ import Box from '@mui/material/Box'
 
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
+import useJobStore from '../store/job'
 import { isSaveable } from '../store/linkages'
 import ROUTES from '../constants/routes'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
@@ -16,6 +17,7 @@ const Navbar = ({ width }) => {
   const [settingsInitialized, settingsOpen, setSettingsOpen] = useSettingsStore(
     useShallow((state) => [state.initialized, state.open, state.setOpen])
   )
+  const resetJobStore = useJobStore((state) => state.reset)
 
   const title = TITLES[route]
 
@@ -29,6 +31,7 @@ const Navbar = ({ width }) => {
       if (route === ROUTES.TOOLS) return
       setRoute(ROUTES.TOOLS)
       resetStore()
+      resetJobStore()
     }
 
     if (!savable) {
