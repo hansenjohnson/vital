@@ -60,7 +60,7 @@ const IngestInputsLineDrawing = ({ jobMode, pixelsToSourceInputMiddle }) => (
         position: 'absolute',
         backgroundColor: 'secondary.main',
         width: '1px',
-        height: theme.spacing(1),
+        height: theme.spacing(2),
         left: `${buttonMiddleForJob[jobMode]}px`,
         top: `calc(${theme.spacing(10.5)} - 2px)`,
       })}
@@ -72,9 +72,9 @@ const IngestInputsLineDrawing = ({ jobMode, pixelsToSourceInputMiddle }) => (
         borderTop: `1px solid ${theme.palette.secondary.main}`,
         borderLeft: `1px solid ${theme.palette.secondary.main}`,
         width: `calc(${buttonMiddleForJob[jobMode]}px - 8px)`,
-        height: `calc(${theme.spacing(1)} + 2px)`,
+        height: `calc(${theme.spacing(1.5)} + 2px)`,
         left: '9px',
-        top: `calc(${theme.spacing(11.5)} - 2px)`,
+        top: `calc(${theme.spacing(12.5)} - 2px)`,
       })}
     />
   </>

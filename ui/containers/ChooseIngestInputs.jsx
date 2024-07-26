@@ -38,8 +38,8 @@ const JobModeButton = ({ value, children }) => (
   </ToggleButton>
 )
 
-const BubbleListItem = ({ children, lastItem = false }) => (
-  <Box sx={{ display: 'flex', position: 'relative' }}>
+const BubbleListItem = ({ children, firstItem = false, lastItem = false }) => (
+  <Box sx={{ display: 'flex', position: 'relative', marginTop: firstItem && 1.5 }}>
     <RadioButtonUncheckedIcon fontSize="small" sx={{ marginTop: '2px', marginRight: 2 }} />
     <Box sx={{ fontWeight: 500 }}>{children}</Box>
     {!lastItem && <VerticalLineBetweenDots />}
@@ -67,9 +67,8 @@ const ChooseIngestInputs = () => {
   const windowSize = useWindowSize()
   const [pixelsToSourceInputMiddle, setPixelsTo] = useState(0)
   useEffect(() => {
-    const rect = containerRef.current.getBoundingClientRect()
-    setPixelsTo(parseInt(rect.width / 2, 10))
-  }, [JSON.stringify(windowSize)])
+    setPixelsTo(parseInt(containerRef.current.clientWidth / 2, 10))
+  }, [JSON.stringify(windowSize), jobMode])
 
   return (
     <Box
@@ -136,7 +135,7 @@ const ChooseIngestInputs = () => {
 
       {jobMode !== JOB_MODES.UNSET && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <BubbleListItem>Review {jobMode} metadata</BubbleListItem>
+          <BubbleListItem firstItem>Review {jobMode} metadata</BubbleListItem>
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem>Set compression settings</BubbleListItem>
           )}
