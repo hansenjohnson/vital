@@ -147,7 +147,7 @@ const LinkageSidebar = () => {
   )
 
   return (
-    <Sidebar noPadding noGap>
+    <Sidebar spacing={0}>
       <Box
         sx={{
           width: '100%',
