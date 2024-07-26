@@ -6,8 +6,8 @@ import re
 class IngestService:
 
     def __init__(self):
-        self.video_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv']
-        self.image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']
+        self.video_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv', '.ts', '.m4v']
+        self.image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff', '.orf', '.cr2', '.dng']
 
     def get_files(self, source_dir):
         video_files = []
@@ -16,6 +16,8 @@ class IngestService:
         for root, dirs, filenames in os.walk(source_dir):
             for filename in filenames:
                 file_extension = os.path.splitext(filename)[1]
+                if file_extension:
+                    file_extension = file_extension.lower()
                 if file_extension in self.video_extensions:
                     video_files.append(os.path.join(root, filename))
                 elif file_extension in self.image_extensions:
