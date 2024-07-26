@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Box from '@mui/material/Box'
 
 import TOOLS from '../constants/tools'
-import ROUTES, { JOB_MODES } from '../constants/routes'
+import ROUTES, { JOB_MODES, JOB_PHASES } from '../constants/routes'
 
 import useStore from '../store'
 import useJobStore, { canParse } from '../store/job'
@@ -28,6 +28,7 @@ const ToolsContainer = () => {
   const selectedFolderId = useStore((state) => state.selectedFolderId)
 
   const jobMode = useJobStore((state) => state.jobMode)
+  const setPhase = useJobStore((state) => state.setPhase)
   const canParseJob = useJobStore(canParse)
   let parseButtonText = 'Parse Files'
   if (jobMode !== JOB_MODES.UNSET) {
@@ -89,7 +90,10 @@ const ToolsContainer = () => {
             <StyledButton
               variant="contained"
               color="secondary"
-              onClick={() => setRoute(ROUTES.INGEST)}
+              onClick={() => {
+                setPhase(JOB_PHASES.PARSING)
+                setRoute(ROUTES.INGEST)
+              }}
               sx={{ flexShrink: 0, alignSelf: 'flex-end' }}
               disabled={!canParseJob}
             >

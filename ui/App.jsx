@@ -11,6 +11,7 @@ import useWindowSize from './hooks/useWindowSize'
 import SettingsContainer from './containers/Settings'
 import Tools from './containers/Tools'
 import LinkageAnnotationPage from './containers/LinkageAnnotationPage'
+import IngestTranscodePage from './containers/IngestTranscodePage'
 import Navbar from './containers/Navbar'
 import CenteredLoadingCircle from './components/CenteredLoadingCircle'
 import AlertDialog from './components/AlertDialog'
@@ -34,6 +35,8 @@ const App = () => {
         return Tools
       case ROUTES.LINK_AND_ANNOTATE:
         return LinkageAnnotationPage
+      case ROUTES.INGEST:
+        return IngestTranscodePage
       default:
         return null
     }
