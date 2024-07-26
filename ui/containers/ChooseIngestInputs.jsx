@@ -17,7 +17,7 @@ import IngestInputsLineDrawing, {
   VerticalLineBetweenDots,
 } from '../components/IngestInputsLineDrawing'
 
-const JobModeButton = ({ value, children }) => (
+const JobModeButton = ({ value, children, disabled }) => (
   <ToggleButton
     value={value}
     sx={{
@@ -33,6 +33,7 @@ const JobModeButton = ({ value, children }) => (
         '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' },
       },
     }}
+    disabled={disabled}
   >
     {children}
   </ToggleButton>
@@ -101,6 +102,7 @@ const ChooseIngestInputs = () => {
         <StyledButton
           sx={{ height: '24px' }}
           onClick={async () => {
+            setJobMode(JOB_MODES.UNSET)
             setLoading(true)
             setLoadedTimes((prev) => prev + 1)
             await countFiles()
@@ -128,8 +130,12 @@ const ChooseIngestInputs = () => {
           }}
           disabled={numFiles.images === null && numFiles.videos === null}
         >
-          <JobModeButton value={JOB_MODES.BY_IMAGE}>{numFiles.images ?? '#'} images</JobModeButton>
-          <JobModeButton value={JOB_MODES.BY_VIDEO}>{numFiles.videos ?? '#'} videos</JobModeButton>
+          <JobModeButton value={JOB_MODES.BY_IMAGE} disabled={numFiles.images === 0}>
+            {numFiles.images ?? '#'} images
+          </JobModeButton>
+          <JobModeButton value={JOB_MODES.BY_VIDEO} disabled={numFiles.videos === 0}>
+            {numFiles.videos ?? '#'} videos
+          </JobModeButton>
         </ToggleButtonGroup>
       </Box>
 
