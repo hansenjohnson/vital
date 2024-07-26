@@ -7,7 +7,6 @@ import { activeLinkageWithNewSightingHasOverlap } from '../store/sightings'
 import LinkageSidebar from './LinkageSidebar'
 import LinkageWorkspace from './LinkageWorkspace'
 import SightingsDialog from '../components/SightingsDialog'
-import ConfirmationDialog from '../components/ConfirmationDialog'
 
 const LinkageAnnotationPage = () => {
   const sightingsDialogOpen = useStore((state) => state.sightingsDialogOpen)
@@ -43,11 +42,6 @@ const LinkageAnnotationPage = () => {
     selectSighting(newSightingId)
   }
 
-  // Confirmation Dialog
-  const confirmationDialogOpen = useStore((state) => state.confirmationDialogOpen)
-  const confirmationDialogProps = useStore((state) => state.confirmationDialogProps)
-  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
-
   // Spacebar capture/overwrite
   useEffect(() => {
     const registerHotkeys = (event) => {
@@ -77,12 +71,6 @@ const LinkageAnnotationPage = () => {
         newSightingHasOverlap={newSightingHasOverlap}
         saveable={newSightingId !== null && !newSightingHasOverlap}
         handleSave={saveSightingEdit}
-      />
-
-      <ConfirmationDialog
-        open={confirmationDialogOpen}
-        onClose={() => setConfirmationDialogOpen(false)}
-        {...confirmationDialogProps}
       />
     </Box>
   )
