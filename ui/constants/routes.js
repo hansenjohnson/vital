@@ -22,10 +22,12 @@ const LINKAGE_MODES = {
 }
 
 const JOB_PHASES = {
+  // `inputs` isn't really used for rendering or UI state, but more to indicate that the job
+  // is not "in progress" yet, and so we shouldn't recover it beyond an app crash / app quit
   INPUTS: 'inputs',
-  PARSING: 'parsing',
-  OPTIONS: 'options',
-  EXECUTION: 'execution',
+  PARSE: 'parse',
+  CHOOSE_OPTIONS: 'choose-options',
+  EXECUTE: 'execute',
 }
 
 const JOB_MODES = {

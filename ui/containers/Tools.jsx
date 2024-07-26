@@ -91,7 +91,7 @@ const ToolsContainer = () => {
               variant="contained"
               color="secondary"
               onClick={() => {
-                setPhase(JOB_PHASES.PARSING)
+                setPhase(JOB_PHASES.PARSE)
                 setRoute(ROUTES.INGEST)
               }}
               sx={{ flexShrink: 0, alignSelf: 'flex-end' }}

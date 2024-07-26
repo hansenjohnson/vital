@@ -32,7 +32,16 @@ const useJobStore = create((set, get) => ({
   ...initialState,
   reset: () => set(initialState),
 
-  setPhase: valueSetter(set, 'phase'),
+  setPhase: (nextPhase) => {
+    if (nextPhase === JOB_PHASES.PARSE) {
+      ingestAPI.parse({})
+    } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
+      ingestAPI.getCompressionOptions({})
+    } else if (nextPhase === JOB_PHASES.EXECUTE) {
+      ingestAPI.execute({})
+    }
+    set({ phase: nextPhase })
+  },
 
   setSourceFolder: valueSetter(set, 'sourceFolder'),
 

@@ -9,7 +9,7 @@ const LinkageAnnotationPage = () => {
   const phase = useJobStore((state) => state.phase)
 
   /* Phase Handling Returns */
-  if (phase === JOB_PHASES.PARSING) {
+  if (phase === JOB_PHASES.PARSE) {
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
         <IngestParseSidebar />
