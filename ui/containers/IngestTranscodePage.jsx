@@ -5,6 +5,7 @@ import useJobStore from '../store/job'
 import STATUSES from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
+import { bytesToSize } from '../utilities/strings'
 import IngestParseSidebar from './IngestParseSidebar'
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -41,7 +42,7 @@ const LinkageAnnotationPage = () => {
             { key: 'name', label: 'File Name' },
             { key: 'resolution', label: 'Resolution' },
             ...(jobMode === JOB_MODES.BY_VIDEO ? [{ key: 'frameRate', label: 'FPS' }] : []),
-            { key: 'size', label: 'File Size' },
+            { key: 'size', label: 'File Size', transformer: bytesToSize },
           ]}
           data={mediaMetadata}
         />

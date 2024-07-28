@@ -49,7 +49,12 @@ const MetadataDisplayTable = ({ columns, data }) => {
           {data.map((row) => (
             <MetadataDisplayRow
               key={JSON.stringify(row)}
-              values={columns.map((column) => row[column.key])}
+              values={columns.map((column) => {
+                if ('transformer' in column) {
+                  return column.transformer(row[column.key])
+                }
+                return row[column.key]
+              })}
               warnings={row.warnings}
               errors={row.errors}
             />

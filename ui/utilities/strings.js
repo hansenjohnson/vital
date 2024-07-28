@@ -28,3 +28,10 @@ export const regionString = (regionStart, regionEnd, frameRate) => {
 
 export const catalogFolderString = (folder) =>
   `${yearMonthDayString(folder.year, folder.month, folder.day)}-${folder.observer.replaceAll('/', '-')}`
+
+export const bytesToSize = (bytes) => {
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  if (bytes === 0) return '0 B'
+  const bytesPower = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10)
+  return `${Math.round(bytes / 1024 ** bytesPower)} ${sizes[bytesPower]}`
+}

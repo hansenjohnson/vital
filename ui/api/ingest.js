@@ -19,7 +19,7 @@ let count = 0
 const getParsedMetadata = (parseId) =>
   new Promise((resolve) =>
     setTimeout(() => {
-      if (count < 5) {
+      if (count < 2) {
         count += 1
         resolve({ status: 'pending' })
         return
@@ -30,7 +30,7 @@ const getParsedMetadata = (parseId) =>
         data: [
           {
             name: 'really_long_file_name_1.mov',
-            size: '15 Mb',
+            size: 15 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
             warnings: [],
@@ -38,7 +38,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_2.mov',
-            size: '15 Mb',
+            size: 12 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
             warnings: ['not in a folder'],
@@ -46,7 +46,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_3.mov',
-            size: '15 Mb',
+            size: 13 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
             warnings: [],
@@ -54,7 +54,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_4.mov',
-            size: '15 Mb',
+            size: 19 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
             warnings: ['not in a folder', 'here is a long warning with lots of characters'],
