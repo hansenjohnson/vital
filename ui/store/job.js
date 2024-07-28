@@ -36,14 +36,18 @@ const useJobStore = create((set, get) => ({
   setPhase: async (nextPhase) => {
     set({ phase: nextPhase })
     if (nextPhase === JOB_PHASES.PARSE) {
-      const { sourceFolder, jobMode } = get()
-      const parseId = await ingestAPI.parse(jobMode, sourceFolder)
-      set({ parseId })
+      get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       ingestAPI.getCompressionOptions({})
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
       ingestAPI.execute({})
     }
+  },
+
+  triggerParse: async () => {
+    const { sourceFolder, jobMode } = get()
+    const parseId = await ingestAPI.parse(jobMode, sourceFolder)
+    set({ parseId })
   },
 
   setSourceFolder: valueSetter(set, 'sourceFolder'),

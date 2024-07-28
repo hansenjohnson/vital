@@ -20,7 +20,11 @@ const LinkageAnnotationPage = () => {
   const [mediaMetadata, setMediaMetadata] = useState([])
   useEffect(() => {
     if (phase !== JOB_PHASES.PARSE) return
+
+    setParseStatus(STATUSES.LOADING)
+    setMediaMetadata([])
     let intervalId
+
     const checkForMetadata = async () => {
       const { status, data } = await ingestAPI.getParsedMetadata(parseId)
       if (status === STATUSES.PENDING) return
@@ -28,6 +32,7 @@ const LinkageAnnotationPage = () => {
       setMediaMetadata(data)
       clearInterval(intervalId)
     }
+
     intervalId = setInterval(checkForMetadata, 1000)
     return () => clearInterval(intervalId)
   }, [phase, parseId])
@@ -36,7 +41,7 @@ const LinkageAnnotationPage = () => {
   if (phase === JOB_PHASES.PARSE) {
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
-        <IngestParseSidebar status={parseStatus} />
+        <IngestParseSidebar status={parseStatus} data={mediaMetadata} />
         <MetadataDisplayTable
           columns={[
             { key: 'name', label: 'File Name' },
