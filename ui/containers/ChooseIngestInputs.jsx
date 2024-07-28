@@ -71,6 +71,14 @@ const ChooseIngestInputs = () => {
     setPixelsTo(parseInt(containerRef.current.clientWidth / 2, 10))
   }, [JSON.stringify(windowSize), jobMode])
 
+  const triggerCountFiles = async () => {
+    setJobMode(JOB_MODES.UNSET)
+    setLoading(true)
+    setLoadedTimes((prev) => prev + 1)
+    await countFiles()
+    setLoading(false)
+  }
+
   return (
     <Box
       ref={containerRef}
@@ -95,19 +103,14 @@ const ChooseIngestInputs = () => {
           const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, sourceFolder)
           if (!filePath) return
           setSourceFolder(filePath)
+          triggerCountFiles()
         }}
       />
 
       <Box sx={{ marginTop: 2, marginBottom: 2, display: 'flex' }}>
         <StyledButton
           sx={{ height: '24px' }}
-          onClick={async () => {
-            setJobMode(JOB_MODES.UNSET)
-            setLoading(true)
-            setLoadedTimes((prev) => prev + 1)
-            await countFiles()
-            setLoading(false)
-          }}
+          onClick={triggerCountFiles}
           disabled={sourceFolder === '' || loading}
         >
           <RefreshIcon
