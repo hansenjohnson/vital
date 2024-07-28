@@ -40,7 +40,7 @@ const LinkageAnnotationPage = () => {
           columns={[
             { key: 'name', label: 'File Name' },
             { key: 'resolution', label: 'Resolution' },
-            ...(jobMode === JOB_MODES.VIDEO ? [{ key: 'frameRate', label: 'FPS' }] : []),
+            ...(jobMode === JOB_MODES.BY_VIDEO ? [{ key: 'frameRate', label: 'FPS' }] : []),
             { key: 'size', label: 'File Size' },
           ]}
           data={mediaMetadata}
