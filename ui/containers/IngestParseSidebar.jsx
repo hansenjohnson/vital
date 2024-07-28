@@ -36,8 +36,18 @@ const IngestParseSidebar = ({ status, data }) => {
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
-              <Box sx={{ fontSize: '20px' }}>{totalWarnings} Warnings</Box>
-              <Box sx={{ fontSize: '20px' }}>{totalErrors} Errors</Box>
+              <Box sx={{ fontSize: '20px', display: 'flex', gap: 1 }}>
+                <Box component="span" sx={{ width: '90px', textAlign: 'right' }}>
+                  Warnings:
+                </Box>
+                <Box component="span">{totalWarnings}</Box>
+              </Box>
+              <Box sx={{ fontSize: '20px', display: 'flex', gap: 1 }}>
+                <Box component="span" sx={{ width: '90px', textAlign: 'right' }}>
+                  Errors:
+                </Box>
+                <Box component="span">{totalErrors}</Box>
+              </Box>
             </Box>
             <Box>
               <Button sx={{ paddingLeft: 1, paddingRight: 1 }} onClick={triggerParse}>
