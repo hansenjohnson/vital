@@ -30,6 +30,7 @@ const getParsedMetadata = (parseId) =>
         data: [
           {
             name: 'really_long_file_name_1.mov',
+            filePath: '',
             size: 15 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
@@ -38,6 +39,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_2.mov',
+            filePath: '',
             size: 12 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
@@ -46,6 +48,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_3.mov',
+            filePath: '',
             size: 13 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
@@ -54,6 +57,7 @@ const getParsedMetadata = (parseId) =>
           },
           {
             name: 'really_long_file_name_4.mov',
+            filePath: '',
             size: 19 * 1024 * 1024,
             resolution: '1920x1080',
             frameRate: '30',
