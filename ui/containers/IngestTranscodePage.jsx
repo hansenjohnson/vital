@@ -1,60 +1,49 @@
+import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import useJobStore from '../store/job'
+import STATUSES from '../constants/statuses'
+import { JOB_PHASES, JOB_MODES } from '../constants/routes'
+import ingestAPI from '../api/ingest'
 import IngestParseSidebar from './IngestParseSidebar'
 import BlankSlate from '../components/BlankSlate'
-import { JOB_PHASES } from '../constants/routes'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
 
 const LinkageAnnotationPage = () => {
   const phase = useJobStore((state) => state.phase)
+  const jobMode = useJobStore((state) => state.jobMode)
+
+  /* Poll for Parse Data, handle statuses */
+  const parseId = useJobStore((state) => state.parseId)
+  const [parseStatus, setParseStatus] = useState(STATUSES.LOADING)
+  const [mediaMetadata, setMediaMetadata] = useState([])
+  useEffect(() => {
+    if (phase !== JOB_PHASES.PARSE) return
+    let intervalId
+    const checkForMetadata = async () => {
+      const { status, data } = await ingestAPI.getParsedMetadata(parseId)
+      if (status === STATUSES.PENDING) return
+      setParseStatus(status)
+      setMediaMetadata(data)
+      clearInterval(intervalId)
+    }
+    intervalId = setInterval(checkForMetadata, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, parseId])
 
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
-        <IngestParseSidebar />
+        <IngestParseSidebar status={parseStatus} />
         <MetadataDisplayTable
           columns={[
             { key: 'name', label: 'File Name' },
             { key: 'resolution', label: 'Resolution' },
-            { key: 'frameRate', label: 'FPS' },
+            ...(jobMode === JOB_MODES.VIDEO ? [{ key: 'frameRate', label: 'FPS' }] : []),
             { key: 'size', label: 'File Size' },
           ]}
-          data={[
-            {
-              name: 'really_long_file_name_1.mov',
-              size: '15 Mb',
-              resolution: '1920x1080',
-              frameRate: '30',
-              warnings: [],
-              errors: [],
-            },
-            {
-              name: 'really_long_file_name_2.mov',
-              size: '15 Mb',
-              resolution: '1920x1080',
-              frameRate: '30',
-              warnings: ['not in a folder'],
-              errors: [],
-            },
-            {
-              name: 'really_long_file_name_3.mov',
-              size: '15 Mb',
-              resolution: '1920x1080',
-              frameRate: '30',
-              warnings: [],
-              errors: ['file name is longer than 20 chars'],
-            },
-            {
-              name: 'really_long_file_name_4.mov',
-              size: '15 Mb',
-              resolution: '1920x1080',
-              frameRate: '30',
-              warnings: ['not in a folder', 'here is a long warning with lots of characters'],
-              errors: ['file name is longer than 20 chars'],
-            },
-          ]}
+          data={mediaMetadata}
         />
       </Box>
     )

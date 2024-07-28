@@ -26,21 +26,24 @@ const initialState = {
     large: {},
   },
   steps: [],
+  parseId: null,
 }
 
 const useJobStore = create((set, get) => ({
   ...initialState,
   reset: () => set(initialState),
 
-  setPhase: (nextPhase) => {
+  setPhase: async (nextPhase) => {
+    set({ phase: nextPhase })
     if (nextPhase === JOB_PHASES.PARSE) {
-      ingestAPI.parse({})
+      const { sourceFolder, jobMode } = get()
+      const parseId = await ingestAPI.parse(jobMode, sourceFolder)
+      set({ parseId })
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       ingestAPI.getCompressionOptions({})
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
       ingestAPI.execute({})
     }
-    set({ phase: nextPhase })
   },
 
   setSourceFolder: valueSetter(set, 'sourceFolder'),
