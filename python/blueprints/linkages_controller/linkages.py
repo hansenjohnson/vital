@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from model.linkage_model import LinkageModel
+from model.association.linkage_model import LinkageModel
 from settings.settings_service import SettingsService
 
 bp = Blueprint('linkages', __name__)

@@ -5,8 +5,8 @@ from datetime import datetime
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 
-from model.folder_model import FolderModel
-from model.video_model import VideoModel
+from model.association.folder_model import FolderModel
+from model.association.video_model import VideoModel
 
 settings_service = SettingsService()
 folder_model = FolderModel()

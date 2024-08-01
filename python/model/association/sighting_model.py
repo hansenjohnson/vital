@@ -1,4 +1,4 @@
-from model.sql import SQL
+from model.association.sql import SQL
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err
 

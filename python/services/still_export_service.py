@@ -1,9 +1,9 @@
 import subprocess
 import os
 import sys
-from model.video_model import VideoModel
-from model.folder_model import FolderModel
-from model.still_export_model import StillExportModel
+from model.association.video_model import VideoModel
+from model.association.folder_model import FolderModel
+from model.association.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 from utils import file_path

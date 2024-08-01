@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, request
 
-from model.folder_model import FolderModel
-from model.video_model import VideoModel
-from model.linkage_model import LinkageModel
-from model.sighting_model import SightingModel
-from model.still_export_model import StillExportModel
+from model.association.folder_model import FolderModel
+from model.association.video_model import VideoModel
+from model.association.linkage_model import LinkageModel
+from model.association.sighting_model import SightingModel
+from model.association.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
 from utils.prints import print_err
 
