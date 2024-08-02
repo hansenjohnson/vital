@@ -29,7 +29,7 @@ const IngestParseSidebar = ({ status, data }) => {
           <CircularProgress />
         </Box>
       )}
-      {status === STATUSES.COMPLETE && (
+      {status === STATUSES.COMPLETED && (
         <>
           <Box sx={{ fontSize: '20px' }}>
             Ingesting {bytesToSize(totalSize)} of {jobMode}

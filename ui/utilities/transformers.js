@@ -110,3 +110,13 @@ export const regionDataForLinkage = (linkage) => ({
   start: linkage.regionStart,
   end: linkage.regionEnd,
 })
+
+export const transformMediaMetadata = (media) => ({
+  fileName: media.file_name,
+  fileSize: media.file_size,
+  resolution: media.resolution,
+  frameRate: media.frame_rate,
+  duration: media.duration,
+  warnings: [],
+  errors: [],
+})

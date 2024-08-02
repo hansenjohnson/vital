@@ -26,7 +26,7 @@ const initialState = {
     large: {},
   },
   steps: [],
-  parseId: null,
+  jobId: null,
 }
 
 const useJobStore = create((set, get) => ({
@@ -46,8 +46,8 @@ const useJobStore = create((set, get) => ({
 
   triggerParse: async () => {
     const { sourceFolder, jobMode } = get()
-    const parseId = await ingestAPI.parse(jobMode, sourceFolder)
-    set({ parseId })
+    const jobId = await ingestAPI.parse(jobMode, sourceFolder)
+    set({ jobId })
   },
 
   setSourceFolder: valueSetter(set, 'sourceFolder'),

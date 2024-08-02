@@ -35,3 +35,5 @@ export const bytesToSize = (bytes) => {
   const bytesPower = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10)
   return `${Math.round(bytes / 1024 ** bytesPower)} ${sizes[bytesPower]}`
 }
+
+export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)

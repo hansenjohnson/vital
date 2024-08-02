@@ -1,7 +1,7 @@
 export default {
   LOADING: 'loading',
   PENDING: 'pending',
-  COMPLETE: 'complete',
+  COMPLETED: 'completed',
   SUCCESS: 'success',
   WARNING: 'warning',
   ERROR: 'error',
