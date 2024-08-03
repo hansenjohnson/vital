@@ -11,7 +11,6 @@ job_service = JobService()
 @bp.route('/count_files/<string:source_folder_as_encoded_uri_component>', methods=['GET'])
 def count_media(source_folder_as_encoded_uri_component):
     try:
-        print(source_folder_as_encoded_uri_component)
         source_folder = unquote(source_folder_as_encoded_uri_component)
         return jsonify(ingest_service.count_media(source_folder)), 200
     except Exception as e:
@@ -32,7 +31,7 @@ def parse_videos():
     try:
         source_folder = unquote(payload['source_folder'])
         job_id = ingest_service.create_parse_video_job(source_folder)
-        return jsonify({job_id: job_id}), 200
+        return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
