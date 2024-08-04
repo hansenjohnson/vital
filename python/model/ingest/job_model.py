@@ -41,6 +41,3 @@ class JobModel:
     def get_status(self, job_id):
         self.cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
-
-    def close(self):
-        self.conn.close()
