@@ -60,7 +60,7 @@ class IngestService:
 
     def ffprobe_metadata(self, video_path, start_number=None):
         command = [
-            "ffprobe",
+            self.ffprobe_path,
             "-loglevel",
             "panic",
             "-hide_banner",
@@ -84,12 +84,14 @@ class IngestService:
         except KeyError:
             print_err.error("No FFprobe metadata was found at path %s", video_path)
             return None
+        
         return VideoMetadata(
             file_name=os.path.basename(video_path),
             width=metadata['width'],
             height=metadata['height'],
             duration=metadata['duration'],
             frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
+            size=os.path.getsize(video_path),
             validation_status=None
         )
 

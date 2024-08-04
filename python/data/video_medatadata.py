@@ -8,6 +8,7 @@ class VideoMetadata:
     height: str
     duration: str
     frame_rate:str
+    size: str
     validation_status: ValidationStatus
     
 
