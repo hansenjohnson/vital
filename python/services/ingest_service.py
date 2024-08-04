@@ -9,7 +9,7 @@ from data.video_medatadata import VideoMetadata
 from services.job_service import JobService
 from services.validator_service import ValidatorService
 
-from utils.prints import print_err
+from utils.prints import print_err, print_out
 
 
 class IngestService:
@@ -39,6 +39,7 @@ class IngestService:
         video_metadata_arr = []
         for video_path in video_files:
             video_metadata = self.ffprobe_metadata(video_path)
+            video_metadata.file_size = os.path.getsize(video_path)
             video_metadata.validation_status = self.validatior_service.validate_video(video_path)
 
             video_metadata_arr.append(video_metadata.to_dict())
@@ -60,7 +61,7 @@ class IngestService:
 
     def ffprobe_metadata(self, video_path, start_number=None):
         command = [
-            "ffprobe",
+            self.ffprobe_path,
             "-loglevel",
             "panic",
             "-hide_banner",
@@ -73,6 +74,7 @@ class IngestService:
         ]
         if start_number:
             command.extend(["-start_number", str(start_number)])
+        print_out(f'Running ffprobe command: {" ".join(command)}')
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         metadata_json, error = process.communicate()
         if error:
@@ -90,6 +92,7 @@ class IngestService:
             height=metadata['height'],
             duration=metadata['duration'],
             frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
+            file_size=None,
             validation_status=None
         )
 

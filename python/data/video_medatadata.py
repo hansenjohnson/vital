@@ -8,8 +8,8 @@ class VideoMetadata:
     height: str
     duration: str
     frame_rate:str
+    file_size:str
     validation_status: ValidationStatus
-    
 
     def to_dict(self):
         return asdict(self)
