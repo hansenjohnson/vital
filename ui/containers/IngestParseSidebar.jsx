@@ -15,7 +15,7 @@ const IngestParseSidebar = ({ status, data }) => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const triggerParse = useJobStore((state) => state.triggerParse)
 
-  const totalSize = data.reduce((acc, { size }) => acc + size, 0)
+  const totalSize = data.reduce((acc, { fileSize }) => acc + parseFloat(fileSize), 0)
   const totalWarnings = data.reduce((acc, { warnings }) => acc + warnings.length, 0)
   const totalErrors = data.reduce((acc, { errors }) => acc + errors.length, 0)
 

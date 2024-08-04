@@ -36,4 +36,19 @@ export const bytesToSize = (bytes) => {
   return `${Math.round(bytes / 1024 ** bytesPower)} ${sizes[bytesPower]}`
 }
 
+export const secondsToDuration = (seconds) => {
+  seconds = parseFloat(seconds)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  let durationStr = `${remainingSeconds.toString().padStart(2, '0')}s`
+  if (minutes > 0) {
+    durationStr = `${minutes.toString().padStart(2, '0')}m ${durationStr}`
+  }
+  if (hours > 0) {
+    durationStr = `${hours}h ${durationStr}`
+  }
+  return durationStr
+}
+
 export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)

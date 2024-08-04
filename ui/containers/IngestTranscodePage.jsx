@@ -5,7 +5,7 @@ import useJobStore from '../store/job'
 import STATUSES from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
-import { bytesToSize, twoPrecisionStrNum } from '../utilities/strings'
+import { bytesToSize, twoPrecisionStrNum, secondsToDuration } from '../utilities/strings'
 import IngestParseSidebar from './IngestParseSidebar'
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -53,7 +53,7 @@ const LinkageAnnotationPage = () => {
   if (phase === JOB_PHASES.PARSE) {
     const videoColumns = [
       { key: 'frameRate', label: 'FPS', transformer: twoPrecisionStrNum },
-      { key: 'duration', label: 'Seconds', transformer: twoPrecisionStrNum },
+      { key: 'duration', label: 'Duration', transformer: secondsToDuration },
     ]
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
