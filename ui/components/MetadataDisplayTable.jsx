@@ -6,6 +6,7 @@ import TableCell from '@mui/material/TableCell'
 import TableBody from '@mui/material/TableBody'
 
 import MetadataDisplayRow from './MetadataDisplayRow'
+import { WARNING_MESSAGES, ERROR_MESSAGES } from '../constants/statuses'
 
 const MetadataDisplayTable = ({ columns, data }) => {
   return (
@@ -57,8 +58,8 @@ const MetadataDisplayTable = ({ columns, data }) => {
               })}
               aligns={columns.map((column) => column.align)}
               maxWidths={columns.map((column) => column.maxWidth)}
-              warnings={row.warnings}
-              errors={row.errors}
+              warnings={row.warnings.map((warning) => WARNING_MESSAGES[warning])}
+              errors={row.errors.map((error) => ERROR_MESSAGES[error])}
             />
           ))}
         </TableBody>
