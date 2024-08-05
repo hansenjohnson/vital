@@ -27,8 +27,8 @@ const SettingsContainer = () => {
   const [open, openDialog, closeDialog] = useSettingsStore(
     useShallow((state) => [state.open, state.openDialog, state.closeDialog])
   )
-  const [settings, setOneSetting] = useSettingsStore(
-    useShallow((state) => [state.settings, state.setOneSetting])
+  const [settings, setOneSetting, loadSettings] = useSettingsStore(
+    useShallow((state) => [state.settings, state.setOneSetting, state.loadSettings])
   )
 
   const version = window.api.getVersion()
@@ -93,6 +93,7 @@ const SettingsContainer = () => {
     if (successful && initialized) {
       return window.api.reloadWindow()
     } else if (successful) {
+      await loadSettings()
       closeDialog()
       setSubmitting(false)
     } else {
