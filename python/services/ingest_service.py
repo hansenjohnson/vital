@@ -39,7 +39,7 @@ class IngestService:
         video_metadata_arr = []
         for video_path in video_files:
             video_metadata = self.ffprobe_metadata(video_path)
-            video_metadata.validation_status = self.validator_service.validate_video(source_dir, video_path)
+            video_metadata.validation_status = self.validator_service.validate_video(source_dir, video_metadata)
 
             video_metadata_arr.append(video_metadata.to_dict())
 
@@ -87,13 +87,14 @@ class IngestService:
         
         return VideoMetadata(
             file_name=os.path.basename(video_path),
+            file_path=video_path,
             width=metadata['width'],
             height=metadata['height'],
             duration=metadata['duration'],
             frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
             size=os.path.getsize(video_path),
             created_date=os.path.getctime(video_path),
-            modified_date=os.path.getatime(video_path),
+            modified_date=os.path.getmtime(video_path),
             validation_status=None
         )
 

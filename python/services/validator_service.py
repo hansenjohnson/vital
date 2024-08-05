@@ -16,16 +16,16 @@ class ValidatorService:
     
     MAX_LENGTH = 20
 
-    def validate_video(self, source_dir, video_path):
+    def validate_video(self, source_dir, video_metadata):
         validation_status = ValidationStatus()
 
-        if not self.validate_length(video_path):
+        if not self.validate_length(video_metadata.file_path):
             validation_status.errors.append(self.LENGTH_ERROR)
 
-        if not self.validate_created_date(source_dir, video_path):
-            validation_status.errors.append(self.INCORRECT_CREATED_TIME)
+        if not self.validate_video_date(source_dir, video_metadata):
+            validation_status.warnings.append(self.INCORRECT_CREATED_TIME)
 
-        validate_path = self.validate_path(source_dir, video_path)
+        validate_path = self.validate_path(source_dir, video_metadata.file_path)
         
         if validate_path == self.VIDEO_PATH_WARNING:
             validation_status.warnings.append(self.VIDEO_PATH_WARNING)
@@ -40,16 +40,17 @@ class ValidatorService:
         return len(os.path.basename(video_path)) <= self.MAX_LENGTH
     
 
-    def validate_created_date(self, source_dir, video_path):
+    def validate_video_date(self, source_dir, video_metadata):
         folder_name = os.path.basename(source_dir)
 
         date_string = '-'.join(folder_name.split('-')[:3])
         folder_date = datetime.strptime(date_string, "%Y-%m-%d").date()
 
-        video_creation_time = os.path.getctime(video_path)
-        video_creation_date = datetime.fromtimestamp(video_creation_time).date()
+        video_creation_date = datetime.fromtimestamp(video_metadata.created_date).date()
+        
+        video_modification_date = datetime.fromtimestamp(video_metadata.modified_date).date()
 
-        return folder_date == video_creation_date
+        return (folder_date == video_creation_date) or (folder_date == video_modification_date)
     
 
     def validate_path(self, source_dir, video_path):

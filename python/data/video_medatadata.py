@@ -4,6 +4,7 @@ from data.validation_status import ValidationStatus
 @dataclass
 class VideoMetadata:
     file_name: str
+    file_path: str
     width: str
     height: str
     duration: str
