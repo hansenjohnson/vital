@@ -51,3 +51,8 @@ export const determineNonOverlappingTracksForRegions = (regions) => {
 export const doRegionsOverlap = (start1, end1, start2, end2) => {
   return start1 <= end2 && start2 <= end1
 }
+
+export const resolutionToTotalPixels = (resolution) => {
+  const [width, height] = resolution.split('x')
+  return parseInt(width, 10) * parseInt(height, 10)
+}
