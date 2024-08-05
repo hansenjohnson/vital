@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from model.sighting_model import SightingModel
+from model.association.sighting_model import SightingModel
 
 bp = Blueprint('sightings', __name__)
 sighting_model = SightingModel()

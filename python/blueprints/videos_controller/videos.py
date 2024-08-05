@@ -1,7 +1,7 @@
 from flask import Blueprint, send_from_directory, jsonify, request
 from settings.settings_service import SettingsService
-from model.folder_model import FolderModel
-from model.video_model import VideoModel
+from model.association.folder_model import FolderModel
+from model.association.video_model import VideoModel
 from settings.settings_enum import SettingsEnum
 from utils.file_path import catalog_folder_path
 from utils.file_path import video_file_path

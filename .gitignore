@@ -65,4 +65,5 @@ server.spec
 
 __pycache__
 
-ffmpeg.exe
+!python/resources/.gitkeep
+python/resources/*
