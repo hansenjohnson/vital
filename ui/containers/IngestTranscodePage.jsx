@@ -60,7 +60,7 @@ const LinkageAnnotationPage = () => {
         <IngestParseSidebar status={parseStatus} data={mediaMetadata} />
         <MetadataDisplayTable
           columns={[
-            { key: 'fileName', label: 'File Name' },
+            { key: 'fileName', label: 'File Name', maxWidth: 200 },
             { key: 'resolution', label: 'Resolution' },
             ...(jobMode === JOB_MODES.BY_VIDEO ? videoColumns : []),
             { key: 'fileSize', label: 'File Size', transformer: bytesToSize },

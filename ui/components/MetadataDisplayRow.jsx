@@ -1,7 +1,9 @@
 import Box from '@mui/material/Box'
 import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
+
 import StatusIcon from './StatusIcon'
+import StyledTooltip from './StyledTooltip'
 
 const cellStyle = (theme) => ({
   fontFamily: theme.typography.monoFamily,
@@ -12,7 +14,32 @@ const cellStyle = (theme) => ({
   paddingBottom: '2px',
 })
 
-const MetadataDisplayRow = ({ values, warnings, errors }) => {
+const DefaultCell = ({ children }) => (
+  <TableCell padding="none" sx={cellStyle}>
+    {children}
+  </TableCell>
+)
+
+const CellWithTooltip = ({ value, maxWidth }) => {
+  const widthTruncStyle = maxWidth
+    ? { maxWidth: `${maxWidth}px`, overflow: 'hidden', textOverflow: 'ellipsis' }
+    : {}
+  return (
+    <StyledTooltip title={value} darker onOpen={() => maxWidth > 0}>
+      <TableCell
+        padding="none"
+        sx={(theme) => ({
+          ...cellStyle(theme),
+          ...widthTruncStyle,
+        })}
+      >
+        {value}
+      </TableCell>
+    </StyledTooltip>
+  )
+}
+
+const MetadataDisplayRow = ({ values, maxWidths, warnings, errors }) => {
   const status = (() => {
     if (errors.length > 0) {
       return 'error'
@@ -35,11 +62,16 @@ const MetadataDisplayRow = ({ values, warnings, errors }) => {
         </Box>
       </TableCell>
 
-      {values.map((value, index) => (
-        <TableCell key={`${index}-${value}`} padding="none" sx={cellStyle}>
-          {value}
-        </TableCell>
-      ))}
+      {values.map((value, index) => {
+        const maxWidth = maxWidths[index]
+        const cell =
+          maxWidth > 0 ? (
+            <CellWithTooltip key={`${index}-${value}`} value={value} maxWidth={maxWidth} />
+          ) : (
+            <DefaultCell key={`${index}-${value}`}>{value}</DefaultCell>
+          )
+        return cell
+      })}
 
       <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), whiteSpace: 'pre' })}>
         <Box component="span" sx={{ color: 'warning.main' }}>
