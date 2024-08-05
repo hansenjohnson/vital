@@ -39,8 +39,7 @@ class IngestService:
         video_metadata_arr = []
         for video_path in video_files:
             video_metadata = self.ffprobe_metadata(video_path)
-            video_metadata.file_size = os.path.getsize(video_path)
-            video_metadata.validation_status = self.validatior_service.validate_video(video_path)
+            video_metadata.validation_status = self.validatior_service.validate_video(source_dir, video_path)
 
             video_metadata_arr.append(video_metadata.to_dict())
 
@@ -84,7 +83,7 @@ class IngestService:
         try:
             metadata = metadata_obj["streams"][0]
         except KeyError:
-            print_err.error("No FFprobe metadata was found at path %s", video_path)
+            print_err("No FFprobe metadata was found at path %s", video_path)
             return None
         return VideoMetadata(
             file_name=os.path.basename(video_path),
@@ -92,7 +91,7 @@ class IngestService:
             height=metadata['height'],
             duration=metadata['duration'],
             frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
-            file_size=None,
+            size=os.path.getsize(video_path),
             validation_status=None
         )
 
