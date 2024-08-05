@@ -52,8 +52,8 @@ const LinkageAnnotationPage = () => {
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     const videoColumns = [
-      { key: 'frameRate', label: 'FPS', transformer: twoPrecisionStrNum },
-      { key: 'duration', label: 'Duration', transformer: secondsToDuration },
+      { key: 'frameRate', label: 'FPS', align: 'right', transformer: twoPrecisionStrNum },
+      { key: 'duration', label: 'Duration', align: 'right', transformer: secondsToDuration },
     ]
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
@@ -61,9 +61,9 @@ const LinkageAnnotationPage = () => {
         <MetadataDisplayTable
           columns={[
             { key: 'fileName', label: 'File Name', maxWidth: 200 },
-            { key: 'resolution', label: 'Resolution' },
+            { key: 'resolution', label: 'Resolution', align: 'center' },
             ...(jobMode === JOB_MODES.BY_VIDEO ? videoColumns : []),
-            { key: 'fileSize', label: 'File Size', transformer: bytesToSize },
+            { key: 'fileSize', label: 'File Size', align: 'right', transformer: bytesToSize },
           ]}
           data={mediaMetadata}
         />

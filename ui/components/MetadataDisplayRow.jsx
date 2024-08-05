@@ -14,9 +14,9 @@ const cellStyle = (theme) => ({
   paddingBottom: '2px',
 })
 
-const DefaultCell = ({ children }) => (
-  <TableCell padding="none" sx={cellStyle}>
-    {children}
+const DefaultCell = ({ value, align }) => (
+  <TableCell padding="none" sx={cellStyle} align={align}>
+    {value}
   </TableCell>
 )
 
@@ -39,7 +39,7 @@ const CellWithTooltip = ({ value, maxWidth }) => {
   )
 }
 
-const MetadataDisplayRow = ({ values, maxWidths, warnings, errors }) => {
+const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors }) => {
   const status = (() => {
     if (errors.length > 0) {
       return 'error'
@@ -63,12 +63,18 @@ const MetadataDisplayRow = ({ values, maxWidths, warnings, errors }) => {
       </TableCell>
 
       {values.map((value, index) => {
+        const align = aligns[index]
         const maxWidth = maxWidths[index]
         const cell =
           maxWidth > 0 ? (
-            <CellWithTooltip key={`${index}-${value}`} value={value} maxWidth={maxWidth} />
+            <CellWithTooltip
+              key={`${index}-${value}`}
+              value={value}
+              align={align}
+              maxWidth={maxWidth}
+            />
           ) : (
-            <DefaultCell key={`${index}-${value}`}>{value}</DefaultCell>
+            <DefaultCell key={`${index}-${value}`} value={value} align={align} />
           )
         return cell
       })}

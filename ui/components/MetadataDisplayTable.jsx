@@ -55,6 +55,7 @@ const MetadataDisplayTable = ({ columns, data }) => {
                 }
                 return row[column.key]
               })}
+              aligns={columns.map((column) => column.align)}
               maxWidths={columns.map((column) => column.maxWidth)}
               warnings={row.warnings}
               errors={row.errors}
