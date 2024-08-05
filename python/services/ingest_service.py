@@ -116,4 +116,3 @@ class IngestService:
             'images': image_files_count,
             'videos': video_files_count,
         }
-            
