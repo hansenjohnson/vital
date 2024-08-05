@@ -1,3 +1,5 @@
+import { ROOT_FOLDER } from '../constants/fileTypes'
+import { joinPath, splitPath } from './paths'
 import { yearMonthDayString } from './strings'
 
 export const transformFolderData = (folderRow) => {
@@ -112,6 +114,7 @@ export const regionDataForLinkage = (linkage) => ({
 })
 
 export const transformMediaMetadata = (media) => ({
+  filePath: media.file_path,
   fileName: media.file_name,
   fileSize: media.size,
   resolution: `${media.width}x${media.height}`,
@@ -120,3 +123,35 @@ export const transformMediaMetadata = (media) => ({
   warnings: media?.validation_status?.warnings || [],
   errors: media?.validation_status?.errors || [],
 })
+
+export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
+  const grouped = new Map()
+  metadata.forEach((media) => {
+    const pathParts = splitPath(media.filePath)
+    const fullParentFolder = joinPath(pathParts.slice(0, -1))
+
+    let parentFolder = fullParentFolder.replace(sourceFolder, '')
+    if (parentFolder === '' || parentFolder === '/' || parentFolder === '\\') {
+      parentFolder = ROOT_FOLDER
+    }
+    if (parentFolder.startsWith('/') || parentFolder.startsWith('\\')) {
+      parentFolder = parentFolder.slice(1)
+    }
+
+    if (!grouped.has(parentFolder)) {
+      grouped.set(parentFolder, [])
+    }
+    grouped.get(parentFolder).push(media)
+  })
+
+  const statefulGrouping = [...grouped.entries()]
+    .map(([subfolder, mediaList]) => ({
+      subfolder,
+      aggregatedWarnings: [...new Set(mediaList.flatMap((m) => m.warnings))],
+      aggregatedErrors: [...new Set(mediaList.flatMap((m) => m.errors))],
+      metadata: mediaList,
+    }))
+    .sort((a, b) => a.subfolder.localeCompare(b.subfolder))
+
+  return statefulGrouping
+}

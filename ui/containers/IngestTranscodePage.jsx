@@ -4,9 +4,10 @@ import Box from '@mui/material/Box'
 import useJobStore from '../store/job'
 import STATUSES from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
+import { ROOT_FOLDER } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
 import { bytesToSize, twoPrecisionStrNum, secondsToDuration } from '../utilities/strings'
-import { transformMediaMetadata } from '../utilities/transformers'
+import { transformMediaMetadata, groupMediaMetadataBySubfolder } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
 
 import BlankSlate from '../components/BlankSlate'
@@ -14,6 +15,8 @@ import MetadataDisplayTable from '../components/MetadataDisplayTable'
 import IngestParseSidebar from './IngestParseSidebar'
 
 const LinkageAnnotationPage = () => {
+  const sourceFolder = useJobStore((state) => state.sourceFolder)
+
   const phase = useJobStore((state) => state.phase)
   const jobMode = useJobStore((state) => state.jobMode)
 
@@ -43,7 +46,8 @@ const LinkageAnnotationPage = () => {
 
       const data = await ingestAPI.getParsedMetadata(jobId)
       const transformedData = data.map(transformMediaMetadata)
-      setMediaMetadata(transformedData)
+      const groupedData = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
+      setMediaMetadata(groupedData)
       setParseStatus(STATUSES.COMPLETED)
     }
 
@@ -93,8 +97,45 @@ const LinkageAnnotationPage = () => {
     )
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
-        <IngestParseSidebar status={parseStatus} data={mediaMetadata} />
-        <MetadataDisplayTable columns={columns} data={mediaMetadata} />
+        <IngestParseSidebar
+          status={parseStatus}
+          data={mediaMetadata.flatMap((group) => group.metadata)}
+        />
+        <Box
+          sx={{
+            flexGrow: 1,
+            height: '100%',
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          {mediaMetadata.map((group) => (
+            <Box
+              key={group.subfolder}
+              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+            >
+              {group.subfolder !== ROOT_FOLDER && (
+                <Box
+                  sx={(theme) => ({
+                    paddingLeft: 3,
+                    paddingRight: 3,
+                    paddingTop: 0.5,
+                    borderRadius: `0 ${theme.spacing(1)} 0 0`,
+                    backgroundColor: 'black',
+                  })}
+                >
+                  <Box component="span" sx={{ color: 'text.disabled', marginRight: 1 }}>
+                    Subfolder
+                  </Box>
+                  {group.subfolder}
+                </Box>
+              )}
+              <MetadataDisplayTable columns={columns} data={group.metadata} />
+            </Box>
+          ))}
+        </Box>
       </Box>
     )
   }
