@@ -29,7 +29,6 @@ const LinkageAnnotationPage = () => {
     const checkForMetadata = async () => {
       const status = await ingestAPI.jobStatus(jobId)
       const statusLowerCase = status.toLowerCase()
-      setParseStatus(statusLowerCase)
       if (statusLowerCase === STATUSES.PENDING) return
       if (statusLowerCase === STATUSES.ERROR) {
         // TODO: handle error case
@@ -43,6 +42,7 @@ const LinkageAnnotationPage = () => {
       const data = await ingestAPI.getParsedMetadata(jobId)
       const transformedData = data.map(transformMediaMetadata)
       setMediaMetadata(transformedData)
+      setParseStatus(STATUSES.COMPLETED)
     }
 
     intervalId = setInterval(checkForMetadata, 1000)
