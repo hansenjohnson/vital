@@ -25,7 +25,7 @@ class IngestService:
             raise FileNotFoundError(f"ffprobe_path.exe does not exist at {self.ffprobe_path}")
 
         self.job_service = JobService()
-        self.validatior_service = ValidatorService()
+        self.validator_service = ValidatorService()
 
     def create_parse_video_job(self, source_dir):
         job_id = self.job_service.create_job()
@@ -39,7 +39,7 @@ class IngestService:
         video_metadata_arr = []
         for video_path in video_files:
             video_metadata = self.ffprobe_metadata(video_path)
-            video_metadata.validation_status = self.validatior_service.validate_video(source_dir, video_path)
+            video_metadata.validation_status = self.validator_service.validate_video(source_dir, video_path)
 
             video_metadata_arr.append(video_metadata.to_dict())
 
@@ -92,6 +92,8 @@ class IngestService:
             duration=metadata['duration'],
             frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
             size=os.path.getsize(video_path),
+            created_date=os.path.getctime(video_path),
+            modified_date=os.path.getatime(video_path),
             validation_status=None
         )
 

@@ -10,6 +10,8 @@ class VideoMetadata:
     frame_rate:str
     size: str
     validation_status: ValidationStatus
+    created_date: str
+    modified_date: str
     
 
     def to_dict(self):
