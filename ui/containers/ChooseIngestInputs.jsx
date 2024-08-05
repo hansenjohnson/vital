@@ -49,6 +49,7 @@ const BubbleListItem = ({ children, firstItem = false, lastItem = false }) => (
 
 const ChooseIngestInputs = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
+  const sourceFolderValid = useJobStore((state) => state.sourceFolderValid)
   const setSourceFolder = useJobStore((state) => state.setSourceFolder)
 
   const [loading, setLoading] = useState(false)
@@ -105,13 +106,15 @@ const ChooseIngestInputs = () => {
           setSourceFolder(filePath)
           triggerCountFiles()
         }}
+        error={!sourceFolderValid}
+        errorMessage="Folder name must be in the format YYYY-MM-DD-ObserverCode"
       />
 
       <Box sx={{ marginTop: 2, marginBottom: 2, display: 'flex' }}>
         <StyledButton
           sx={{ height: '24px' }}
           onClick={triggerCountFiles}
-          disabled={sourceFolder === '' || loading}
+          disabled={sourceFolder === '' || !sourceFolderValid || loading}
         >
           <RefreshIcon
             sx={{
@@ -131,7 +134,7 @@ const ChooseIngestInputs = () => {
             if (newValue === null) return
             setJobMode(newValue)
           }}
-          disabled={numFiles.images === null && numFiles.videos === null}
+          disabled={!sourceFolderValid || (numFiles.images === null && numFiles.videos === null)}
         >
           <JobModeButton value={JOB_MODES.BY_IMAGE} disabled={numFiles.images === 0}>
             {numFiles.images ?? '#'} images
