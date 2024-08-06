@@ -1,12 +1,12 @@
-from model.ingest.job_model import JobModel
+from model.ingest.job_model import JobModel, JobType
 import json
 
 class JobService:
     def __init__(self):
         self.job_model = JobModel()
 
-    def create_job(self):
-        return self.job_model.create()
+    def create_job(self, job_type: JobType):
+        return self.job_model.create(job_type)
 
     def store_job_data(self, job_id, data):
         json_data = json.dumps(data)

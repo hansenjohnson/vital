@@ -7,6 +7,10 @@ class JobStatus(Enum):
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
 
+class JobType(Enum):
+    METADATA = "METADATA"
+    TRANSCODE = "TRANSCODE"
+
 
 class JobModel:
     def __init__(self, db_name='vital.db'):
@@ -17,6 +21,7 @@ class JobModel:
         self.cursor.execute("""
                CREATE TABLE IF NOT EXISTS job (
                    id INTEGER PRIMARY KEY,
+                   type TEXT,
                    status TEXT,
                    data TEXT
                )
@@ -24,8 +29,8 @@ class JobModel:
 
         self.conn.commit()
 
-    def create(self):
-        self.cursor.execute("INSERT INTO job (status) VALUES (?)", (JobStatus.PENDING.value,))
+    def create(self, job_type: JobType):
+        self.cursor.execute("INSERT INTO job (type, status) VALUES (?, ?)", (job_type.value, JobStatus.PENDING.value,))
         self.conn.commit()
         return self.cursor.lastrowid
 

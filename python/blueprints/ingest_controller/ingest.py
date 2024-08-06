@@ -1,11 +1,14 @@
 from flask import Blueprint, jsonify, request
 from services.ingest_service import IngestService
 from services.job_service import JobService
+from services.transcode_service import TranscodeService
+
 from urllib.parse import unquote
 
 bp = Blueprint('ingest', __name__)
 ingest_service = IngestService()
 job_service = JobService()
+transcode_service = TranscodeService()
 
 
 @bp.route('/count_files/<string:source_folder_as_encoded_uri_component>', methods=['GET'])
@@ -42,3 +45,14 @@ def job_status(job_id):
         return jsonify(job_service.check_job_status(job_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@bp.route('/transcode', methods=['POST'])
+def start_transcode():
+    payload = request.json
+    transcode_list = payload['transcode_list']
+    print(transcode_list)
+    try:
+        return jsonify(transcode_service.start_transcode_job(transcode_list)), 200
+    except Exception as e:
+        return jsonify({"error:", str(e)}), 400
