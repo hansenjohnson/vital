@@ -1,6 +1,8 @@
+import logging
 from flask import Flask
 from flask_cors import CORS
 
+from utils.custom_flask_logs import FilterRequestLogs
 from blueprints.linkages_controller.linkages import bp as linkages_bp
 from blueprints.sightings_controller.sightings import bp as sightings_bp
 from blueprints.settings_controller.settings import bp as settings_bp
@@ -9,6 +11,9 @@ from blueprints.folders_controller.folders import bp as folders_bp
 from blueprints.thumbnails_controller.thumbnails import bp as thumbnails_bp
 from blueprints.still_exports_controller.still_exports import bp as still_exports_bp
 from blueprints.ingest_controller.ingest import bp as ingest_bp
+
+log_werkzeug = logging.getLogger("werkzeug")
+log_werkzeug.addFilter(FilterRequestLogs())
 
 app = Flask(__name__)
 CORS(app)

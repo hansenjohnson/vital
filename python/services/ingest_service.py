@@ -9,7 +9,7 @@ from data.video_medatadata import VideoMetadata
 from services.job_service import JobService
 from services.validator_service import ValidatorService
 
-from utils.prints import print_err
+from utils.prints import print_err, print_out
 
 
 class IngestService:
@@ -73,6 +73,7 @@ class IngestService:
         ]
         if start_number:
             command.extend(["-start_number", str(start_number)])
+        print_out(f'Running ffprobe command: {" ".join(command)}')
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         metadata_json, error = process.communicate()
         if error:
@@ -84,7 +85,6 @@ class IngestService:
         except KeyError:
             print_err("No FFprobe metadata was found at path %s", video_path)
             return None
-        
         return VideoMetadata(
             file_name=os.path.basename(video_path),
             file_path=video_path,
@@ -116,4 +116,3 @@ class IngestService:
             'images': image_files_count,
             'videos': video_files_count,
         }
-            

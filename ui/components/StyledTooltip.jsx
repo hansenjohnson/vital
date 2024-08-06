@@ -13,6 +13,10 @@ const darkBackground = {
   sx: { backgroundColor: 'rgba(25, 25, 25, 0.85)' },
 }
 
+const darkerBackground = {
+  sx: { backgroundColor: 'rgba(0, 0, 0, 0.85)' },
+}
+
 const adjustX = (by) => ({
   modifiers: [
     {
@@ -24,11 +28,15 @@ const adjustX = (by) => ({
   ],
 })
 
-const StyledTooltip = ({ title, xAdjustment = 0, children }) => (
+const StyledTooltip = ({ title, darker = false, xAdjustment = 0, children, ...rest }) => (
   <NoMaxWidthTooltip
     title={title}
     placement="right"
-    componentsProps={{ tooltip: darkBackground, popper: adjustX(parseInt(xAdjustment, 10)) }}
+    componentsProps={{
+      tooltip: darker ? darkerBackground : darkBackground,
+      popper: adjustX(parseInt(xAdjustment, 10)),
+    }}
+    {...rest}
   >
     {children}
   </NoMaxWidthTooltip>

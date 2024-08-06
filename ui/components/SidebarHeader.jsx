@@ -32,6 +32,7 @@ const SidebarHeader = ({ title, subtitle }) => (
           width: '24px',
           height: '24px',
           filter: blackPixelToTheme.palette.primary.dark,
+          userSelect: 'none',
         }}
       />
       <Typography sx={{ fontSize: '24px', lineHeight: '24px', fontWeight: 700 }}>

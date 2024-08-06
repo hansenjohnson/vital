@@ -149,6 +149,7 @@ const LinkageWorkspace = () => {
       setVideoResolution(highestResolutionAvailable(mediaPlayerRef.current))
     }
 
+    console.log(`Loading DashJS Player with ${activeVideoURL}`)
     mediaPlayerRef.current = initializePlayer(videoElement, activeVideoURL)
     stopSubscriptionsRef.current = startSubscriptions(
       mediaPlayerRef.current,
