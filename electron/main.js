@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs'
 import path from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -6,6 +7,8 @@ import ElectronStore from 'electron-store'
 
 import { launchPythonServer, killPythonServer } from './childProcesses'
 
+const logFilePath = log?.transports?.file?.getFile()?.path
+writeFileSync(logFilePath, '')
 log.initialize()
 log.info(`App Launched at  ${new Date()}`)
 
