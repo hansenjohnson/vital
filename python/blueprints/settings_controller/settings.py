@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, jsonify, request
 
 from model.association.folder_model import FolderModel
@@ -6,6 +7,7 @@ from model.association.linkage_model import LinkageModel
 from model.association.sighting_model import SightingModel
 from model.association.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
+from settings.settings_enum import SettingsEnum
 from utils.prints import print_err
 
 bp = Blueprint('settings', __name__)
@@ -18,22 +20,35 @@ sighting_model = SightingModel()
 still_export_model = StillExportModel()
 
 
-@bp.route('', methods=['POST'], strict_slashes=False)
-def create_or_update_settings():
+@bp.route('/create_one', methods=['POST'], strict_slashes=False)
+def create_or_update_setting():
     response, status = jsonify({"message": "An unexpected error occurred"}), 500
     try:
-        settings_data = request.json
+        key = request.json['key']
+        value = request.json['value']
+        setting_type = request.json['setting_type']
 
-        for key, value in settings_data.items():
-            settings_service.set_setting(key, value)
+        if setting_type == 'folder' and not os.path.isdir(value):
+            raise Exception(f"Folder does not exist")
 
-        refresh_tables()
+        if setting_type == 'excel':
+            if not value.endswith('.xlsx'):
+                raise Exception(f"File is not an xlsx file")
+            if not os.path.isfile(value):
+                raise Exception(f"File does not exist")
+
+        settings_service.set_setting(key, value)
+        refresh_table_for(key)
 
         response = jsonify({"message": "Setting saved Successfully"})
         status = 200
     except Exception as e:
-        print_err(f"Failed to save settings: {e}")
-        response = jsonify({"Setting save failed ": str(e)})
+        try:
+            settings_service.delete_setting(key)
+        except Exception as e:
+            pass
+        print_err(f"Failed to save setting: {e}")
+        response = jsonify({'message': str(e)})
         status = 500
     finally:
         return response, status
@@ -66,9 +81,14 @@ def get_settings(key=None):
         return response, status
 
 
-def refresh_tables():
-    folder_model.refresh_table()
-    video_model.refresh_table()
-    linkage_model.refresh_table()
-    sighting_model.refresh_table()
-    still_export_model.refresh_table()
+def refresh_table_for(setting_key):
+    if setting_key == SettingsEnum.FOLDER_FILE_PATH.value:
+        folder_model.refresh_table()
+    if setting_key == SettingsEnum.VIDEO_FILE_PATH.value:
+        video_model.refresh_table()
+    if setting_key == SettingsEnum.LINKAGE_FILE_PATH.value:
+        linkage_model.refresh_table()
+    if setting_key == SettingsEnum.SIGHTING_FILE_PATH.value:
+        sighting_model.refresh_table()
+    if setting_key == SettingsEnum.STILL_EXPORT_FILE_PATH.value:
+        still_export_model.refresh_table()
