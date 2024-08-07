@@ -4,14 +4,7 @@ from enum import Enum
 from typing import List
 
 from data.transcode_settings import TranscodeSettings
-from data.task import Task
-
-
-class TaskStatus(Enum):
-    PENDING = "PENDING"
-    COMPLETED = "COMPLETED"
-    ERROR = "ERROR"
-
+from data.task import Task, TaskStatus
 
 class TaskModel:
     def __init__(self, db_name='vital.db'):
@@ -52,12 +45,20 @@ class TaskModel:
         transcode_settings = self.deserialize_dataclass(row, TranscodeSettings)
         return transcode_settings
     
+    def get_all_task_ids_by_status(self, job_id: int, status: TaskStatus):
+        self.cursor.execute("SELECT id FROM task WHERE job_id = ? AND status = ?", (job_id, status.value))
+        task_ids =  self.cursor.fetchall()
 
-    def get_all_task_by_job_id(self, job_id) -> List[any]:
-        self.cursor.execute("SELECT id, job_id, status, transcode_settings, error_message FROM task WHERE job_id = ?", (job_id,))
-        return self.cursor.fetchall()
-
+        return [task_id for (task_id,) in task_ids]
 
     def get_task_status(self, task_id) -> str:
         self.cursor.execute("SELECT status FROM task WHERE id = ?", (task_id,))
         return self.cursor.fetchone()[0]
+
+    def update_task_status(self, task_id: int, status: TaskStatus):
+        self.cursor.execute("UPDATE task SET status = ? WHERE id = ?", (status.value, task_id))
+        self.conn.commit()
+
+    def set_task_error_message(self, task_id: int, error_message: str):
+        self.cursor.execute("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
+        self.conn.commit()

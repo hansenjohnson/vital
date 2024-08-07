@@ -51,8 +51,16 @@ def job_status(job_id):
 def start_transcode():
     payload = request.json
     transcode_list = payload['transcode_list']
-    print(transcode_list)
     try:
         return jsonify(transcode_service.start_transcode_job(transcode_list)), 200
     except Exception as e:
         return jsonify({"error:", str(e)}), 400
+
+
+@bp.route('/restart/<int:job_id>', methods=['GET'])
+def restart_transcode(job_id):
+    try:
+        transcode_service.restart_transcode_job(job_id)
+        return jsonify({"job_id": job_id}), 200 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
