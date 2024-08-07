@@ -8,7 +8,7 @@ from model.association.sighting_model import SightingModel
 from model.association.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
-from utils.prints import print_err
+from utils.prints import print_err, print_out
 
 bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
@@ -27,6 +27,7 @@ def create_or_update_setting():
         key = request.json['key']
         value = request.json['value']
         setting_type = request.json['setting_type']
+        print_out(f'attentpting to save setting: {key} | {value}')
 
         if setting_type == 'folder' and not os.path.isdir(value):
             raise Exception(f"Folder does not exist")
