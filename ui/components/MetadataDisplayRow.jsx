@@ -14,23 +14,29 @@ const cellStyle = (theme) => ({
   paddingBottom: '2px',
 })
 
-const DefaultCell = ({ value, align }) => (
-  <TableCell padding="none" sx={cellStyle} align={align}>
+const DefaultCell = ({ value, align, firstColumn }) => (
+  <TableCell
+    padding="none"
+    sx={(theme) => ({ ...cellStyle(theme), ...(firstColumn ? { paddingLeft: 0.5 } : {}) })}
+    align={align}
+  >
     {value}
   </TableCell>
 )
 
-const CellWithTooltip = ({ value, maxWidth }) => {
+const CellWithTooltip = ({ value, maxWidth, firstColumn }) => {
   const widthTruncStyle = maxWidth
     ? { maxWidth: `${maxWidth}px`, overflow: 'hidden', textOverflow: 'ellipsis' }
     : {}
+  const firstColumnStyle = firstColumn ? { paddingLeft: 0.5 } : {}
   return (
-    <StyledTooltip title={value} darker onOpen={() => maxWidth > 0}>
+    <StyledTooltip title={value} darker onOpen={() => maxWidth > 0} enterDelay={750}>
       <TableCell
         padding="none"
         sx={(theme) => ({
           ...cellStyle(theme),
           ...widthTruncStyle,
+          ...firstColumnStyle,
         })}
       >
         {value}
@@ -39,19 +45,10 @@ const CellWithTooltip = ({ value, maxWidth }) => {
   )
 }
 
-const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors }) => {
-  const status = (() => {
-    if (errors.length > 0) {
-      return 'error'
-    } else if (warnings.length > 0) {
-      return 'warning'
-    }
-    return 'success'
-  })()
-
+const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors, status }) => {
   return (
     <TableRow>
-      <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), paddingLeft: '4px' })}>
+      <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), paddingLeft: 0 })}>
         <Box
           sx={{
             display: 'flex',
@@ -72,9 +69,15 @@ const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors }) => 
               value={value}
               align={align}
               maxWidth={maxWidth}
+              firstColumn={index === 0}
             />
           ) : (
-            <DefaultCell key={`${index}-${value}`} value={value} align={align} />
+            <DefaultCell
+              key={`${index}-${value}`}
+              value={value}
+              align={align}
+              firstColumn={index === 0}
+            />
           )
         return cell
       })}

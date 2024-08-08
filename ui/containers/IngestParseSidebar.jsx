@@ -6,18 +6,21 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
 import { bytesToSize } from '../utilities/strings'
-import STATUSES from '../constants/statuses'
+import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
+import IssueSummaryControls from '../components/IssueSummaryControls'
 
-const IngestParseSidebar = ({ status, data }) => {
+const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors }) => {
   const jobMode = useJobStore((state) => state.jobMode)
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const triggerParse = useJobStore((state) => state.triggerParse)
 
-  const totalSize = data.reduce((acc, { fileSize }) => acc + parseFloat(fileSize), 0)
-  const totalWarnings = data.reduce((acc, { warnings }) => acc + warnings.length, 0)
-  const totalErrors = data.reduce((acc, { errors }) => acc + errors.length, 0)
+  const metadataFilter = useJobStore((state) => state.metadataFilter)
+  const setMetadataFilter = useJobStore((state) => state.setMetadataFilter)
+  const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
+  const addToIgnoreList = useJobStore((state) => state.addToIgnoreList)
+  const removeFromIgnoreList = useJobStore((state) => state.removeFromIgnoreList)
 
   return (
     <Sidebar spacing={1}>
@@ -31,30 +34,43 @@ const IngestParseSidebar = ({ status, data }) => {
       )}
       {status === STATUSES.COMPLETED && (
         <>
-          <Box sx={{ fontSize: '20px' }}>
-            Ingesting {bytesToSize(totalSize)} of {jobMode}
-          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Box sx={{ fontSize: '20px', display: 'flex', gap: 1 }}>
-                <Box component="span" sx={{ width: '90px', textAlign: 'right' }}>
-                  Warnings:
-                </Box>
-                <Box component="span">{totalWarnings}</Box>
-              </Box>
-              <Box sx={{ fontSize: '20px', display: 'flex', gap: 1 }}>
-                <Box component="span" sx={{ width: '90px', textAlign: 'right' }}>
-                  Errors:
-                </Box>
-                <Box component="span">{totalErrors}</Box>
-              </Box>
+            <Box sx={{ fontSize: '20px' }}>
+              Ingesting {bytesToSize(totalSize, 2)} of {jobMode}
             </Box>
             <Box>
-              <Button sx={{ paddingLeft: 1, paddingRight: 1 }} onClick={triggerParse}>
-                Re-Parse <RefreshIcon fontSize="small" sx={{ marginLeft: 0.5 }} />
+              <Button
+                sx={(theme) => ({
+                  paddingLeft: 1,
+                  // This 4px is the gap between the icon and it's "container"
+                  paddingRight: `calc(${theme.spacing(1)} - 4px)`,
+                  marginRight: `calc(${theme.spacing(-1)} + 4px)`,
+                })}
+                onClick={triggerParse}
+              >
+                Re-Parse
+                <RefreshIcon fontSize="small" sx={{ marginLeft: 0.5 }} />
               </Button>
             </Box>
           </Box>
+          <IssueSummaryControls
+            title="Warnings"
+            orderedIssuesWithCounts={[...allWarnings.entries()]}
+            issueConstants={WARNINGS}
+            ignorable
+            metadataFilter={metadataFilter}
+            setMetadataFilter={setMetadataFilter}
+            issueIgnoreList={issueIgnoreList}
+            addToIgnoreList={addToIgnoreList}
+            removeFromIgnoreList={removeFromIgnoreList}
+          />
+          <IssueSummaryControls
+            title="Errors"
+            orderedIssuesWithCounts={[...allErrors.entries()]}
+            issueConstants={ERRORS}
+            metadataFilter={metadataFilter}
+            setMetadataFilter={setMetadataFilter}
+          />
         </>
       )}
     </Sidebar>

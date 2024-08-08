@@ -1,17 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
 import useJobStore from '../store/job'
-import STATUSES from '../constants/statuses'
+import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import { ROOT_FOLDER } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
 import { bytesToSize, twoPrecisionStrNum, secondsToDuration } from '../utilities/strings'
-import { transformMediaMetadata, groupMediaMetadataBySubfolder } from '../utilities/transformers'
+import {
+  transformMediaMetadata,
+  groupMediaMetadataBySubfolder,
+  calculateStatus,
+} from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
+import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
 
 const LinkageAnnotationPage = () => {
@@ -20,15 +25,25 @@ const LinkageAnnotationPage = () => {
   const phase = useJobStore((state) => state.phase)
   const jobMode = useJobStore((state) => state.jobMode)
 
+  const metadataFilter = useJobStore((state) => state.metadataFilter)
+  const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
+
   /* Poll for Parse Data, handle statuses */
   const jobId = useJobStore((state) => state.jobId)
   const [parseStatus, setParseStatus] = useState(STATUSES.LOADING)
-  const [mediaMetadata, setMediaMetadata] = useState([])
+  const [mediaGroups, setMediaGroups] = useState([])
+  const [totalSize, setTotalSize] = useState(0)
+  const [allWarnings, setAllWarnings] = useState(new Map())
+  const [allErrors, setAllErrors] = useState(new Map())
+
   useEffect(() => {
     if (phase !== JOB_PHASES.PARSE) return
 
     setParseStatus(STATUSES.LOADING)
-    setMediaMetadata([])
+    setMediaGroups([])
+    setTotalSize(0)
+    setAllWarnings(new Map())
+    setAllErrors(new Map())
     let intervalId
 
     const checkForMetadata = async () => {
@@ -36,7 +51,8 @@ const LinkageAnnotationPage = () => {
       const statusLowerCase = status.toLowerCase()
       if (statusLowerCase === STATUSES.PENDING) return
       if (statusLowerCase === STATUSES.ERROR) {
-        // TODO: handle error case
+        // TODO: handle error case, currently the backend doesn't return this
+        return
       }
       if (statusLowerCase !== STATUSES.COMPLETED) {
         console.log('Unknown status:', status)
@@ -46,14 +62,57 @@ const LinkageAnnotationPage = () => {
 
       const data = await ingestAPI.getParsedMetadata(jobId)
       const transformedData = data.map(transformMediaMetadata)
-      const groupedData = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
-      setMediaMetadata(groupedData)
+      const groupsAndAggregates = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
+      setMediaGroups(groupsAndAggregates.mediaGroups)
+      setTotalSize(groupsAndAggregates.totalSize)
+      setAllWarnings(groupsAndAggregates.allWarnings)
+      setAllErrors(groupsAndAggregates.allErrors)
       setParseStatus(STATUSES.COMPLETED)
     }
 
     intervalId = setInterval(checkForMetadata, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobId])
+
+  /* User controlled data processing */
+  const mediaGroupsFiltered = useMemo(() => {
+    if (!metadataFilter) return mediaGroups
+    const objForFilter = ERRORS.get(metadataFilter) ?? WARNINGS.get(metadataFilter)
+    if (objForFilter.groupLevel) {
+      return mediaGroups.filter((group) => group.statusText === objForFilter.message)
+    }
+    return mediaGroups.map((group) => {
+      const mediaList = group.mediaList.filter(
+        (media) => media.warnings.includes(metadataFilter) || media.errors.includes(metadataFilter)
+      )
+      return { ...group, mediaList }
+    })
+  }, [JSON.stringify(mediaGroups), metadataFilter])
+
+  const mediaGroupsFilteredAndIgnored = useMemo(() => {
+    const groupLevelIgnores = issueIgnoreList.reduce((acc, issue) => {
+      const objForFilter = ERRORS.get(issue) ?? WARNINGS.get(issue)
+      if (!objForFilter.groupLevel) return acc
+      acc.push(objForFilter.message)
+      return acc
+    }, [])
+    return mediaGroupsFiltered.map((group) => {
+      let newGroupStatus = group.status
+      if (groupLevelIgnores.includes(group.statusText)) {
+        newGroupStatus = STATUSES.SUCCESS
+      }
+      const mediaList = group.mediaList.map((media) => {
+        const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
+        const newMediaStatus = calculateStatus(media.errors, newWarnings)
+        return {
+          ...media,
+          status: newMediaStatus,
+          warnings: newWarnings,
+        }
+      })
+      return { ...group, status: newGroupStatus, mediaList }
+    })
+  }, [JSON.stringify(mediaGroupsFiltered), issueIgnoreList])
 
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
@@ -99,7 +158,9 @@ const LinkageAnnotationPage = () => {
       <Box sx={{ display: 'flex', height: '100%' }}>
         <IngestParseSidebar
           status={parseStatus}
-          data={mediaMetadata.flatMap((group) => group.metadata)}
+          totalSize={totalSize}
+          allWarnings={allWarnings}
+          allErrors={allErrors}
         />
         <Box
           sx={{
@@ -111,28 +172,17 @@ const LinkageAnnotationPage = () => {
             gap: 2,
           }}
         >
-          {mediaMetadata.map((group) => (
+          {mediaGroupsFilteredAndIgnored.map((group) => (
             <Box
               key={group.subfolder}
               sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
             >
               {group.subfolder !== ROOT_FOLDER && (
-                <Box
-                  sx={(theme) => ({
-                    paddingLeft: 3,
-                    paddingRight: 3,
-                    paddingTop: 0.5,
-                    borderRadius: `0 ${theme.spacing(1)} 0 0`,
-                    backgroundColor: 'black',
-                  })}
-                >
-                  <Box component="span" sx={{ color: 'text.disabled', marginRight: 1 }}>
-                    Subfolder
-                  </Box>
+                <MetadataSubfolder status={group.status} statusText={group.statusText}>
                   {group.subfolder}
-                </Box>
+                </MetadataSubfolder>
               )}
-              <MetadataDisplayTable columns={columns} data={group.metadata} />
+              <MetadataDisplayTable columns={columns} data={group.mediaList} />
             </Box>
           ))}
         </Box>

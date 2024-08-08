@@ -33,7 +33,12 @@ export const bytesToSize = (bytes) => {
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   if (bytes === 0) return '0 B'
   const bytesPower = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10)
-  return `${Math.round(bytes / 1024 ** bytesPower)} ${sizes[bytesPower]}`
+  const bytesAtThatPower = bytes / 1024 ** bytesPower
+  const bytesString =
+    `${Math.round(bytesAtThatPower)}`.length === 1
+      ? bytesAtThatPower.toFixed(1)
+      : Math.round(bytesAtThatPower)
+  return `${bytesString} ${sizes[bytesPower]}`
 }
 
 export const secondsToDuration = (seconds) => {

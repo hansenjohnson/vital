@@ -6,11 +6,9 @@ import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import TableBody from '@mui/material/TableBody'
 import TableSortLabel from '@mui/material/TableSortLabel'
-import Box from '@mui/material/Box'
-import { visuallyHidden } from '@mui/utils'
 
 import MetadataDisplayRow from './MetadataDisplayRow'
-import { WARNING_MESSAGES, ERROR_MESSAGES } from '../constants/statuses'
+import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
 
 const tableHeaderCellStyle = {
   fontWeight: 400,
@@ -33,6 +31,13 @@ const getDirectionalSorter = (order, orderBy, transformer) => {
     : (a, b) => -standardComparator(a, b, orderBy, transformer)
 }
 
+const statusTransformer = (status) => {
+  if (status === STATUSES.SUCCESS) return 0
+  if (status === STATUSES.WARNING) return 1
+  if (status === STATUSES.ERROR) return 2
+  return 3
+}
+
 const MetadataDisplayTable = ({ columns, data }) => {
   // Sort by File Name as Default (aka index 0)
   const [order, setOrder] = useState('asc')
@@ -46,11 +51,8 @@ const MetadataDisplayTable = ({ columns, data }) => {
 
   const sortedData = useMemo(() => {
     const columnData = columns.find((column) => column.key === orderBy)
-    const directionalSorter = getDirectionalSorter(
-      order,
-      orderBy,
-      columnData?.comparatorTransformer
-    )
+    const transformer = orderBy === 'status' ? statusTransformer : columnData?.comparatorTransformer
+    const directionalSorter = getDirectionalSorter(order, orderBy, transformer)
     return data.slice().sort(directionalSorter)
   }, [JSON.stringify(columns), JSON.stringify(data), order, orderBy])
 
@@ -66,17 +68,21 @@ const MetadataDisplayTable = ({ columns, data }) => {
                 paddingLeft: 0,
                 paddingTop: 0.5,
                 paddingBottom: 0.5,
-                width: '24px',
               }}
+              sortDirection={orderBy === 'status' ? order : false}
             >
-              &nbsp;
+              <TableSortLabel
+                active={orderBy === 'status'}
+                direction={orderBy === 'status' ? order : 'asc'}
+                onClick={createSortHandler('status')}
+              />
             </TableCell>
 
             {columns.map((column, index) => (
               <TableCell
                 key={`${index}-${column.key}`}
                 padding="none"
-                sx={{ ...tableHeaderCellStyle }}
+                sx={{ ...tableHeaderCellStyle, ...(index === 0 ? { paddingLeft: 0.5 } : {}) }}
                 align={column.align === 'center' ? 'right' : column.align}
                 sortDirection={orderBy === column.key ? order : false}
               >
@@ -86,16 +92,11 @@ const MetadataDisplayTable = ({ columns, data }) => {
                   onClick={createSortHandler(column.key)}
                 >
                   {column.label}
-                  {orderBy === column.key ? (
-                    <Box component="span" sx={visuallyHidden}>
-                      {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                    </Box>
-                  ) : null}
                 </TableSortLabel>
               </TableCell>
             ))}
 
-            <TableCell padding="none" sx={{ ...tableHeaderCellStyle }}>
+            <TableCell padding="none" sx={{ ...tableHeaderCellStyle, minWidth: '200px' }}>
               Warnings/Errors
             </TableCell>
           </TableRow>
@@ -113,8 +114,9 @@ const MetadataDisplayTable = ({ columns, data }) => {
               })}
               aligns={columns.map((column) => column.align)}
               maxWidths={columns.map((column) => column.maxWidth)}
-              warnings={row.warnings.map((warning) => WARNING_MESSAGES[warning])}
-              errors={row.errors.map((error) => ERROR_MESSAGES[error])}
+              warnings={row.warnings.map((warning) => WARNINGS.get(warning).message)}
+              errors={row.errors.map((error) => ERRORS.get(error).message)}
+              status={row.status}
             />
           ))}
         </TableBody>
