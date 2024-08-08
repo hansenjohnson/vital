@@ -30,7 +30,7 @@ const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors }) => {
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ fontSize: '20px' }}>
-              Ingesting {bytesToSize(totalSize)} of {jobMode}
+              Ingesting {bytesToSize(totalSize, 2)} of {jobMode}
             </Box>
             <Box>
               <Button
