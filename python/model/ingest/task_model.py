@@ -51,10 +51,22 @@ class TaskModel:
 
         return [task_id for (task_id,) in task_ids]
 
-    def get_task_status(self, task_id) -> str:
-        self.cursor.execute("SELECT status FROM task WHERE id = ?", (task_id,))
-        return self.cursor.fetchone()[0]
-
+    def get_tasks_by_job_id(self, job_id) -> str:
+        self.cursor.execute("SELECT id, job_id, status, transcode_settings, error_message FROM task WHERE id = ?", (job_id,))
+        tasks_data = self.cursor.fetchall()
+        tasks = []
+        for task_data in tasks_data:
+            task_id, job_id, status, transcode_settings_json, error_message = task_data
+            task = Task(
+                id=task_id,
+                job_id=job_id,
+                status=status,
+                transcode_settings=transcode_settings_json,
+                error_message=error_message
+            )
+            tasks.append(task)
+        return tasks
+    
     def update_task_status(self, task_id: int, status: TaskStatus):
         self.cursor.execute("UPDATE task SET status = ? WHERE id = ?", (status.value, task_id))
         self.conn.commit()
