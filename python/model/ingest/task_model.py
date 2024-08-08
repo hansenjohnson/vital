@@ -3,11 +3,12 @@ import json
 from enum import Enum
 from typing import List
 
+from model.config import DB_NAME
 from data.transcode_settings import TranscodeSettings
 from data.task import Task, TaskStatus
 
 class TaskModel:
-    def __init__(self, db_name='vital.db'):
+    def __init__(self, db_name=DB_NAME):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
