@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 import ToolTip from '@mui/material/ToolTip'
 
+import STATUSES from '../constants/statuses'
 import StatusIcon from './StatusIcon'
 
 const MetadataSubfolder = ({ status, statusText, children }) => (
@@ -18,7 +19,7 @@ const MetadataSubfolder = ({ status, statusText, children }) => (
   >
     <Box sx={{ color: 'text.disabled' }}>Subfolder</Box>
     <ToolTip
-      title={statusText}
+      title={status === STATUSES.SUCCESS ? '' : statusText}
       placement="top"
       arrow
       componentsProps={{

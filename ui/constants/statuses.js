@@ -1,7 +1,8 @@
 const WARNINGS = new Map()
 WARNINGS.set('VIDEO_PATH_WARNING', {
-  message: 'warning - this is a nested folder',
+  message: 'this is a nested folder',
   summary: 'Nested folder',
+  groupLevel: true,
 })
 WARNINGS.set('INCORRECT_CREATED_TIME', {
   message: 'file date does not match source folder',
@@ -10,8 +11,9 @@ WARNINGS.set('INCORRECT_CREATED_TIME', {
 
 const ERRORS = new Map()
 ERRORS.set('VIDEO_PATH_ERROR', {
-  message: 'error - subfolder is too deeply nested',
+  message: 'subfolder is too deeply nested',
   summary: 'Subfolder too deep',
+  groupLevel: true,
 })
 ERRORS.set('LENGTH_ERROR', {
   message: 'filename is too long',

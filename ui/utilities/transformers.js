@@ -114,15 +114,19 @@ export const regionDataForLinkage = (linkage) => ({
   end: linkage.regionEnd,
 })
 
+export const calculateStatus = (errors, warnings) => {
+  if (errors.length > 0) {
+    return STATUSES.ERROR
+  } else if (warnings.length > 0) {
+    return STATUSES.WARNING
+  }
+  return STATUSES.SUCCESS
+}
+
 export const transformMediaMetadata = (media) => {
   const warnings = media?.validation_status?.warnings || []
   const errors = media?.validation_status?.errors || []
-  let status = STATUSES.SUCCESS
-  if (errors.length > 0) {
-    status = STATUSES.ERROR
-  } else if (warnings.length > 0) {
-    status = STATUSES.WARNING
-  }
+  const status = calculateStatus(errors, warnings)
   return {
     filePath: media.file_path,
     fileName: media.file_name,

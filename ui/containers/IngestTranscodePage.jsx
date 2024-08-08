@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
 import useJobStore from '../store/job'
-import STATUSES from '../constants/statuses'
+import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import { ROOT_FOLDER } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
 import { bytesToSize, twoPrecisionStrNum, secondsToDuration } from '../utilities/strings'
-import { transformMediaMetadata, groupMediaMetadataBySubfolder } from '../utilities/transformers'
+import {
+  transformMediaMetadata,
+  groupMediaMetadataBySubfolder,
+  calculateStatus,
+} from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
 
 import BlankSlate from '../components/BlankSlate'
@@ -20,6 +24,9 @@ const LinkageAnnotationPage = () => {
 
   const phase = useJobStore((state) => state.phase)
   const jobMode = useJobStore((state) => state.jobMode)
+
+  const metadataFilter = useJobStore((state) => state.metadataFilter)
+  const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
 
   /* Poll for Parse Data, handle statuses */
   const jobId = useJobStore((state) => state.jobId)
@@ -65,6 +72,46 @@ const LinkageAnnotationPage = () => {
     intervalId = setInterval(checkForMetadata, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobId])
+
+  /* User controlled data processing */
+  const mediaGroupsFiltered = useMemo(() => {
+    if (!metadataFilter) return mediaGroups
+    const objForFilter = ERRORS.get(metadataFilter) ?? WARNINGS.get(metadataFilter)
+    if (objForFilter.groupLevel) {
+      return mediaGroups.filter((group) => group.statusText === objForFilter.message)
+    }
+    return mediaGroups.map((group) => {
+      const mediaList = group.mediaList.filter(
+        (media) => media.warnings.includes(metadataFilter) || media.errors.includes(metadataFilter)
+      )
+      return { ...group, mediaList }
+    })
+  }, [JSON.stringify(mediaGroups), metadataFilter])
+
+  const mediaGroupsFilteredAndIgnored = useMemo(() => {
+    const groupLevelIgnores = issueIgnoreList.reduce((acc, issue) => {
+      const objForFilter = ERRORS.get(issue) ?? WARNINGS.get(issue)
+      if (!objForFilter.groupLevel) return acc
+      acc.push(objForFilter.message)
+      return acc
+    }, [])
+    return mediaGroupsFiltered.map((group) => {
+      let newGroupStatus = group.status
+      if (groupLevelIgnores.includes(group.statusText)) {
+        newGroupStatus = STATUSES.SUCCESS
+      }
+      const mediaList = group.mediaList.map((media) => {
+        const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
+        const newMediaStatus = calculateStatus(media.errors, newWarnings)
+        return {
+          ...media,
+          status: newMediaStatus,
+          warnings: newWarnings,
+        }
+      })
+      return { ...group, status: newGroupStatus, mediaList }
+    })
+  }, [JSON.stringify(mediaGroupsFiltered), issueIgnoreList])
 
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
@@ -124,7 +171,7 @@ const LinkageAnnotationPage = () => {
             gap: 2,
           }}
         >
-          {mediaGroups.map((group) => (
+          {mediaGroupsFilteredAndIgnored.map((group) => (
             <Box
               key={group.subfolder}
               sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}

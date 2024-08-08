@@ -96,7 +96,7 @@ const MetadataDisplayTable = ({ columns, data }) => {
               </TableCell>
             ))}
 
-            <TableCell padding="none" sx={{ ...tableHeaderCellStyle }}>
+            <TableCell padding="none" sx={{ ...tableHeaderCellStyle, minWidth: '200px' }}>
               Warnings/Errors
             </TableCell>
           </TableRow>
