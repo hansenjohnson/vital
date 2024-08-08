@@ -51,7 +51,8 @@ const LinkageAnnotationPage = () => {
       const statusLowerCase = status.toLowerCase()
       if (statusLowerCase === STATUSES.PENDING) return
       if (statusLowerCase === STATUSES.ERROR) {
-        // TODO: handle error case
+        // TODO: handle error case, currently the backend doesn't return this
+        return
       }
       if (statusLowerCase !== STATUSES.COMPLETED) {
         console.log('Unknown status:', status)

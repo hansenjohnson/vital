@@ -38,6 +38,7 @@ class IngestService:
 
         video_metadata_arr = []
         for video_path in video_files:
+            # TODO: handle case of ffprobe_metadata failing with relation to reporting that error on UI
             video_metadata = self.ffprobe_metadata(video_path)
             video_metadata.validation_status = self.validator_service.validate_video(source_dir, video_metadata)
 
