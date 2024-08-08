@@ -39,16 +39,7 @@ const CellWithTooltip = ({ value, maxWidth }) => {
   )
 }
 
-const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors }) => {
-  const status = (() => {
-    if (errors.length > 0) {
-      return 'error'
-    } else if (warnings.length > 0) {
-      return 'warning'
-    }
-    return 'success'
-  })()
-
+const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors, status }) => {
   return (
     <TableRow>
       <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), paddingLeft: '4px' })}>

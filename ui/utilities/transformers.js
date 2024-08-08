@@ -1,4 +1,5 @@
 import { ROOT_FOLDER } from '../constants/fileTypes'
+import STATUSES from '../constants/statuses'
 import { joinPath, splitPath } from './paths'
 import { yearMonthDayString } from './strings'
 
@@ -113,16 +114,27 @@ export const regionDataForLinkage = (linkage) => ({
   end: linkage.regionEnd,
 })
 
-export const transformMediaMetadata = (media) => ({
-  filePath: media.file_path,
-  fileName: media.file_name,
-  fileSize: media.size,
-  resolution: `${media.width}x${media.height}`,
-  frameRate: media.frame_rate,
-  duration: media.duration,
-  warnings: media?.validation_status?.warnings || [],
-  errors: media?.validation_status?.errors || [],
-})
+export const transformMediaMetadata = (media) => {
+  const warnings = media?.validation_status?.warnings || []
+  const errors = media?.validation_status?.errors || []
+  let status = STATUSES.SUCCESS
+  if (errors.length > 0) {
+    status = STATUSES.ERROR
+  } else if (warnings.length > 0) {
+    status = STATUSES.WARNING
+  }
+  return {
+    filePath: media.file_path,
+    fileName: media.file_name,
+    fileSize: media.size,
+    resolution: `${media.width}x${media.height}`,
+    frameRate: media.frame_rate,
+    duration: media.duration,
+    warnings: warnings,
+    errors: errors,
+    status,
+  }
+}
 
 export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
   const grouped = new Map()
