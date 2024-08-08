@@ -70,7 +70,6 @@ const MetadataDisplayTable = ({ columns, data }) => {
                 paddingLeft: 0,
                 paddingTop: 0.5,
                 paddingBottom: 0.5,
-                width: '24px',
               }}
               sortDirection={orderBy === 'status' ? order : false}
             >
@@ -78,21 +77,14 @@ const MetadataDisplayTable = ({ columns, data }) => {
                 active={orderBy === 'status'}
                 direction={orderBy === 'status' ? order : 'asc'}
                 onClick={createSortHandler('status')}
-              >
-                <Box sx={{ marginLeft: 0.25 }} />
-                {orderBy === 'status' ? (
-                  <Box component="span" sx={visuallyHidden}>
-                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                  </Box>
-                ) : null}
-              </TableSortLabel>
+              />
             </TableCell>
 
             {columns.map((column, index) => (
               <TableCell
                 key={`${index}-${column.key}`}
                 padding="none"
-                sx={{ ...tableHeaderCellStyle }}
+                sx={{ ...tableHeaderCellStyle, ...(index === 0 ? { paddingLeft: 0.5 } : {}) }}
                 align={column.align === 'center' ? 'right' : column.align}
                 sortDirection={orderBy === column.key ? order : false}
               >
@@ -102,11 +94,6 @@ const MetadataDisplayTable = ({ columns, data }) => {
                   onClick={createSortHandler(column.key)}
                 >
                   {column.label}
-                  {orderBy === column.key ? (
-                    <Box component="span" sx={visuallyHidden}>
-                      {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                    </Box>
-                  ) : null}
                 </TableSortLabel>
               </TableCell>
             ))}
