@@ -21,9 +21,9 @@ const IssueSummaryControls = ({
       <Box sx={{ flexGrow: 1 }} />
       <Box sx={{ width: '48px', fontSize: '12px', textAlign: 'center' }}>Count</Box>
       <Box sx={{ width: '48px', fontSize: '12px', textAlign: 'center' }}>Show Only</Box>
-      {ignorable && (
-        <Box sx={{ width: '48px', fontSize: '12px', textAlign: 'center' }}>Accept & Ignore</Box>
-      )}
+      <Box sx={{ width: '48px', fontSize: '12px', textAlign: 'center' }}>
+        {ignorable && 'Accept & Ignore'}
+      </Box>
     </Box>
 
     {orderedIssuesWithCounts
@@ -55,7 +55,6 @@ const IssueSummaryControls = ({
               <VisibilityOutlinedIcon fontSize="small" />
             </IconButton>
           </Box>
-          {ignorable && (
             <Box
               sx={{
                 width: '48px',
@@ -64,9 +63,8 @@ const IssueSummaryControls = ({
                 justifyContent: 'center',
               }}
             >
-              <Switch size="small" />
+            {ignorable && <Switch size="small" />}
             </Box>
-          )}
         </Box>
       ))}
   </Box>
