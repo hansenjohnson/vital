@@ -1,5 +1,5 @@
 import { ROOT_FOLDER } from '../constants/fileTypes'
-import STATUSES from '../constants/statuses'
+import STATUSES, { WARNING_MESSAGES, ERROR_MESSAGES } from '../constants/statuses'
 import { joinPath, splitPath } from './paths'
 import { yearMonthDayString } from './strings'
 
@@ -157,12 +157,38 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
   })
 
   const statefulGrouping = [...grouped.entries()]
-    .map(([subfolder, mediaList]) => ({
-      subfolder,
-      aggregatedWarnings: [...new Set(mediaList.flatMap((m) => m.warnings))],
-      aggregatedErrors: [...new Set(mediaList.flatMap((m) => m.errors))],
-      metadata: mediaList,
-    }))
+    .map(([subfolder, mediaList]) => {
+      const aggregatedWarnings = [...new Set(mediaList.flatMap((m) => m.warnings))]
+      const aggregatedErrors = [...new Set(mediaList.flatMap((m) => m.errors))]
+
+      let status = STATUSES.SUCCESS
+      let statusText = null
+      let filteredMediaList = mediaList
+      if (aggregatedErrors.includes('VIDEO_PATH_ERROR')) {
+        status = STATUSES.ERROR
+        statusText = ERROR_MESSAGES.VIDEO_PATH_ERROR
+        filteredMediaList = mediaList.map((media) => ({
+          ...media,
+          errors: media.errors.filter((e) => e !== 'VIDEO_PATH_ERROR'),
+        }))
+      } else if (aggregatedWarnings.includes('VIDEO_PATH_WARNING')) {
+        status = STATUSES.WARNING
+        statusText = WARNING_MESSAGES.VIDEO_PATH_WARNING
+        filteredMediaList = mediaList.map((media) => ({
+          ...media,
+          warnings: media.warnings.filter((e) => e !== 'VIDEO_PATH_WARNING'),
+        }))
+      }
+
+      return {
+        subfolder,
+        status,
+        statusText,
+        aggregatedWarnings,
+        aggregatedErrors,
+        metadata: filteredMediaList,
+      }
+    })
     .sort((a, b) => a.subfolder.localeCompare(b.subfolder))
 
   return statefulGrouping

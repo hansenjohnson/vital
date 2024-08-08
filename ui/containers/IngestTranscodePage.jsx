@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
+import ToolTip from '@mui/material/ToolTip'
 
 import useJobStore from '../store/job'
 import STATUSES from '../constants/statuses'
@@ -12,6 +13,7 @@ import { resolutionToTotalPixels } from '../utilities/numbers'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
+import StatusIcon from '../components/StatusIcon'
 import IngestParseSidebar from './IngestParseSidebar'
 
 const LinkageAnnotationPage = () => {
@@ -119,17 +121,41 @@ const LinkageAnnotationPage = () => {
               {group.subfolder !== ROOT_FOLDER && (
                 <Box
                   sx={(theme) => ({
-                    paddingLeft: 3,
-                    paddingRight: 3,
+                    paddingLeft: 2.5,
+                    paddingRight: 2.5,
                     paddingTop: 0.5,
                     borderRadius: `0 ${theme.spacing(1)} 0 0`,
                     backgroundColor: 'black',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
                   })}
                 >
-                  <Box component="span" sx={{ color: 'text.disabled', marginRight: 1 }}>
-                    Subfolder
-                  </Box>
-                  {group.subfolder}
+                  <Box sx={{ color: 'text.disabled' }}>Subfolder</Box>
+                  <ToolTip
+                    title={group.statusText}
+                    placement="top"
+                    arrow
+                    componentsProps={{
+                      tooltip: {
+                        sx: (theme) => ({ backgroundColor: theme.palette?.[group.status]?.main }),
+                      },
+                      arrow: {
+                        sx: (theme) => ({ color: theme.palette?.[group.status]?.main }),
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <StatusIcon status={group.status} />
+                    </Box>
+                  </ToolTip>
+                  <Box>{group.subfolder}</Box>
                 </Box>
               )}
               <MetadataDisplayTable columns={columns} data={group.metadata} />
