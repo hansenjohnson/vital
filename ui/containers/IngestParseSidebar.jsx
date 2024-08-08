@@ -33,8 +33,17 @@ const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors }) => {
               Ingesting {bytesToSize(totalSize)} of {jobMode}
             </Box>
             <Box>
-              <Button sx={{ paddingLeft: 1, paddingRight: 1 }} onClick={triggerParse}>
-                Re-Parse <RefreshIcon fontSize="small" sx={{ marginLeft: 0.5 }} />
+              <Button
+                sx={(theme) => ({
+                  paddingLeft: 1,
+                  // This 4px is the gap between the icon and it's "container"
+                  paddingRight: `calc(${theme.spacing(1)} - 4px)`,
+                  marginRight: `calc(${theme.spacing(-1)} + 4px)`,
+                })}
+                onClick={triggerParse}
+              >
+                Re-Parse
+                <RefreshIcon fontSize="small" sx={{ marginLeft: 0.5 }} />
               </Button>
             </Box>
           </Box>
