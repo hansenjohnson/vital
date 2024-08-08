@@ -18,7 +18,14 @@ const parse = async (mode, sourceFolder) => {
 const getParsedMetadata = (jobId) => getJSON(`${ingestURL}/parse_videos/${jobId}`)
 
 const getCompressionOptions = () => new Promise((resolve) => setTimeout(resolve, 500))
-const execute = () => new Promise((resolve) => setTimeout(resolve, 500))
+
+const transcode = async (sourceFolder) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/transcode`, {
+    source_dir: encodeURIComponent(sourceFolder),
+    transcode_list: [],
+  })
+  return data?.job_id
+}
 
 export default {
   jobStatus,
@@ -26,5 +33,5 @@ export default {
   parse,
   getParsedMetadata,
   getCompressionOptions,
-  execute,
+  transcode,
 }

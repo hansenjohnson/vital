@@ -50,13 +50,25 @@ const useJobStore = create((set, get) => ({
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       ingestAPI.getCompressionOptions({})
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
-      ingestAPI.execute({})
+      get().triggerExecute()
     }
   },
 
   triggerParse: async () => {
     const { sourceFolder, jobMode } = get()
     const jobId = await ingestAPI.parse(jobMode, sourceFolder)
+    set({ jobId })
+  },
+
+  triggerExecute: async () => {
+    const { sourceFolder, jobMode } = get()
+    let jobId = null
+    if (jobMode === JOB_MODES.BY_IMAGE) {
+      // TODO: implement this later
+      return
+    } else if (jobMode === JOB_MODES.BY_VIDEO) {
+      jobId = await ingestAPI.transcode(sourceFolder)
+    }
     set({ jobId })
   },
 

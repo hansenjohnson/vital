@@ -1,7 +1,14 @@
 import { useTheme } from '@mui/material'
 import Button from '@mui/material/Button'
 
-const StyledButton = ({ color = 'primary', variant = 'outlined', children, sx, ...rest }) => {
+const StyledButton = ({
+  color = 'primary',
+  variant = 'outlined',
+  fullWidth = false,
+  children,
+  sx,
+  ...rest
+}) => {
   const theme = useTheme()
 
   let textColor = theme.palette[color].contrastText
@@ -26,7 +33,7 @@ const StyledButton = ({ color = 'primary', variant = 'outlined', children, sx, .
       color={color}
       sx={() => ({
         ...sx,
-        width: '200px',
+        ...(fullWidth ? {} : { width: '200px' }),
         height: '48px',
         fontSize: '20px',
         textTransform: 'none',

@@ -74,6 +74,8 @@ const LinkageAnnotationPage = () => {
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
+  /* Trigger & Poll for Execute Data, handle statuses */
+
   /* User controlled data processing */
   const mediaGroupsFiltered = useMemo(() => {
     if (!metadataFilter) return mediaGroups
@@ -161,6 +163,13 @@ const LinkageAnnotationPage = () => {
           totalSize={totalSize}
           allWarnings={allWarnings}
           allErrors={allErrors}
+          canExecute={mediaGroupsFilteredAndIgnored.every((group) => {
+            if (group.status === STATUSES.ERROR) return false
+            return group.mediaList.every((media) => {
+              if (media.status === STATUSES.ERROR) return false
+              return true
+            })
+          })}
         />
         <Box
           sx={{
