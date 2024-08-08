@@ -12,6 +12,8 @@ const initialState = {
   numFiles: { images: null, videos: null },
   jobMode: JOB_MODES.UNSET,
   localOutputFolder: '',
+  metadataFilter: null,
+  issueIgnoreList: [],
   batchRenameRules: {
     trimStart: 0,
     trimEnd: 0,
@@ -72,6 +74,16 @@ const useJobStore = create((set, get) => ({
   setJobMode: valueSetter(set, 'jobMode'),
 
   setLocalOutputFolder: valueSetter(set, 'localOutputFolder'),
+
+  setMetadataFilter: valueSetter(set, 'metadataFilter'),
+  addToIgnoreList: (newIssue) => {
+    const { issueIgnoreList } = get()
+    set({ issueIgnoreList: [...issueIgnoreList, newIssue] })
+  },
+  removeFromIgnoreList: (issueToRemove) => {
+    const { issueIgnoreList } = get()
+    set({ issueIgnoreList: issueIgnoreList.filter((issue) => issue !== issueToRemove) })
+  },
 
   setBatchRenameRules: valueSetter(set, 'batchRenameRules'),
 

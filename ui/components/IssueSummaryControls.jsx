@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Switch from '@mui/material/Switch'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 
 const IssueSummaryControls = ({
@@ -8,6 +9,11 @@ const IssueSummaryControls = ({
   orderedIssuesWithCounts,
   issueConstants,
   ignorable = false,
+  metadataFilter,
+  setMetadataFilter,
+  issueIgnoreList,
+  addToIgnoreList,
+  removeFromIgnoreList,
 }) => (
   <Box>
     <Box
@@ -51,20 +57,46 @@ const IssueSummaryControls = ({
               justifyContent: 'center',
             }}
           >
-            <IconButton size="small">
-              <VisibilityOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Box>
-            <Box
-              sx={{
-                width: '48px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+            <IconButton
+              size="small"
+              color={issue === metadataFilter ? 'primary' : 'default'}
+              onClick={() => {
+                if (issue === metadataFilter) {
+                  setMetadataFilter(null)
+                } else {
+                  setMetadataFilter(issue)
+                }
               }}
             >
-            {ignorable && <Switch size="small" />}
-            </Box>
+              {issue === metadataFilter ? (
+                <VisibilityIcon fontSize="small" />
+              ) : (
+                <VisibilityOutlinedIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Box>
+          <Box
+            sx={{
+              width: '48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {ignorable && (
+              <Switch
+                size="small"
+                checked={issueIgnoreList.includes(issue)}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    addToIgnoreList(issue)
+                  } else {
+                    removeFromIgnoreList(issue)
+                  }
+                }}
+              />
+            )}
+          </Box>
         </Box>
       ))}
   </Box>
