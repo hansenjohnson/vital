@@ -19,3 +19,6 @@ class SettingsService:
             self.model.set_setting(key, value)
         else:
             raise ValueError(f"Invalid setting key: {key}")
+
+    def delete_setting(self, key):
+        return self.model.delete_setting(key)

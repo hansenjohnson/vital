@@ -24,3 +24,9 @@ class SettingsModel:
         self.config.set('Settings', key, value)
         with open(self.file_path, 'w') as configfile:
             self.config.write(configfile)
+
+    def delete_setting(self, key):
+        if self.config.has_section('Settings'):
+            self.config.remove_option('Settings', key)
+            with open(self.file_path, 'w') as configfile:
+                self.config.write(configfile)

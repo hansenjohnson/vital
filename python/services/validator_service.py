@@ -13,7 +13,7 @@ class ValidatorService:
     INCORRECT_CREATED_TIME = 'INCORRECT_CREATED_TIME'
 
     VALID = 'VALID'
-    
+
     MAX_LENGTH = 20
 
     def validate_video(self, source_dir, video_metadata):
@@ -26,10 +26,10 @@ class ValidatorService:
             validation_status.warnings.append(self.INCORRECT_CREATED_TIME)
 
         validate_path = self.validate_path(source_dir, video_metadata.file_path)
-        
+
         if validate_path == self.VIDEO_PATH_WARNING:
             validation_status.warnings.append(self.VIDEO_PATH_WARNING)
-        
+
         if validate_path == self.VIDEO_PATH_ERROR:
             validation_status.errors.append(self.VIDEO_PATH_ERROR)
 
@@ -38,7 +38,7 @@ class ValidatorService:
 
     def validate_length(self, video_path):
         return len(os.path.basename(video_path)) <= self.MAX_LENGTH
-    
+
 
     def validate_video_date(self, source_dir, video_metadata):
         folder_name = os.path.basename(source_dir)
@@ -47,19 +47,19 @@ class ValidatorService:
         folder_date = datetime.strptime(date_string, "%Y-%m-%d").date()
 
         video_creation_date = datetime.fromtimestamp(video_metadata.created_date).date()
-        
+
         video_modification_date = datetime.fromtimestamp(video_metadata.modified_date).date()
 
         return (folder_date == video_creation_date) or (folder_date == video_modification_date)
-    
+
 
     def validate_path(self, source_dir, video_path):
         if self.is_direct_parent(source_dir, video_path):
             return self.VALID
-        
+
         if self.is_second_descendant(source_dir, video_path):
             return self.VIDEO_PATH_WARNING
-        
+
         return self.VIDEO_PATH_ERROR
 
 
@@ -72,4 +72,3 @@ class ValidatorService:
         parent_dir = os.path.dirname(file_path)
         grandparent_dir = os.path.dirname(parent_dir)
         return grandparent_dir == source_dir
-    

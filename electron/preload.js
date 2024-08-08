@@ -7,6 +7,7 @@ const api = {
   selectFile: (type, filePath) => ipcRenderer.invoke('open-file-dialog', type, filePath),
   showFileInFolder: (filePath) => ipcRenderer.send('show-file-in-folder', filePath),
   getVersion: () => packageJson.version,
+  isPackaged: () => `${process.execPath}`.includes('electron.exe') === false,
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

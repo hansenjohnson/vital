@@ -28,3 +28,32 @@ export const regionString = (regionStart, regionEnd, frameRate) => {
 
 export const catalogFolderString = (folder) =>
   `${yearMonthDayString(folder.year, folder.month, folder.day)}-${folder.observer.replaceAll('/', '-')}`
+
+export const bytesToSize = (bytes) => {
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  if (bytes === 0) return '0 B'
+  const bytesPower = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10)
+  const bytesAtThatPower = bytes / 1024 ** bytesPower
+  const bytesString =
+    `${Math.round(bytesAtThatPower)}`.length === 1
+      ? bytesAtThatPower.toFixed(1)
+      : Math.round(bytesAtThatPower)
+  return `${bytesString} ${sizes[bytesPower]}`
+}
+
+export const secondsToDuration = (seconds) => {
+  seconds = parseFloat(seconds)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  let durationStr = `${remainingSeconds.toString().padStart(2, '0')}s`
+  if (minutes > 0) {
+    durationStr = `${minutes.toString().padStart(2, '0')}m ${durationStr}`
+  }
+  if (hours > 0) {
+    durationStr = `${hours}h ${durationStr}`
+  }
+  return durationStr
+}
+
+export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)

@@ -3,7 +3,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import IconButton from '@mui/material/IconButton'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
 
-const FilePathSettingInput = ({ label, value, onChange, onFolderClick }) => {
+const FilePathSettingInput = ({ label, value, onChange, onFolderClick, error, errorMessage }) => {
   return (
     <TextField
       variant="outlined"
@@ -26,6 +26,8 @@ const FilePathSettingInput = ({ label, value, onChange, onFolderClick }) => {
       label={label}
       value={value}
       onChange={onChange}
+      error={error}
+      helperText={error ? errorMessage : ''}
     />
   )
 }

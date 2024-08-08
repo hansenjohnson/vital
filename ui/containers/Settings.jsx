@@ -15,7 +15,7 @@ import IconButton from '@mui/material/IconButton'
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
 import FILE_TYPES from '../constants/fileTypes'
-import SETTING_KEYS from '../constants/settingKeys'
+import SETTING_KEYS, { SETTING_TYPE_FOR_KEY } from '../constants/settingKeys'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import settingsAPI from '../api/settings'
@@ -27,9 +27,11 @@ const SettingsContainer = () => {
   const [open, openDialog, closeDialog] = useSettingsStore(
     useShallow((state) => [state.open, state.openDialog, state.closeDialog])
   )
-  const [settings, setOneSetting] = useSettingsStore(
-    useShallow((state) => [state.settings, state.setOneSetting])
+  const [settings, setOneSetting, loadSettings] = useSettingsStore(
+    useShallow((state) => [state.settings, state.setOneSetting, state.loadSettings])
   )
+
+  const [errors, setErrors] = useState({})
 
   const version = window.api.getVersion()
 
@@ -88,16 +90,31 @@ const SettingsContainer = () => {
   const [submitting, setSubmitting] = useState(false)
   const handleSubmit = async () => {
     setSubmitting(true)
-    const status = await settingsAPI.save(settings)
-    const successful = status === 200
+    setErrors({})
+
+    const settingsKeysBeingSubmitted = Object.keys(settings)
+    const responses = await Promise.all(
+      Object.entries(settings).map(([key, value]) =>
+        settingsAPI.save(key, value, SETTING_TYPE_FOR_KEY[key])
+      )
+    )
+    const successful = responses.every((response) => response.status === 200)
+
     if (successful && initialized) {
       return window.api.reloadWindow()
     } else if (successful) {
+      await loadSettings()
       closeDialog()
       setSubmitting(false)
     } else {
       setSubmitting(false)
-      alert('Failed to save settings. Please adjust them and try again.')
+      const errorMessages = {}
+      responses.forEach((response, index) => {
+        if (response.status === 200) return
+        const errorOnKey = settingsKeysBeingSubmitted[index]
+        errorMessages[errorOnKey] = response.data.message
+      })
+      setErrors(errorMessages)
     }
   }
 
@@ -152,6 +169,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Catalog Folder - Data File"
           value={settings[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
+          error={SETTING_KEYS.CATALOG_FOLDER_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.CATALOG_FOLDER_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_FOLDER_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -166,6 +185,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Catalog Video - Data File"
           value={settings[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
+          error={SETTING_KEYS.CATALOG_VIDEO_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.CATALOG_VIDEO_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.CATALOG_VIDEO_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -180,6 +201,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Linkage - Data File"
           value={settings[SETTING_KEYS.LINKAGE_FILE_PATH]}
+          error={SETTING_KEYS.LINKAGE_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.LINKAGE_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.LINKAGE_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -194,6 +217,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Sightings - Data File"
           value={settings[SETTING_KEYS.SIGHTING_FILE_PATH]}
+          error={SETTING_KEYS.SIGHTING_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.SIGHTING_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.SIGHTING_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -208,6 +233,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Still Exports - Data File"
           value={settings[SETTING_KEYS.STILL_EXPORT_FILE_PATH]}
+          error={SETTING_KEYS.STILL_EXPORT_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.STILL_EXPORT_FILE_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILL_EXPORT_FILE_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -224,6 +251,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Base Folder of Optimized Videos"
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
+          error={SETTING_KEYS.BASE_FOLDER_OF_VIDEOS in errors}
+          errorMessage={errors[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_VIDEOS)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -237,6 +266,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Base Folder of Original Videos"
           value={settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
+          error={SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS in errors}
+          errorMessage={errors[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
           onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -253,6 +284,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Thumbnails Folder"
           value={settings[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
+          error={SETTING_KEYS.THUMBNAIL_DIR_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.THUMBNAIL_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.THUMBNAIL_DIR_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(
@@ -266,6 +299,8 @@ const SettingsContainer = () => {
         <FilePathSettingInput
           label="Still Exports Folder"
           value={settings[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
+          error={SETTING_KEYS.STILLEXPORT_DIR_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.STILLEXPORT_DIR_PATH]}
           onChange={handleChangeFor(SETTING_KEYS.STILLEXPORT_DIR_PATH)}
           onFolderClick={async () => {
             const filePath = await window.api.selectFile(

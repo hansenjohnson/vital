@@ -49,6 +49,7 @@ const BubbleListItem = ({ children, firstItem = false, lastItem = false }) => (
 
 const ChooseIngestInputs = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
+  const sourceFolderValid = useJobStore((state) => state.sourceFolderValid)
   const setSourceFolder = useJobStore((state) => state.setSourceFolder)
 
   const [loading, setLoading] = useState(false)
@@ -70,6 +71,14 @@ const ChooseIngestInputs = () => {
   useEffect(() => {
     setPixelsTo(parseInt(containerRef.current.clientWidth / 2, 10))
   }, [JSON.stringify(windowSize), jobMode])
+
+  const triggerCountFiles = async () => {
+    setJobMode(JOB_MODES.UNSET)
+    setLoading(true)
+    setLoadedTimes((prev) => prev + 1)
+    await countFiles()
+    setLoading(false)
+  }
 
   return (
     <Box
@@ -95,20 +104,17 @@ const ChooseIngestInputs = () => {
           const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, sourceFolder)
           if (!filePath) return
           setSourceFolder(filePath)
+          triggerCountFiles()
         }}
+        error={!sourceFolderValid}
+        errorMessage="Folder name must be in the format YYYY-MM-DD-ObserverCode"
       />
 
       <Box sx={{ marginTop: 2, marginBottom: 2, display: 'flex' }}>
         <StyledButton
           sx={{ height: '24px' }}
-          onClick={async () => {
-            setJobMode(JOB_MODES.UNSET)
-            setLoading(true)
-            setLoadedTimes((prev) => prev + 1)
-            await countFiles()
-            setLoading(false)
-          }}
-          disabled={sourceFolder === '' || loading}
+          onClick={triggerCountFiles}
+          disabled={sourceFolder === '' || !sourceFolderValid || loading}
         >
           <RefreshIcon
             sx={{
@@ -128,7 +134,7 @@ const ChooseIngestInputs = () => {
             if (newValue === null) return
             setJobMode(newValue)
           }}
-          disabled={numFiles.images === null && numFiles.videos === null}
+          disabled={!sourceFolderValid || (numFiles.images === null && numFiles.videos === null)}
         >
           <JobModeButton value={JOB_MODES.BY_IMAGE} disabled={numFiles.images === 0}>
             {numFiles.images ?? '#'} images

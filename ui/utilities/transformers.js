@@ -1,3 +1,6 @@
+import { ROOT_FOLDER } from '../constants/fileTypes'
+import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
+import { joinPath, splitPath } from './paths'
 import { yearMonthDayString } from './strings'
 
 export const transformFolderData = (folderRow) => {
@@ -110,3 +113,99 @@ export const regionDataForLinkage = (linkage) => ({
   start: linkage.regionStart,
   end: linkage.regionEnd,
 })
+
+export const calculateStatus = (errors, warnings) => {
+  if (errors.length > 0) {
+    return STATUSES.ERROR
+  } else if (warnings.length > 0) {
+    return STATUSES.WARNING
+  }
+  return STATUSES.SUCCESS
+}
+
+export const transformMediaMetadata = (media) => {
+  const warnings = media?.validation_status?.warnings || []
+  const errors = media?.validation_status?.errors || []
+  const status = calculateStatus(errors, warnings)
+  return {
+    filePath: media.file_path,
+    fileName: media.file_name,
+    fileSize: media.size,
+    resolution: `${media.width}x${media.height}`,
+    frameRate: media.frame_rate,
+    duration: media.duration,
+    warnings: warnings,
+    errors: errors,
+    status,
+  }
+}
+
+export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
+  const grouped = new Map()
+  let totalSize = 0
+  const allWarnings = new Map([...WARNINGS.keys()].map((k) => [k, 0]))
+  const allErrors = new Map([...ERRORS.keys()].map((k) => [k, 0]))
+
+  metadata.forEach((media) => {
+    const pathParts = splitPath(media.filePath)
+    const fullParentFolder = joinPath(pathParts.slice(0, -1))
+
+    let parentFolder = fullParentFolder.replace(sourceFolder, '')
+    if (parentFolder === '' || parentFolder === '/' || parentFolder === '\\') {
+      parentFolder = ROOT_FOLDER
+    }
+    if (parentFolder.startsWith('/') || parentFolder.startsWith('\\')) {
+      parentFolder = parentFolder.slice(1)
+    }
+
+    if (!grouped.has(parentFolder)) {
+      grouped.set(parentFolder, [])
+    }
+    grouped.get(parentFolder).push(media)
+
+    // Perform Parse-Wide Aggregations, regardless of group
+    totalSize += parseFloat(media.fileSize)
+    media.warnings.forEach((w) => {
+      allWarnings.set(w, allWarnings.get(w) + 1)
+    })
+    media.errors.forEach((e) => {
+      allErrors.set(e, allErrors.get(e) + 1)
+    })
+  })
+
+  const statefulGrouping = [...grouped.entries()]
+    .map(([subfolder, mediaList]) => {
+      // TODO: make these image/video agnostic
+      const hasPathError = mediaList.some((m) => m.errors.includes('VIDEO_PATH_ERROR'))
+      const hasPathWarning = mediaList.some((m) => m.warnings.includes('VIDEO_PATH_WARNING'))
+
+      let status = STATUSES.SUCCESS
+      let statusText = null
+      let filteredMediaList = mediaList
+      if (hasPathError) {
+        status = STATUSES.ERROR
+        statusText = ERRORS.get('VIDEO_PATH_ERROR').message
+        filteredMediaList = mediaList.map((media) => ({
+          ...media,
+          errors: media.errors.filter((e) => e !== 'VIDEO_PATH_ERROR'),
+        }))
+      } else if (hasPathWarning) {
+        status = STATUSES.WARNING
+        statusText = WARNINGS.get('VIDEO_PATH_WARNING').message
+        filteredMediaList = mediaList.map((media) => ({
+          ...media,
+          warnings: media.warnings.filter((e) => e !== 'VIDEO_PATH_WARNING'),
+        }))
+      }
+
+      return {
+        subfolder,
+        status,
+        statusText,
+        mediaList: filteredMediaList,
+      }
+    })
+    .sort((a, b) => a.subfolder.localeCompare(b.subfolder))
+
+  return { mediaGroups: statefulGrouping, totalSize, allWarnings, allErrors }
+}
