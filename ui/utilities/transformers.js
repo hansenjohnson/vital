@@ -1,5 +1,5 @@
 import { ROOT_FOLDER } from '../constants/fileTypes'
-import STATUSES, { WARNING_MESSAGES, ERROR_MESSAGES } from '../constants/statuses'
+import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
 import { joinPath, splitPath } from './paths'
 import { yearMonthDayString } from './strings'
 
@@ -138,6 +138,10 @@ export const transformMediaMetadata = (media) => {
 
 export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
   const grouped = new Map()
+  let totalSize = 0
+  const allWarnings = new Map([...WARNINGS.keys()].map((k) => [k, 0]))
+  const allErrors = new Map([...ERRORS.keys()].map((k) => [k, 0]))
+
   metadata.forEach((media) => {
     const pathParts = splitPath(media.filePath)
     const fullParentFolder = joinPath(pathParts.slice(0, -1))
@@ -154,26 +158,36 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
       grouped.set(parentFolder, [])
     }
     grouped.get(parentFolder).push(media)
+
+    // Perform Parse-Wide Aggregations, regardless of group
+    totalSize += parseFloat(media.fileSize)
+    media.warnings.forEach((w) => {
+      allWarnings.set(w, allWarnings.get(w) + 1)
+    })
+    media.errors.forEach((e) => {
+      allErrors.set(e, allErrors.get(e) + 1)
+    })
   })
 
   const statefulGrouping = [...grouped.entries()]
     .map(([subfolder, mediaList]) => {
-      const aggregatedWarnings = [...new Set(mediaList.flatMap((m) => m.warnings))]
-      const aggregatedErrors = [...new Set(mediaList.flatMap((m) => m.errors))]
+      // TODO: make these image/video agnostic
+      const hasPathError = mediaList.some((m) => m.errors.includes('VIDEO_PATH_ERROR'))
+      const hasPathWarning = mediaList.some((m) => m.warnings.includes('VIDEO_PATH_WARNING'))
 
       let status = STATUSES.SUCCESS
       let statusText = null
       let filteredMediaList = mediaList
-      if (aggregatedErrors.includes('VIDEO_PATH_ERROR')) {
+      if (hasPathError) {
         status = STATUSES.ERROR
-        statusText = ERROR_MESSAGES.VIDEO_PATH_ERROR
+        statusText = ERRORS.get('VIDEO_PATH_ERROR').message
         filteredMediaList = mediaList.map((media) => ({
           ...media,
           errors: media.errors.filter((e) => e !== 'VIDEO_PATH_ERROR'),
         }))
-      } else if (aggregatedWarnings.includes('VIDEO_PATH_WARNING')) {
+      } else if (hasPathWarning) {
         status = STATUSES.WARNING
-        statusText = WARNING_MESSAGES.VIDEO_PATH_WARNING
+        statusText = WARNINGS.get('VIDEO_PATH_WARNING').message
         filteredMediaList = mediaList.map((media) => ({
           ...media,
           warnings: media.warnings.filter((e) => e !== 'VIDEO_PATH_WARNING'),
@@ -184,12 +198,10 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
         subfolder,
         status,
         statusText,
-        aggregatedWarnings,
-        aggregatedErrors,
-        metadata: filteredMediaList,
+        mediaList: filteredMediaList,
       }
     })
     .sort((a, b) => a.subfolder.localeCompare(b.subfolder))
 
-  return statefulGrouping
+  return { mediaGroups: statefulGrouping, totalSize, allWarnings, allErrors }
 }

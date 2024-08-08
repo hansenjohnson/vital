@@ -1,14 +1,24 @@
-const WARNING_MESSAGES = {
-  VIDEO_PATH_WARNING: 'warning - this is a nested folder',
-  INCORRECT_CREATED_TIME: 'file date does not match source folder',
-}
+const WARNINGS = new Map()
+WARNINGS.set('VIDEO_PATH_WARNING', {
+  message: 'warning - this is a nested folder',
+  summary: 'Nested folder',
+})
+WARNINGS.set('INCORRECT_CREATED_TIME', {
+  message: 'file date does not match source folder',
+  summary: 'File/Folder date mismatch',
+})
 
-const ERROR_MESSAGES = {
-  LENGTH_ERROR: 'filename is too long',
-  VIDEO_PATH_ERROR: 'error - subfolder is too deeply nested',
-}
+const ERRORS = new Map()
+ERRORS.set('VIDEO_PATH_ERROR', {
+  message: 'error - subfolder is too deeply nested',
+  summary: 'Subfolder too deep',
+})
+ERRORS.set('LENGTH_ERROR', {
+  message: 'filename is too long',
+  summary: 'Filename too long',
+})
 
-export { WARNING_MESSAGES, ERROR_MESSAGES }
+export { WARNINGS, ERRORS }
 export default {
   LOADING: 'loading',
   PENDING: 'pending',

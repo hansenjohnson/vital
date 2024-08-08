@@ -24,12 +24,19 @@ const LinkageAnnotationPage = () => {
   /* Poll for Parse Data, handle statuses */
   const jobId = useJobStore((state) => state.jobId)
   const [parseStatus, setParseStatus] = useState(STATUSES.LOADING)
-  const [mediaMetadata, setMediaMetadata] = useState([])
+  const [mediaGroups, setMediaGroups] = useState([])
+  const [totalSize, setTotalSize] = useState(0)
+  const [allWarnings, setAllWarnings] = useState(new Map())
+  const [allErrors, setAllErrors] = useState(new Map())
+
   useEffect(() => {
     if (phase !== JOB_PHASES.PARSE) return
 
     setParseStatus(STATUSES.LOADING)
-    setMediaMetadata([])
+    setMediaGroups([])
+    setTotalSize(0)
+    setAllWarnings(new Map())
+    setAllErrors(new Map())
     let intervalId
 
     const checkForMetadata = async () => {
@@ -47,8 +54,11 @@ const LinkageAnnotationPage = () => {
 
       const data = await ingestAPI.getParsedMetadata(jobId)
       const transformedData = data.map(transformMediaMetadata)
-      const groupedData = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
-      setMediaMetadata(groupedData)
+      const groupsAndAggregates = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
+      setMediaGroups(groupsAndAggregates.mediaGroups)
+      setTotalSize(groupsAndAggregates.totalSize)
+      setAllWarnings(groupsAndAggregates.allWarnings)
+      setAllErrors(groupsAndAggregates.allErrors)
       setParseStatus(STATUSES.COMPLETED)
     }
 
@@ -100,7 +110,9 @@ const LinkageAnnotationPage = () => {
       <Box sx={{ display: 'flex', height: '100%' }}>
         <IngestParseSidebar
           status={parseStatus}
-          data={mediaMetadata.flatMap((group) => group.metadata)}
+          totalSize={totalSize}
+          allWarnings={allWarnings}
+          allErrors={allErrors}
         />
         <Box
           sx={{
@@ -112,7 +124,7 @@ const LinkageAnnotationPage = () => {
             gap: 2,
           }}
         >
-          {mediaMetadata.map((group) => (
+          {mediaGroups.map((group) => (
             <Box
               key={group.subfolder}
               sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
@@ -122,7 +134,7 @@ const LinkageAnnotationPage = () => {
                   {group.subfolder}
                 </MetadataSubfolder>
               )}
-              <MetadataDisplayTable columns={columns} data={group.metadata} />
+              <MetadataDisplayTable columns={columns} data={group.mediaList} />
             </Box>
           ))}
         </Box>

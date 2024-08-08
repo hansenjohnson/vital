@@ -6,11 +6,9 @@ import TableRow from '@mui/material/TableRow'
 import TableCell from '@mui/material/TableCell'
 import TableBody from '@mui/material/TableBody'
 import TableSortLabel from '@mui/material/TableSortLabel'
-import Box from '@mui/material/Box'
-import { visuallyHidden } from '@mui/utils'
 
 import MetadataDisplayRow from './MetadataDisplayRow'
-import STATUSES, { WARNING_MESSAGES, ERROR_MESSAGES } from '../constants/statuses'
+import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
 
 const tableHeaderCellStyle = {
   fontWeight: 400,
@@ -116,8 +114,8 @@ const MetadataDisplayTable = ({ columns, data }) => {
               })}
               aligns={columns.map((column) => column.align)}
               maxWidths={columns.map((column) => column.maxWidth)}
-              warnings={row.warnings.map((warning) => WARNING_MESSAGES[warning])}
-              errors={row.errors.map((error) => ERROR_MESSAGES[error])}
+              warnings={row.warnings.map((warning) => WARNINGS.get(warning).message)}
+              errors={row.errors.map((error) => ERRORS.get(error).message)}
               status={row.status}
             />
           ))}
