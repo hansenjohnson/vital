@@ -8,6 +8,7 @@ from data.video_medatadata import VideoMetadata
 
 from services.job_service import JobService
 from services.validator_service import ValidatorService
+from model.ingest.job_model import JobType
 
 from utils.prints import print_err, print_out
 
@@ -28,7 +29,7 @@ class IngestService:
         self.validator_service = ValidatorService()
 
     def create_parse_video_job(self, source_dir):
-        job_id = self.job_service.create_job()
+        job_id = self.job_service.create_job(JobType.METADATA)
         threading.Thread(target=self.parse_videos, args=(job_id, source_dir,)).start()
         return job_id
 
