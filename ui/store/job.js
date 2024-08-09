@@ -30,14 +30,7 @@ const initialState = {
     large: {},
   },
   jobId: null,
-  settingsList: [
-    {
-      file_path:
-        'C:\\Users\\imben\\Documents\\Videos_Folders\\2021-07-18-Matt\\026\\2021-07-19_026_XT2-RGB_0006.mp4',
-      input_height: 2160,
-      output_framerate: 30,
-    },
-  ],
+  settingsList: [],
 }
 
 const validateSourceFolder = (folderPath) => {
@@ -51,7 +44,7 @@ const useJobStore = create((set, get) => ({
   reset: () => set(initialState),
 
   setPhase: async (nextPhase) => {
-    set({ phase: nextPhase })
+    set({ phase: nextPhase, jobId: null })
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {

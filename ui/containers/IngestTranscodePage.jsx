@@ -75,6 +75,23 @@ const LinkageAnnotationPage = () => {
   }, [phase, jobId])
 
   /* Trigger & Poll for Execute Data, handle statuses */
+  const setSettingsList = useJobStore((state) => state.setSettingsList)
+  const setPhase = useJobStore((state) => state.setPhase)
+  const executeJob = () => {
+    if (jobMode === JOB_MODES.BY_VIDEO) {
+      const settingsList = mediaGroups.flatMap((group) =>
+        group.mediaList.map((media) => ({
+          file_path: media.filePath,
+          input_height: media.height,
+          output_framerate: Math.round(media.frameRate),
+        }))
+      )
+      setSettingsList(settingsList)
+    } else {
+      // FUTURE: handle setting image conversion settings here
+    }
+    setPhase(JOB_PHASES.EXECUTE)
+  }
 
   /* User controlled data processing */
   const mediaGroupsFiltered = useMemo(() => {
@@ -163,13 +180,15 @@ const LinkageAnnotationPage = () => {
           totalSize={totalSize}
           allWarnings={allWarnings}
           allErrors={allErrors}
-          canExecute={mediaGroupsFilteredAndIgnored.every((group) => {
+          actionName="Execute Transcode"
+          canTrigger={mediaGroupsFilteredAndIgnored.every((group) => {
             if (group.status === STATUSES.ERROR) return false
             return group.mediaList.every((media) => {
               if (media.status === STATUSES.ERROR) return false
               return true
             })
           })}
+          onTriggerAction={executeJob}
         />
         <Box
           sx={{

@@ -7,13 +7,20 @@ import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
 import { bytesToSize } from '../utilities/strings'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
-import { JOB_PHASES } from '../constants/routes'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import IssueSummaryControls from '../components/IssueSummaryControls'
 import StyledButton from '../components/StyledButton'
 
-const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors, canExecute }) => {
+const IngestParseSidebar = ({
+  status,
+  totalSize,
+  allWarnings,
+  allErrors,
+  actionName,
+  canTrigger,
+  onTriggerAction,
+}) => {
   const jobMode = useJobStore((state) => state.jobMode)
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const triggerParse = useJobStore((state) => state.triggerParse)
@@ -23,8 +30,6 @@ const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors, canExec
   const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
   const addToIgnoreList = useJobStore((state) => state.addToIgnoreList)
   const removeFromIgnoreList = useJobStore((state) => state.removeFromIgnoreList)
-
-  const setPhase = useJobStore((state) => state.setPhase)
 
   return (
     <Sidebar spacing={1}>
@@ -79,10 +84,10 @@ const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors, canExec
           <StyledButton
             variant="outlined"
             fullWidth
-            disabled={!canExecute}
-            onClick={() => setPhase(JOB_PHASES.EXECUTE)}
+            disabled={!canTrigger}
+            onClick={onTriggerAction}
           >
-            Execute Transcode
+            {actionName}
           </StyledButton>
         </>
       )}
