@@ -77,6 +77,7 @@ const LinkageAnnotationPage = () => {
   /* Trigger & Poll for Execute Data, handle statuses */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
   const setPhase = useJobStore((state) => state.setPhase)
+  const [taskStatuses, setTaskStatuses] = useState({})
   const executeJob = () => {
     if (jobMode === JOB_MODES.BY_VIDEO) {
       const settingsList = mediaGroups.flatMap((group) =>
@@ -92,6 +93,19 @@ const LinkageAnnotationPage = () => {
     }
     setPhase(JOB_PHASES.EXECUTE)
   }
+  useEffect(() => {
+    if (phase !== JOB_PHASES.EXECUTE) return
+    let intervalId
+    const checkForExecution = async () => {
+      const statuses = await ingestAPI.taskStatusesForJob(jobId)
+      setTaskStatuses(statuses)
+      if (Object.values(statuses).every((task) => task.status === STATUSES.COMPLETED)) {
+        clearInterval(intervalId)
+      }
+    }
+    intervalId = setInterval(checkForExecution, 2000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobId])
 
   /* User controlled data processing */
   const mediaGroupsFiltered = useMemo(() => {
@@ -214,6 +228,32 @@ const LinkageAnnotationPage = () => {
             </Box>
           ))}
         </Box>
+      </Box>
+    )
+  }
+
+  if (phase === JOB_PHASES.EXECUTE) {
+    return (
+      <Box
+        sx={{
+          height: '100%',
+          margin: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+        }}
+      >
+        Executing Job
+        {Object.entries(taskStatuses).map(([id, task]) => (
+          <Box key={id} sx={{ textAlign: 'center' }}>
+            {id}: {task.status}{' '}
+            {task.status.toLowerCase() === STATUSES.ERROR && (
+              <Box sx={{ fontSize: '12px' }}>{task.error_message}</Box>
+            )}
+          </Box>
+        ))}
       </Box>
     )
   }

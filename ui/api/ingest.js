@@ -4,6 +4,7 @@ import { getJSON, postJSONWithResponse } from './fetchers'
 const ingestURL = `${baseURL}/ingest`
 
 const jobStatus = (jobId) => getJSON(`${ingestURL}/job_status/${jobId}`)
+const taskStatusesForJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}/tasks`)
 
 const countFiles = (sourceFolder) =>
   getJSON(`${ingestURL}/count_files/${encodeURIComponent(sourceFolder)}`)
@@ -29,6 +30,7 @@ const transcode = async (sourceFolder, settingsList) => {
 
 export default {
   jobStatus,
+  taskStatusesForJob,
   countFiles,
   parse,
   getParsedMetadata,
