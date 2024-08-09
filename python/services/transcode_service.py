@@ -38,13 +38,13 @@ class TranscodeService:
             transcode_task_ids.append(transcode_task_id)
 
         threading.Thread(target=self.transcode_videos, args=(source_dir, transcode_task_ids,)).start()
-        
+
         return transcode_job_id
 
     def restart_transcode_job(self, job_id: int, source_dir: str) -> int:
         failed_transcode_task_ids = self.task_service.get_all_task_ids_by_status(job_id, TaskStatus.PENDING)
         failed_transcode_task_ids.extend(self.task_service.get_all_task_ids_by_status(job_id, TaskStatus.ERROR))
-        
+
         threading.Thread(target=self.transcode_videos, args=(source_dir, failed_transcode_task_ids,)).start()
 
         return job_id
@@ -68,7 +68,7 @@ class TranscodeService:
                     original_file = transcode_settings.file_path
 
                     shutil.copy(original_file, original_dir_path)
-                    
+
                     original_file_name = os.path.basename(original_file)
                     temp_file = os.path.join(temp_dir, original_file_name)
 
@@ -78,7 +78,7 @@ class TranscodeService:
                         '-i',original_file,
                     temp_file 
                     ]
-                    
+
                     subprocess.run(ffmpeg_command, check=True) 
 
                     # sample command, not really sure what I'm doing here but the mp4box seems to be running correctly
@@ -97,4 +97,3 @@ class TranscodeService:
                     # will need to catch specific exceptions in the future for more granular error messages
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                     self.task_service.set_task_error_message(transcode_task_id, str(e))
-            

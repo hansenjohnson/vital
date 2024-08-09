@@ -47,13 +47,15 @@ def job_status(job_id):
         return jsonify(job_service.check_job_status(job_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-    
+
+
 @bp.route('/job/<int:job_id>/tasks', methods=['GET'])
 def task_statuses(job_id):
     try:
         return jsonify(task_service.get_tasks_by_job_id(job_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/transcode', methods=['POST'])
 def start_transcode():
