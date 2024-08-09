@@ -13,6 +13,17 @@ class TaskService:
     def get_tasks_by_job_id(self, job_id: int):
         return self.task_model.get_tasks_by_job_id(job_id)
 
+    def get_tasks_statuses_by_job_id(self, job_id: int):
+        tasks = self.get_tasks_by_job_id(job_id)
+        status_report = {
+            task.id: {
+                "status": task.status,
+                "error_message": task.error_message,
+            }
+            for task in tasks
+        }
+        return status_report
+
     def get_transcode_settings(self, task_id: int) -> TranscodeSettings:
         return self.task_model.get_transcode_settings(task_id)
 

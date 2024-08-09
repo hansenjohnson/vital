@@ -52,7 +52,7 @@ def job_status(job_id):
 @bp.route('/job/<int:job_id>/tasks', methods=['GET'])
 def task_statuses(job_id):
     try:
-        return jsonify(task_service.get_tasks_by_job_id(job_id)), 200
+        return jsonify(task_service.get_tasks_statuses_by_job_id(job_id)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -63,7 +63,8 @@ def start_transcode():
     try:
         transcode_list = payload['transcode_list']
         source_dir = payload['source_dir']
-        return jsonify(transcode_service.start_transcode_job(source_dir, transcode_list)), 200
+        job_id = transcode_service.start_transcode_job(source_dir, transcode_list)
+        return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error:", str(e)}), 400
 

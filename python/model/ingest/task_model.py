@@ -50,7 +50,7 @@ class TaskModel:
         return [task_id for (task_id,) in task_ids]
 
     def get_tasks_by_job_id(self, job_id) -> str:
-        self.cursor.execute("SELECT id, job_id, status, transcode_settings, error_message FROM task WHERE id = ?", (job_id,))
+        self.cursor.execute("SELECT id, job_id, status, transcode_settings, error_message FROM task WHERE job_id = ?", (job_id,))
         tasks_data = self.cursor.fetchall()
         tasks = []
         for task_data in tasks_data:
