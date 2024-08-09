@@ -13,7 +13,7 @@ from model.ingest.job_model import JobType
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
-from utils.file_path import construct_file_path
+from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 
 
 class TranscodeService:
@@ -53,8 +53,10 @@ class TranscodeService:
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
-        optimized_dir_path = construct_file_path(optimized_base_dir, source_dir)
-        original_dir_path = construct_file_path(original_base_dir, source_dir)
+        source_dir_name = os.path.basename(source_dir)
+        catalog_folder_info = extract_catalog_folder_info(source_dir_name)
+        optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
+        original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
 
         os.makedirs(optimized_dir_path, exist_ok=True)
         os.makedirs(original_dir_path, exist_ok=True)
