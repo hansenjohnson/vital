@@ -10,7 +10,7 @@ const countFiles = (sourceFolder) =>
 
 const parse = async (mode, sourceFolder) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/parse_${mode}s`, {
-    source_folder: encodeURIComponent(sourceFolder),
+    source_dir: sourceFolder,
   })
   return data?.job_id
 }
@@ -21,7 +21,7 @@ const getCompressionOptions = () => new Promise((resolve) => setTimeout(resolve,
 
 const transcode = async (sourceFolder) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/transcode`, {
-    source_dir: encodeURIComponent(sourceFolder),
+    source_dir: sourceFolder,
     transcode_list: [],
   })
   return data?.job_id

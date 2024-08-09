@@ -34,8 +34,8 @@ def get_parsed_videos(job_id):
 def parse_videos():
     payload = request.json
     try:
-        source_folder = unquote(payload['source_folder'])
-        job_id = ingest_service.create_parse_video_job(source_folder)
+        source_dir = payload['source_dir']
+        job_id = ingest_service.create_parse_video_job(source_dir)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
