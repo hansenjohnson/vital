@@ -29,8 +29,15 @@ const initialState = {
     medium: {},
     large: {},
   },
-  steps: [],
   jobId: null,
+  settingsList: [
+    {
+      file_path:
+        'C:\\Users\\imben\\Documents\\Videos_Folders\\2021-07-18-Matt\\026\\2021-07-19_026_XT2-RGB_0006.mp4',
+      input_height: 2160,
+      output_framerate: 30,
+    },
+  ],
 }
 
 const validateSourceFolder = (folderPath) => {
@@ -61,13 +68,13 @@ const useJobStore = create((set, get) => ({
   },
 
   triggerExecute: async () => {
-    const { sourceFolder, jobMode } = get()
+    const { jobMode, sourceFolder, settingsList } = get()
     let jobId = null
     if (jobMode === JOB_MODES.BY_IMAGE) {
       // TODO: implement this later
       return
     } else if (jobMode === JOB_MODES.BY_VIDEO) {
-      jobId = await ingestAPI.transcode(sourceFolder)
+      jobId = await ingestAPI.transcode(sourceFolder, settingsList)
     }
     set({ jobId })
   },
@@ -101,12 +108,9 @@ const useJobStore = create((set, get) => ({
 
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
 
-  /** Step Schema:
-   * - fileName: str
-   * - newName: str | optional
-   * - transcodeSettings: {}
-   */
-  setSteps: valueSetter(set, 'steps'),
+  // This list should be a list of object
+  // The schema can be found in the TranscodeSettings class within the server
+  setSettingsList: valueSetter(set, 'settingsList'),
 }))
 
 const canParse = (state) => {

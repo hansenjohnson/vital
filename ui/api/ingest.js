@@ -19,10 +19,10 @@ const getParsedMetadata = (jobId) => getJSON(`${ingestURL}/parse_videos/${jobId}
 
 const getCompressionOptions = () => new Promise((resolve) => setTimeout(resolve, 500))
 
-const transcode = async (sourceFolder) => {
+const transcode = async (sourceFolder, settingsList) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/transcode`, {
     source_dir: sourceFolder,
-    transcode_list: [],
+    transcode_list: settingsList,
   })
   return data?.job_id
 }

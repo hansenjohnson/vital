@@ -14,9 +14,13 @@ from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
-
+from utils.prints import print_out, print_err
+from utils.numbers import find_closest
 
 class TranscodeService:
+
+    HEIGHT_STEPS = [2160, 1080, 540, 270]
+    BANDWIDTH_STEPS = [20_000, 6_000, 2_000, 400]
 
     def __init__(self):
         self.job_service = JobService()
@@ -54,6 +58,7 @@ class TranscodeService:
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
         source_dir_name = os.path.basename(source_dir)
+        # NOTE TO MATT: you should be able to dump catalog_folder_info directly into TblCatalogFolder
         catalog_folder_info = extract_catalog_folder_info(source_dir_name)
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
@@ -61,39 +66,85 @@ class TranscodeService:
         os.makedirs(optimized_dir_path, exist_ok=True)
         os.makedirs(original_dir_path, exist_ok=True)
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for transcode_task_id in transcode_task_ids:
+        for transcode_task_id in transcode_task_ids:
+            with tempfile.TemporaryDirectory() as temp_dir:
                 try:
                     transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
                     original_file = transcode_settings.file_path
 
-                    shutil.copy(original_file, original_dir_path)
+                    # Determine the Adaptive Bitrate Ladder for this video
+                    input_height = transcode_settings.input_height
+                    max_height = find_closest(self.HEIGHT_STEPS, input_height)
+                    max_height_idx = self.HEIGHT_STEPS.index(max_height)
+                    heights_to_use = self.HEIGHT_STEPS[max_height_idx:]
+                    bandwidths_to_use = self.BANDWIDTH_STEPS[max_height_idx:]
 
-                    original_file_name = os.path.basename(original_file)
-                    temp_file = os.path.join(temp_dir, original_file_name)
-
-                    # sample ffmpeg command, will be substituted
-                    ffmpeg_command = [
-                        self.ffmpeg_path,
-                        '-i',original_file,
-                    temp_file 
+                    # Prepare filepath variables
+                    shared_extension = '.mp4'
+                    original_file_name = os.path.splitext(os.path.basename(original_file))[0]
+                    temp_files = [
+                        os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
+                        for height in heights_to_use
                     ]
+                    temp_dash_container = os.path.join(temp_dir, original_file_name)
+                    temp_mpd_file = os.path.join(temp_dash_container, f'{original_file_name}.mpd')
+                    os.makedirs(temp_dash_container, exist_ok=True)
 
-                    subprocess.run(ffmpeg_command, check=True) 
+                    # Transcode the video into multiple intermediates
+                    output_framerate = transcode_settings.output_framerate
+                    keyframe_rate = output_framerate * 2
+                    for index, output_height in enumerate(heights_to_use):
+                        bandwidth = bandwidths_to_use[index]
+                        temp_file = temp_files[index]
+                        ffmpeg_command = [
+                            self.ffmpeg_path,
+                            '-y',
+                            '-i', original_file,
+                            '-c:v', 'libx264',
+                            '-x264opts', f'keyint={keyframe_rate}:min-keyint={keyframe_rate}:no-scenecut',
+                            '-r', str(output_framerate),
+                            '-vf', f'scale=-2:{output_height}',
+                            '-pix_fmt', 'yuv420p',
+                            '-b:v', f'{bandwidth}k',
+                            '-maxrate', f'{bandwidth}k',
+                            '-bufsize', f'{bandwidth * 2}k',
+                            '-profile:v', 'main',
+                            '-movflags', 'faststart',
+                            '-preset', 'fast',
+                            '-an',
+                            temp_file
+                        ]
+                        print_out(ffmpeg_command)
+                        subprocess.run(ffmpeg_command, check=True)
 
-                    # sample command, not really sure what I'm doing here but the mp4box seems to be running correctly
+                    # Combine the intermediates into a single DASH file
+                    intermediate_files = [
+                        f'{temp_file}#video:id={heights_to_use[index]}'
+                        for index, temp_file in enumerate(temp_files)
+                    ]
                     mp4box_command = [
                         self.mp4box_path,
-                           '-dash', "1000",
-                            '-out', optimized_dir_path,
-                            temp_file
+                        '-dash', '4000',
+                        '-rap',
+                        '-segment-name', 'segment_$RepresentationID$_',
+                        *intermediate_files,
+                        '-out', temp_mpd_file,
+                        '-mpd-title', f'{original_file_name}.mpd'
                     ]
-
+                    print_out(mp4box_command)
                     subprocess.run(mp4box_command, check=True)
+
+                    # Official Output - Copy the whole DASH folder to the optimized directory
+                    shutil.move(temp_dash_container, optimized_dir_path)
+
+                    # Official Output - Copy original file to original directory
+                    # This should happen after the transcode as it is less likely to fail
+                    shutil.copy(original_file, original_dir_path)
 
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED) 
 
                 except Exception as e:
                     # will need to catch specific exceptions in the future for more granular error messages
+                    print_err(str(e))
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                     self.task_service.set_task_error_message(transcode_task_id, str(e))
