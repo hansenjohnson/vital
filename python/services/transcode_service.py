@@ -85,6 +85,7 @@ class TranscodeService:
                     # Prepare filepath variables
                     shared_extension = '.mp4'
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
+                    expected_final_dir = os.path.join(optimized_dir_path, original_file_name)
                     temp_files = [
                         os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
                         for height in heights_to_use
@@ -146,6 +147,8 @@ class TranscodeService:
                     subprocess.run(mp4box_command, check=True)
 
                     # Official Output - Copy the whole DASH folder to the optimized directory
+                    if os.path.isdir(expected_final_dir):
+                        shutil.rmtree(expected_final_dir, ignore_errors=True)
                     shutil.move(temp_dash_container, optimized_dir_path)
 
                     # Official Output - Copy original file to original directory
