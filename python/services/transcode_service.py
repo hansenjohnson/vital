@@ -24,7 +24,18 @@ from utils.death import add_terminator, remove_last_terminator
 class TranscodeService:
 
     HEIGHT_STEPS = [2160, 1080, 540, 270]
-    BANDWIDTH_STEPS = [20_000, 6_000, 2_000, 400] # TODO: multiply for framerate
+    BANDWIDTH_STEPS = {
+        30: {
+            2160: [20_000,  6_000, 2_000, 400],
+            1080: [        10_000, 2_000, 400],
+            540:  [                3_000, 400],
+        },
+        60: {
+            2160: [40_000, 12_000, 4_000, 800],
+            1080: [        20_000, 4_000, 800],
+            540:  [                6_000, 800],
+        },
+    }
     PROGRESS_RATIOS = [12, 4, 2, 1]
 
     def __init__(self):
@@ -77,10 +88,12 @@ class TranscodeService:
 
                     # Determine the Adaptive Bitrate Ladder for this video
                     input_height = transcode_settings.input_height
+                    output_framerate = transcode_settings.output_framerate
                     max_height = find_closest(self.HEIGHT_STEPS, input_height)
                     max_height_idx = self.HEIGHT_STEPS.index(max_height)
                     heights_to_use = self.HEIGHT_STEPS[max_height_idx:]
-                    bandwidths_to_use = self.BANDWIDTH_STEPS[max_height_idx:]
+                    framerate_similar = find_closest([30, 60], output_framerate)
+                    bandwidths_to_use = self.BANDWIDTH_STEPS[framerate_similar][max_height]
                     progress_ratios = self.PROGRESS_RATIOS[max_height_idx:]
 
                     # Prepare filepath variables
@@ -98,7 +111,6 @@ class TranscodeService:
 
                     # Transcode the video into multiple intermediates
                     num_frames = transcode_settings.num_frames
-                    output_framerate = transcode_settings.output_framerate
                     keyframe_rate = output_framerate * 2
                     progress_bounds = TranscodeService.calculate_progress_bounds(progress_ratios)
                     for index, output_height in enumerate(heights_to_use):
@@ -127,7 +139,6 @@ class TranscodeService:
                         for index, temp_file in enumerate(temp_files)
                     ]
                     mp4box_command = self.generate_dash_command(intermediate_files, temp_mpd_file, original_file_name)
-                    print_out(mp4box_command)
                     TranscodeService.run_command_with_terminator(mp4box_command)
 
                     # Official Output - Copy the whole DASH folder to the optimized directory
