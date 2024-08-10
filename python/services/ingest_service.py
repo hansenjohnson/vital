@@ -87,13 +87,17 @@ class IngestService:
         except KeyError:
             print_err("No FFprobe metadata was found at path %s", video_path)
             return None
+
+        frame_rate = self.parse_frame_rate_str(metadata.get("r_frame_rate"))
+        num_frames = self.calculate_num_frames(metadata, frame_rate)
         return VideoMetadata(
             file_name=os.path.basename(video_path),
             file_path=video_path,
             width=metadata['width'],
             height=metadata['height'],
             duration=metadata['duration'],
-            frame_rate=self.parse_frame_rate_str(metadata.get("r_frame_rate")),
+            num_frames=num_frames,
+            frame_rate=frame_rate,
             size=os.path.getsize(video_path),
             created_date=os.path.getctime(video_path),
             modified_date=os.path.getmtime(video_path),
@@ -109,6 +113,13 @@ class IngestService:
                 rate = float(rates[0])
             return str(rate)
         return ""
+
+    def calculate_num_frames(self, metadata, frame_rate):
+        if 'nb_frames' in metadata:
+            return int(metadata['nb_frames'])
+        else:
+            duration = float(metadata['duration'])
+            return int(duration * float(frame_rate))
 
     def count_media(self, source_dir):
         video_files_count = len(self.get_files(source_dir, self.video_extensions))

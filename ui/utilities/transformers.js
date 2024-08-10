@@ -134,6 +134,7 @@ export const transformMediaMetadata = (media) => {
     resolution: `${media.width}x${media.height}`,
     width: media.width,
     height: media.height,
+    numFrames: media.num_frames,
     frameRate: media.frame_rate,
     duration: media.duration,
     warnings: warnings,
