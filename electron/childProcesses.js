@@ -45,7 +45,7 @@ const launchPythonServer = () => {
 }
 
 const killPythonServer = async (pythonServer) => {
-  await fetch('http://127.0.0.1:5000/terminate').catch()
+  await fetch('http://127.0.0.1:5000/terminate').catch(() => null)
   if (is.dev) {
     pythonServer.kill('SIGKILL')
   } else {

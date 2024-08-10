@@ -2,6 +2,7 @@ import threading
 import io
 import os
 import sys
+import re
 import tempfile
 import shutil
 import subprocess
@@ -23,7 +24,8 @@ from utils.death import add_terminator, remove_last_terminator
 class TranscodeService:
 
     HEIGHT_STEPS = [2160, 1080, 540, 270]
-    BANDWIDTH_STEPS = [20_000, 6_000, 2_000, 400]
+    BANDWIDTH_STEPS = [20_000, 6_000, 2_000, 400] # TODO: multiply for framerate
+    PROGRESS_RATIOS = [12, 4, 2, 1]
 
     def __init__(self):
         self.job_service = JobService()
@@ -72,7 +74,6 @@ class TranscodeService:
             with tempfile.TemporaryDirectory() as temp_dir:
                 try:
                     transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
-                    original_file = transcode_settings.file_path
 
                     # Determine the Adaptive Bitrate Ladder for this video
                     input_height = transcode_settings.input_height
@@ -80,9 +81,11 @@ class TranscodeService:
                     max_height_idx = self.HEIGHT_STEPS.index(max_height)
                     heights_to_use = self.HEIGHT_STEPS[max_height_idx:]
                     bandwidths_to_use = self.BANDWIDTH_STEPS[max_height_idx:]
+                    progress_ratios = self.PROGRESS_RATIOS[max_height_idx:]
 
                     # Prepare filepath variables
                     shared_extension = '.mp4'
+                    original_file = transcode_settings.file_path
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
                     expected_final_dir = os.path.join(optimized_dir_path, original_file_name)
                     temp_files = [
@@ -94,8 +97,10 @@ class TranscodeService:
                     os.makedirs(temp_dash_container, exist_ok=True)
 
                     # Transcode the video into multiple intermediates
+                    num_frames = transcode_settings.num_frames
                     output_framerate = transcode_settings.output_framerate
                     keyframe_rate = output_framerate * 2
+                    progress_bounds = TranscodeService.calculate_progress_bounds(progress_ratios)
                     for index, output_height in enumerate(heights_to_use):
                         bandwidth = bandwidths_to_use[index]
                         temp_file = temp_files[index]
@@ -107,7 +112,14 @@ class TranscodeService:
                             bandwidth,
                             temp_file,
                         )
-                        TranscodeService.run_command_with_terminator(ffmpeg_command)
+
+                        progress_bounds_for_sub_task = progress_bounds[index]
+                        line_handler = self.create_ffmpeg_line_handler(
+                            transcode_task_id,
+                            num_frames,
+                            progress_bounds_for_sub_task
+                        )
+                        TranscodeService.run_command_with_terminator(ffmpeg_command, line_handler)
 
                     # Combine the intermediates into a single DASH file
                     intermediate_files = [
@@ -127,7 +139,8 @@ class TranscodeService:
                     # This should happen after the transcode as it is less likely to fail
                     shutil.copy(original_file, original_dir_path)
 
-                    self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED) 
+                    self.task_service.set_task_progress(transcode_task_id, 100)
+                    self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
                 except Exception as e:
                     # will need to catch specific exceptions in the future for more granular error messages
@@ -168,6 +181,19 @@ class TranscodeService:
             '-mpd-title', f'{original_file_name}.mpd'
         ]
 
+    def create_ffmpeg_line_handler(self, transcode_task_id, total_frames, progress_bounds=(0, 100)):
+        def line_callback(line):
+            frames_complete = TranscodeService.parse_ffmpeg_progress(line)
+            if frames_complete:
+                percent_complete = frames_complete / total_frames
+                new_absolute_progress = int(
+                    (progress_bounds[1] - progress_bounds[0])
+                    * percent_complete
+                    + progress_bounds[0]
+                )
+                self.task_service.set_task_progress(transcode_task_id, new_absolute_progress)
+        return line_callback
+
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
         print_out(command)
@@ -179,5 +205,23 @@ class TranscodeService:
         if (proc.returncode != 0):
             raise subprocess.CalledProcessError(proc.returncode, command, proc.stdout, proc.stderr)
 
-    def parse_ffmpeg_progress():
-        pass
+    @staticmethod
+    def parse_ffmpeg_progress(line):
+        match = re.match(r"frame=\s*(\d+)\s+fps=\s*\d+", line)
+        if match:
+            return int(match.group(1))
+        return None
+
+    @staticmethod
+    def calculate_progress_bounds(ratios):
+        # We use 96 because that evenly devides between 1, 2, 3, & 4 and it is "closeish" to 100
+        # Since we want some progress lefover for the mp4 box command
+        length_of_transcodes = 96
+        ratio_sum = sum(ratios)
+        bounds = []
+        for index, ratio in enumerate(ratios):
+            lower_bound = 0 if index == 0 else bounds[-1][1]
+            relative_upper_bound = int((ratio / ratio_sum) * length_of_transcodes)
+            upper_bound = length_of_transcodes if index == len(ratios) - 1 else lower_bound + relative_upper_bound
+            bounds.append((lower_bound, upper_bound))
+        return bounds

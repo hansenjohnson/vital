@@ -84,6 +84,7 @@ const LinkageAnnotationPage = () => {
         group.mediaList.map((media) => ({
           file_path: media.filePath,
           input_height: media.height,
+          num_frames: media.numFrames,
           output_framerate: Math.round(media.frameRate),
         }))
       )
@@ -99,7 +100,9 @@ const LinkageAnnotationPage = () => {
     const checkForExecution = async () => {
       const statuses = await ingestAPI.taskStatusesForJob(jobId)
       setTaskStatuses(statuses)
-      if (Object.values(statuses).every((task) => task.status === STATUSES.COMPLETED)) {
+      if (
+        Object.values(statuses).every((task) => task.status.toLowerCase() === STATUSES.COMPLETED)
+      ) {
         clearInterval(intervalId)
       }
     }
@@ -248,7 +251,7 @@ const LinkageAnnotationPage = () => {
         Executing Job
         {Object.entries(taskStatuses).map(([id, task]) => (
           <Box key={id} sx={{ textAlign: 'center' }}>
-            {id}: {task.status}{' '}
+            {id}: {task.status} {task.progress}%
             {task.status.toLowerCase() === STATUSES.ERROR && (
               <Box sx={{ fontSize: '12px' }}>{task.error_message}</Box>
             )}
