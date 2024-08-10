@@ -1,11 +1,13 @@
 import threading
+import io
 import os
 import sys
 import tempfile
-import subprocess
 import shutil
-
+import subprocess
+from subprocess import PIPE
 from typing import List
+
 from data.transcode_settings import TranscodeSettings
 from services.job_service import JobService
 from services.task_service import TaskService
@@ -16,6 +18,7 @@ from data.task import TaskStatus
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
+from utils.death import add_terminator, remove_last_terminator
 
 class TranscodeService:
 
@@ -98,6 +101,8 @@ class TranscodeService:
                         temp_file = temp_files[index]
                         ffmpeg_command = [
                             self.ffmpeg_path,
+                            '-v', 'warning',
+                            '-stats',
                             '-y',
                             '-i', original_file,
                             '-c:v', 'libx264',
@@ -115,7 +120,13 @@ class TranscodeService:
                             temp_file
                         ]
                         print_out(ffmpeg_command)
-                        subprocess.run(ffmpeg_command, check=True)
+                        with subprocess.Popen(ffmpeg_command, stdout=PIPE, stderr=PIPE) as proc:
+                            add_terminator(proc.terminate)
+                            for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
+                                print_out(line)
+                        remove_last_terminator()
+                        if (proc.returncode != 0):
+                            raise subprocess.CalledProcessError(proc.returncode, ffmpeg_command, proc.stdout, proc.stderr)
 
                     # Combine the intermediates into a single DASH file
                     intermediate_files = [

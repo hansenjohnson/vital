@@ -1,8 +1,10 @@
 import logging
+import sys
 from flask import Flask
 from flask_cors import CORS
 
 from utils.custom_flask_logs import FilterRequestLogs
+from utils.death import get_terminators
 from blueprints.linkages_controller.linkages import bp as linkages_bp
 from blueprints.sightings_controller.sightings import bp as sightings_bp
 from blueprints.settings_controller.settings import bp as settings_bp
@@ -31,6 +33,13 @@ app.register_blueprint(ingest_bp, url_prefix='/ingest')
 @app.route('/ping', methods=['GET'])
 def ping():
     return 'pong'
+
+
+@app.route('/terminate', methods=['GET'])
+def terminate():
+    for terminator in get_terminators():
+        terminator()
+    sys.exit(0)
 
 
 if __name__ == '__main__':
