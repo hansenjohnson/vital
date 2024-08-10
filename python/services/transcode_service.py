@@ -35,7 +35,6 @@ class TranscodeService:
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
 
     def start_transcode_job(self, source_dir: str, transcode_settings_list: List[TranscodeSettings]) -> int:
-
         transcode_job_id = self.job_service.create_job(JobType.TRANSCODE)
 
         transcode_task_ids = []
@@ -100,51 +99,24 @@ class TranscodeService:
                     for index, output_height in enumerate(heights_to_use):
                         bandwidth = bandwidths_to_use[index]
                         temp_file = temp_files[index]
-                        ffmpeg_command = [
-                            self.ffmpeg_path,
-                            '-v', 'warning',
-                            '-stats',
-                            '-y',
-                            '-i', original_file,
-                            '-c:v', 'libx264',
-                            '-x264opts', f'keyint={keyframe_rate}:min-keyint={keyframe_rate}:no-scenecut',
-                            '-r', str(output_framerate),
-                            '-vf', f'scale=-2:{output_height}',
-                            '-pix_fmt', 'yuv420p',
-                            '-b:v', f'{bandwidth}k',
-                            '-maxrate', f'{bandwidth}k',
-                            '-bufsize', f'{bandwidth * 2}k',
-                            '-profile:v', 'main',
-                            '-movflags', 'faststart',
-                            '-preset', 'fast',
-                            '-an',
-                            temp_file
-                        ]
-                        print_out(ffmpeg_command)
-                        with subprocess.Popen(ffmpeg_command, stdout=PIPE, stderr=PIPE) as proc:
-                            add_terminator(proc.terminate)
-                            for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
-                                print_out(line)
-                        remove_last_terminator()
-                        if (proc.returncode != 0):
-                            raise subprocess.CalledProcessError(proc.returncode, ffmpeg_command, proc.stdout, proc.stderr)
+                        ffmpeg_command = self.generate_transcode_command(
+                            original_file,
+                            keyframe_rate,
+                            output_framerate,
+                            output_height,
+                            bandwidth,
+                            temp_file,
+                        )
+                        TranscodeService.run_command_with_terminator(ffmpeg_command)
 
                     # Combine the intermediates into a single DASH file
                     intermediate_files = [
                         f'{temp_file}#video:id={heights_to_use[index]}'
                         for index, temp_file in enumerate(temp_files)
                     ]
-                    mp4box_command = [
-                        self.mp4box_path,
-                        '-dash', '4000',
-                        '-rap',
-                        '-segment-name', 'segment_$RepresentationID$_',
-                        *intermediate_files,
-                        '-out', temp_mpd_file,
-                        '-mpd-title', f'{original_file_name}.mpd'
-                    ]
+                    mp4box_command = self.generate_dash_command(intermediate_files, temp_mpd_file, original_file_name)
                     print_out(mp4box_command)
-                    subprocess.run(mp4box_command, check=True)
+                    TranscodeService.run_command_with_terminator(mp4box_command)
 
                     # Official Output - Copy the whole DASH folder to the optimized directory
                     if os.path.isdir(expected_final_dir):
@@ -162,3 +134,50 @@ class TranscodeService:
                     print_err(str(e))
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                     self.task_service.set_task_error_message(transcode_task_id, str(e))
+
+    def generate_transcode_command(self, original_file, keyframe_rate, output_framerate, output_height, bandwidth, temp_file):
+        return [
+            self.ffmpeg_path,
+            '-v', 'warning',
+            '-stats',
+            '-y',
+            '-i', original_file,
+            '-c:v', 'libx264',
+            '-x264opts', f'keyint={keyframe_rate}:min-keyint={keyframe_rate}:no-scenecut',
+            '-r', str(output_framerate),
+            '-vf', f'scale=-2:{output_height}',
+            '-pix_fmt', 'yuv420p',
+            '-b:v', f'{bandwidth}k',
+            '-maxrate', f'{bandwidth}k',
+            '-bufsize', f'{bandwidth * 2}k',
+            '-profile:v', 'main',
+            '-movflags', 'faststart',
+            '-preset', 'fast',
+            '-an',
+            temp_file
+        ]
+
+    def generate_dash_command(self, intermediate_files, temp_mpd_file, original_file_name):
+        return [
+            self.mp4box_path,
+            '-dash', '4000',
+            '-rap',
+            '-segment-name', 'segment_$RepresentationID$_',
+            *intermediate_files,
+            '-out', temp_mpd_file,
+            '-mpd-title', f'{original_file_name}.mpd'
+        ]
+
+    @staticmethod
+    def run_command_with_terminator(command, line_callback = print_out):
+        print_out(command)
+        with subprocess.Popen(command, stdout=PIPE, stderr=PIPE) as proc:
+            add_terminator(proc.terminate)
+            for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
+                line_callback(line)
+        remove_last_terminator()
+        if (proc.returncode != 0):
+            raise subprocess.CalledProcessError(proc.returncode, command, proc.stdout, proc.stderr)
+
+    def parse_ffmpeg_progress():
+        pass
