@@ -18,6 +18,7 @@ class TaskService:
         status_report = {
             task.id: {
                 "status": task.status,
+                "progress": task.progress,
                 "error_message": task.error_message,
             }
             for task in tasks
@@ -32,6 +33,9 @@ class TaskService:
 
     def set_task_status(self, task_id: int, status: TaskStatus):
         self.task_model.update_task_status(task_id, status)
+
+    def set_task_progress(self, task_id: int, progress: int):
+        self.task_model.update_task_progress(task_id, progress)
 
     def set_task_error_message(self, task_id: int, error_message: str):
         self.task_model.set_task_error_message(task_id, error_message)

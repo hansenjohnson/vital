@@ -10,6 +10,7 @@ class Task:
     id: int
     job_id: int
     status: str
+    progress: int
     transcode_settings: TranscodeSettings
     error_message: str
 
