@@ -231,7 +231,7 @@ class TranscodeService:
         ratio_sum = sum(ratios)
         bounds = []
         for index, ratio in enumerate(ratios):
-            lower_bound = 0 if index == 0 else bounds[-1][1]
+            lower_bound = 0 if index == 0 else bounds[-1][1] + 1
             relative_upper_bound = int((ratio / ratio_sum) * length_of_transcodes)
             upper_bound = length_of_transcodes if index == len(ratios) - 1 else lower_bound + relative_upper_bound
             bounds.append((lower_bound, upper_bound))
