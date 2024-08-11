@@ -207,7 +207,7 @@ class TranscodeService:
 
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
-        print_out(command)
+        print_out(' '.join(command))
         with subprocess.Popen(command, stdout=PIPE, stderr=PIPE) as proc:
             add_terminator(proc.terminate)
             for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
