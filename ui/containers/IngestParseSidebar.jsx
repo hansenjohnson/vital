@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import TextField from '@mui/material/TextField'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -62,6 +63,7 @@ const IngestParseSidebar = ({
               </Button>
             </Box>
           </Box>
+
           <IssueSummaryControls
             title="Warnings"
             orderedIssuesWithCounts={[...allWarnings.entries()]}
@@ -80,6 +82,27 @@ const IngestParseSidebar = ({
             metadataFilter={metadataFilter}
             setMetadataFilter={setMetadataFilter}
           />
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ fontSize: '20px' }}>Batch Rename Files</Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField label="Trim Start" type="number" size="small" />
+              <TextField label="Trim End" type="number" size="small" />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField label="Add Prefix" size="small" />
+              <TextField label="Add Suffix" size="small" />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField label="Insert String" size="small" />
+              <TextField label="Insert At" type="number" size="small" />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField label="Find" size="small" />
+              <TextField label="Replace With" size="small" />
+            </Box>
+          </Box>
+
           <Box sx={{ flexGrow: 1 }} />
           <StyledButton
             variant="outlined"
