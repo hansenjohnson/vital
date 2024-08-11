@@ -13,6 +13,7 @@ import {
   calculateStatus,
 } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
+import { nameNoExt } from '../utilities/paths'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -27,6 +28,8 @@ const LinkageAnnotationPage = () => {
 
   const metadataFilter = useJobStore((state) => state.metadataFilter)
   const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
+  const batchRenameRules = useJobStore((state) => state.batchRenameRules)
+  const processBatchRenameOnString = useJobStore((state) => state.processBatchRenameOnString)
 
   /* Poll for Parse Data, handle statuses */
   const jobId = useJobStore((state) => state.jobId)
@@ -83,6 +86,7 @@ const LinkageAnnotationPage = () => {
       const settingsList = mediaGroups.flatMap((group) =>
         group.mediaList.map((media) => ({
           file_path: media.filePath,
+          new_name: media.newName,
           input_height: media.height,
           num_frames: media.numFrames,
           output_framerate: Math.round(media.frameRate),
@@ -150,10 +154,23 @@ const LinkageAnnotationPage = () => {
     })
   }, [JSON.stringify(mediaGroupsFiltered), issueIgnoreList])
 
+  useEffect(() => {
+    if (!batchRenameRules.applied) return
+    const newMediaGroups = mediaGroups.map((group) => {
+      const newMediaList = group.mediaList.map((media) => {
+        const newName = processBatchRenameOnString(nameNoExt(media.fileName))
+        return { ...media, newName }
+      })
+      return { ...group, mediaList: newMediaList }
+    })
+    // TODO: check for conflicts & report them to the user
+    setMediaGroups(newMediaGroups)
+  }, [batchRenameRules.applied, JSON.stringify(mediaGroups)])
+
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
-      { key: 'fileName', label: 'File Name', maxWidth: 200 },
+      { key: 'fileName', overwriteKey: 'newName', label: 'File Name', maxWidth: 200 },
       {
         key: 'resolution',
         label: 'Resolution',
@@ -197,6 +214,7 @@ const LinkageAnnotationPage = () => {
           totalSize={totalSize}
           allWarnings={allWarnings}
           allErrors={allErrors}
+          oneFileName={nameNoExt(mediaGroups[0]?.mediaList[0]?.fileName ?? '')}
           actionName="Execute Transcode"
           canTrigger={mediaGroupsFilteredAndIgnored.every((group) => {
             if (group.status === STATUSES.ERROR) return false

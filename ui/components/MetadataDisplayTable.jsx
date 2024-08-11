@@ -49,6 +49,7 @@ const MetadataDisplayTable = ({ columns, data }) => {
     setOrderBy(property)
   }
 
+  // TODO: Sort By overwriteKey if it exists
   const sortedData = useMemo(() => {
     const columnData = columns.find((column) => column.key === orderBy)
     const transformer = orderBy === 'status' ? statusTransformer : columnData?.comparatorTransformer
@@ -107,10 +108,14 @@ const MetadataDisplayTable = ({ columns, data }) => {
             <MetadataDisplayRow
               key={JSON.stringify(row)}
               values={columns.map((column) => {
-                if ('transformer' in column) {
-                  return column.transformer(row[column.key])
+                let value = row[column.key]
+                if (column.overwriteKey) {
+                  value = row[column.overwriteKey] ?? value
                 }
-                return row[column.key]
+                if ('transformer' in column) {
+                  return column.transformer(value)
+                }
+                return value
               })}
               aligns={columns.map((column) => column.align)}
               maxWidths={columns.map((column) => column.maxWidth)}

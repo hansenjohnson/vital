@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -18,6 +19,7 @@ const IngestParseSidebar = ({
   totalSize,
   allWarnings,
   allErrors,
+  oneFileName,
   actionName,
   canTrigger,
   onTriggerAction,
@@ -31,6 +33,14 @@ const IngestParseSidebar = ({
   const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
   const addToIgnoreList = useJobStore((state) => state.addToIgnoreList)
   const removeFromIgnoreList = useJobStore((state) => state.removeFromIgnoreList)
+
+  const batchRenameRules = useJobStore((state) => state.batchRenameRules)
+  const setOneBatchRenameRule = useJobStore((state) => state.setOneBatchRenameRule)
+  const applyBatchRenameRules = useJobStore((state) => state.applyBatchRenameRules)
+  const processBatchRenameOnString = useJobStore((state) => state.processBatchRenameOnString)
+  const oneNewName = useMemo(() => {
+    return processBatchRenameOnString(oneFileName)
+  }, [oneFileName, JSON.stringify(batchRenameRules)])
 
   return (
     <Sidebar spacing={1}>
@@ -83,24 +93,89 @@ const IngestParseSidebar = ({
             setMetadataFilter={setMetadataFilter}
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box sx={{ fontSize: '20px' }}>Batch Rename Files</Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField label="Trim Start" type="number" size="small" />
-              <TextField label="Trim End" type="number" size="small" />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 1 }}>
+            <Box sx={{ fontSize: '20px' }}>
+              Batch Rename Files
+              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontSize: '12px' })}>
+                Example:
+                <br />
+                <Box component="span" sx={{ color: 'text.disabled' }}>
+                  {oneFileName}
+                </Box>
+                &nbsp;&nbsp;→
+                <br />
+                {oneNewName}
+              </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField label="Add Prefix" size="small" />
-              <TextField label="Add Suffix" size="small" />
+              <TextField
+                label="Trim Start"
+                type="number"
+                size="small"
+                value={batchRenameRules.trimStart}
+                onChange={(event) => setOneBatchRenameRule('trimStart', event.target.value)}
+              />
+              <TextField
+                label="Trim End"
+                type="number"
+                size="small"
+                value={batchRenameRules.trimEnd}
+                onChange={(event) => setOneBatchRenameRule('trimEnd', event.target.value)}
+              />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField label="Insert String" size="small" />
-              <TextField label="Insert At" type="number" size="small" />
+              <TextField
+                label="Add Prefix"
+                size="small"
+                value={batchRenameRules.prefix}
+                onChange={(event) => setOneBatchRenameRule('prefix', event.target.value)}
+              />
+              <TextField
+                label="Add Suffix"
+                size="small"
+                value={batchRenameRules.suffix}
+                onChange={(event) => setOneBatchRenameRule('suffix', event.target.value)}
+              />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField label="Find" size="small" />
-              <TextField label="Replace With" size="small" />
+              <TextField
+                label="Insert Text"
+                size="small"
+                value={batchRenameRules.insertText}
+                onChange={(event) => setOneBatchRenameRule('insertText', event.target.value)}
+              />
+              <TextField
+                label="Insert At"
+                type="number"
+                size="small"
+                value={batchRenameRules.insertAt}
+                onChange={(event) => setOneBatchRenameRule('insertAt', event.target.value)}
+              />
             </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Find"
+                size="small"
+                value={batchRenameRules.findString}
+                onChange={(event) => setOneBatchRenameRule('findString', event.target.value)}
+              />
+              <TextField
+                label="Replace With"
+                size="small"
+                value={batchRenameRules.replaceString}
+                onChange={(event) => setOneBatchRenameRule('replaceString', event.target.value)}
+              />
+            </Box>
+            <Button
+              variant="contained"
+              color="secondary"
+              sx={{ alignSelf: 'flex-end' }}
+              disableElevation
+              onClick={applyBatchRenameRules}
+              disabled={batchRenameRules.applied}
+            >
+              {batchRenameRules.applied ? 'Rules Applied' : 'Apply Rules'}
+            </Button>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
