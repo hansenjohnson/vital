@@ -73,7 +73,7 @@ class TranscodeService:
 
         return job_id
 
-    def transcode_videos(self, source_dir, transcode_task_ids: List[int]):   
+    def transcode_videos(self, source_dir, transcode_task_ids: List[int]):
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
@@ -107,7 +107,8 @@ class TranscodeService:
                     shared_extension = '.mp4'
                     original_file = transcode_settings.file_path
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
-                    expected_final_dir = os.path.join(optimized_dir_path, original_file_name)
+                    original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+                    expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
                     temp_files = [
                         os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
                         for height in heights_to_use
@@ -151,16 +152,16 @@ class TranscodeService:
                     # Official Output - Copy the whole DASH folder to the optimized directory
                     if os.path.isdir(expected_final_dir):
                         shutil.rmtree(expected_final_dir, ignore_errors=True)
-                    shutil.move(temp_dash_container, optimized_dir_path)
+                    shutil.move(temp_dash_container, os.path.dirname(expected_final_dir))
 
                     # Official Output - Copy original file to original directory
                     # This should happen after the transcode as it is less likely to fail
-                    shutil.copy(original_file, original_dir_path)
+                    shutil.copy(original_file, os.path.join(original_dir_path, *original_subdirs))
 
-                    optimized_file_folder = os.path.basename(expected_final_dir)
-                    dash_video_file = f'{optimized_file_folder}\\{optimized_file_folder}.mpd'
-    
-                    self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_video_file, output_framerate)
+                    expected_final_full_path = os.path.join(expected_final_dir, f'{original_file_name}.mpd')
+                    dash_file_partial_leaf = expected_final_full_path.replace(f'{optimized_dir_path}{os.path.sep}', '')
+
+                    self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_file_partial_leaf, output_framerate)
 
                     self.task_service.set_task_progress(transcode_task_id, 100)
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
