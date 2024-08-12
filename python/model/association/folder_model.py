@@ -1,8 +1,6 @@
 from model.association.sql import SQL
 from settings.settings_enum import SettingsEnum
 
-from datetime import datetime
-
 from utils.prints import print_err
 
 
@@ -55,10 +53,10 @@ class FolderModel(SQL):
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO folder
-                (FolderYear, FolderMonth, FolderDay, ObserverCode, CreatedBy, CreatedDate)
-                VALUES (:FolderYear, :FolderMonth, :FolderDay, :ObserverCode, :CreatedBy, :CreatedDate)
+                (FolderYear, FolderMonth, FolderDay, ObserverCode)
+                VALUES (:FolderYear, :FolderMonth, :FolderDay, :ObserverCode)
             """
-            cursor.execute(query, (year, month, day, observer_code, "User", datetime.now()))
+            cursor.execute(query, (year, month, day, observer_code))
             self.conn.commit()
 
             self.flush_to_excel()
@@ -72,6 +70,6 @@ class FolderModel(SQL):
         except Exception as e:
             print_err(f"Failed to execute SQL query create_folder: {e}")
             raise e
-        
+
     def flush_to_excel(self):
         return super().flush_to_excel('folder', self.file_path, self.worksheet_name)
