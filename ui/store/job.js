@@ -29,8 +29,8 @@ const initialState = {
     medium: {},
     large: {},
   },
-  steps: [],
   jobId: null,
+  settingsList: [],
 }
 
 const validateSourceFolder = (folderPath) => {
@@ -44,19 +44,31 @@ const useJobStore = create((set, get) => ({
   reset: () => set(initialState),
 
   setPhase: async (nextPhase) => {
-    set({ phase: nextPhase })
+    set({ phase: nextPhase, jobId: null })
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       ingestAPI.getCompressionOptions({})
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
-      ingestAPI.execute({})
+      get().triggerExecute()
     }
   },
 
   triggerParse: async () => {
     const { sourceFolder, jobMode } = get()
     const jobId = await ingestAPI.parse(jobMode, sourceFolder)
+    set({ jobId })
+  },
+
+  triggerExecute: async () => {
+    const { jobMode, sourceFolder, settingsList } = get()
+    let jobId = null
+    if (jobMode === JOB_MODES.BY_IMAGE) {
+      // TODO: implement this later
+      return
+    } else if (jobMode === JOB_MODES.BY_VIDEO) {
+      jobId = await ingestAPI.transcode(sourceFolder, settingsList)
+    }
     set({ jobId })
   },
 
@@ -89,12 +101,9 @@ const useJobStore = create((set, get) => ({
 
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
 
-  /** Step Schema:
-   * - fileName: str
-   * - newName: str | optional
-   * - transcodeSettings: {}
-   */
-  setSteps: valueSetter(set, 'steps'),
+  // This list should be a list of object
+  // The schema can be found in the TranscodeSettings class within the server
+  setSettingsList: valueSetter(set, 'settingsList'),
 }))
 
 const canParse = (state) => {

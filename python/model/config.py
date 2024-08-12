@@ -1,0 +1,2 @@
+SCHEMA_VERSION = '0011'
+DB_NAME = f'vital-{SCHEMA_VERSION}.db'

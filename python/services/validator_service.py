@@ -14,7 +14,8 @@ class ValidatorService:
 
     VALID = 'VALID'
 
-    MAX_LENGTH = 20
+    # TODO: Change back to 20
+    MAX_LENGTH = 100
 
     def validate_video(self, source_dir, video_metadata):
         validation_status = ValidationStatus()

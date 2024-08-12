@@ -74,6 +74,42 @@ const LinkageAnnotationPage = () => {
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
+  /* Trigger & Poll for Execute Data, handle statuses */
+  const setSettingsList = useJobStore((state) => state.setSettingsList)
+  const setPhase = useJobStore((state) => state.setPhase)
+  const [taskStatuses, setTaskStatuses] = useState({})
+  const executeJob = () => {
+    if (jobMode === JOB_MODES.BY_VIDEO) {
+      const settingsList = mediaGroups.flatMap((group) =>
+        group.mediaList.map((media) => ({
+          file_path: media.filePath,
+          input_height: media.height,
+          num_frames: media.numFrames,
+          output_framerate: Math.round(media.frameRate),
+        }))
+      )
+      setSettingsList(settingsList)
+    } else {
+      // FUTURE: handle setting image conversion settings here
+    }
+    setPhase(JOB_PHASES.EXECUTE)
+  }
+  useEffect(() => {
+    if (phase !== JOB_PHASES.EXECUTE) return
+    let intervalId
+    const checkForExecution = async () => {
+      const statuses = await ingestAPI.taskStatusesForJob(jobId)
+      setTaskStatuses(statuses)
+      if (
+        Object.values(statuses).every((task) => task.status.toLowerCase() === STATUSES.COMPLETED)
+      ) {
+        clearInterval(intervalId)
+      }
+    }
+    intervalId = setInterval(checkForExecution, 2000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobId])
+
   /* User controlled data processing */
   const mediaGroupsFiltered = useMemo(() => {
     if (!metadataFilter) return mediaGroups
@@ -161,6 +197,15 @@ const LinkageAnnotationPage = () => {
           totalSize={totalSize}
           allWarnings={allWarnings}
           allErrors={allErrors}
+          actionName="Execute Transcode"
+          canTrigger={mediaGroupsFilteredAndIgnored.every((group) => {
+            if (group.status === STATUSES.ERROR) return false
+            return group.mediaList.every((media) => {
+              if (media.status === STATUSES.ERROR) return false
+              return true
+            })
+          })}
+          onTriggerAction={executeJob}
         />
         <Box
           sx={{
@@ -186,6 +231,32 @@ const LinkageAnnotationPage = () => {
             </Box>
           ))}
         </Box>
+      </Box>
+    )
+  }
+
+  if (phase === JOB_PHASES.EXECUTE) {
+    return (
+      <Box
+        sx={{
+          height: '100%',
+          margin: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+        }}
+      >
+        Executing Job
+        {Object.entries(taskStatuses).map(([id, task]) => (
+          <Box key={id} sx={{ textAlign: 'center' }}>
+            {id}: {task.status} {task.progress}%
+            {task.status.toLowerCase() === STATUSES.ERROR && (
+              <Box sx={{ fontSize: '12px' }}>{task.error_message}</Box>
+            )}
+          </Box>
+        ))}
       </Box>
     )
   }

@@ -44,20 +44,12 @@ const launchPythonServer = () => {
   return null
 }
 
-const killPythonServer = (pythonServer) => {
+const killPythonServer = async (pythonServer) => {
+  await fetch('http://127.0.0.1:5000/terminate').catch(() => null)
   if (is.dev) {
-    log.info('Killing python server')
-    pythonServer.kill('SIGINT')
     pythonServer.kill('SIGKILL')
   } else {
-    child_process.exec('taskkill /f /t /im server.exe', (err, stdout, stderr) => {
-      if (err) {
-        log.error(err)
-        return
-      }
-      log.info(`stdout: ${stdout}`)
-      log.error(`stderr: ${stderr}`)
-    })
+    child_process.exec('taskkill /f /t /im server.exe')
   }
 }
 

@@ -4,6 +4,7 @@ import os
 
 from settings.settings_service import SettingsService
 from utils.prints import print_err
+from model.config import DB_NAME
 
 
 class SQL:
@@ -16,7 +17,7 @@ class SQL:
 
     def __init__(self):
         self.df = pd.DataFrame()
-        self.conn = sqlite3.connect('vital.db', check_same_thread=False)
+        self.conn = sqlite3.connect(DB_NAME, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.worksheet_name = None
 

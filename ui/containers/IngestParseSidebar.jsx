@@ -10,8 +10,17 @@ import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import IssueSummaryControls from '../components/IssueSummaryControls'
+import StyledButton from '../components/StyledButton'
 
-const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors }) => {
+const IngestParseSidebar = ({
+  status,
+  totalSize,
+  allWarnings,
+  allErrors,
+  actionName,
+  canTrigger,
+  onTriggerAction,
+}) => {
   const jobMode = useJobStore((state) => state.jobMode)
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const triggerParse = useJobStore((state) => state.triggerParse)
@@ -71,6 +80,15 @@ const IngestParseSidebar = ({ status, totalSize, allWarnings, allErrors }) => {
             metadataFilter={metadataFilter}
             setMetadataFilter={setMetadataFilter}
           />
+          <Box sx={{ flexGrow: 1 }} />
+          <StyledButton
+            variant="outlined"
+            fullWidth
+            disabled={!canTrigger}
+            onClick={onTriggerAction}
+          >
+            {actionName}
+          </StyledButton>
         </>
       )}
     </Sidebar>
