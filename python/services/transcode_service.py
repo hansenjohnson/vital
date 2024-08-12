@@ -16,6 +16,9 @@ from model.ingest.job_model import JobType
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
+from model.association.folder_model import FolderModel
+from model.association.video_model import VideoModel
+
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
@@ -42,6 +45,8 @@ class TranscodeService:
         self.job_service = JobService()
         self.task_service = TaskService()
         self.settings_service = SettingsService()
+        self.folder_model = FolderModel()
+        self.video_model = VideoModel()
 
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
@@ -68,15 +73,17 @@ class TranscodeService:
 
         return job_id
 
-    def transcode_videos(self, source_dir, transcode_task_ids: List[int]):   
+    def transcode_videos(self, source_dir, transcode_task_ids: List[int]):
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
         source_dir_name = os.path.basename(source_dir)
-        # NOTE TO MATT: you should be able to dump catalog_folder_info directly into TblCatalogFolder
+
         catalog_folder_info = extract_catalog_folder_info(source_dir_name)
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
+
+        catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
         os.makedirs(optimized_dir_path, exist_ok=True)
         os.makedirs(original_dir_path, exist_ok=True)
@@ -100,7 +107,10 @@ class TranscodeService:
                     shared_extension = '.mp4'
                     original_file = transcode_settings.file_path
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
-                    expected_final_dir = os.path.join(optimized_dir_path, original_file_name)
+                    original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+                    expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
+                    expected_original_dir = os.path.join(original_dir_path, *original_subdirs)
+                    os.makedirs(expected_original_dir, exist_ok=True)
                     temp_files = [
                         os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
                         for height in heights_to_use
@@ -144,11 +154,17 @@ class TranscodeService:
                     # Official Output - Copy the whole DASH folder to the optimized directory
                     if os.path.isdir(expected_final_dir):
                         shutil.rmtree(expected_final_dir, ignore_errors=True)
-                    shutil.move(temp_dash_container, optimized_dir_path)
+                    os.makedirs(os.path.dirname(expected_final_dir), exist_ok=True)
+                    shutil.move(temp_dash_container, os.path.dirname(expected_final_dir))
 
                     # Official Output - Copy original file to original directory
                     # This should happen after the transcode as it is less likely to fail
-                    shutil.copy(original_file, original_dir_path)
+                    shutil.copy(original_file, expected_original_dir)
+
+                    expected_final_full_path = os.path.join(expected_final_dir, f'{original_file_name}.mpd')
+                    dash_file_partial_leaf = expected_final_full_path.replace(f'{optimized_dir_path}{os.path.sep}', '')
+
+                    self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_file_partial_leaf, output_framerate)
 
                     self.task_service.set_task_progress(transcode_task_id, 100)
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
