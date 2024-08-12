@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from model.association.sql import SQL
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err
+
 
 class VideoModel(SQL):
     _instance = None
@@ -57,6 +60,29 @@ class VideoModel(SQL):
         except Exception as e:
             print_err(f"Failed to execute SQL query get_video_by_id: {e}")
         return None
+    
+    def create_video(self, catalog_folder_id, original_file_name, optimized_file_name, frame_rate):
+        try:
+            cursor = self.conn.cursor()
+            query = """
+                INSERT INTO video
+                (CatalogFolderId, OriginalFileName, OptimizedFileName, FrameRate, Hidden, CreatedBy, CreatedDate)
+                VALUES (:CatalogFolderId, :OriginalFileName, :OptimizedFileName, :FrameRate, :Hidden, :CreatedBy, :CreatedDate)
+            """
+            cursor.execute(query, (catalog_folder_id, original_file_name, optimized_file_name, frame_rate, False, "User", datetime.now()))
+            self.conn.commit()
+
+            self.flush_to_excel()
+
+            lastrowid = cursor.lastrowid
+            cursor.close()
+            return lastrowid
+        except PermissionError as e:
+            self.refresh_table()
+            raise e
+        except Exception as e:
+            print_err(f"Failed to execute SQL query create_video: {e}")
+            raise e
 
     def update_video(self, video_id, payload):
         try:

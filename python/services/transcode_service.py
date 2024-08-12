@@ -16,6 +16,9 @@ from model.ingest.job_model import JobType
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
+from model.association.folder_model import FolderModel
+from model.association.video_model import VideoModel
+
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
@@ -42,6 +45,8 @@ class TranscodeService:
         self.job_service = JobService()
         self.task_service = TaskService()
         self.settings_service = SettingsService()
+        self.folder_model = FolderModel()
+        self.video_model = VideoModel()
 
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
@@ -73,10 +78,12 @@ class TranscodeService:
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
         source_dir_name = os.path.basename(source_dir)
-        # NOTE TO MATT: you should be able to dump catalog_folder_info directly into TblCatalogFolder
+
         catalog_folder_info = extract_catalog_folder_info(source_dir_name)
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
+
+        catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
         os.makedirs(optimized_dir_path, exist_ok=True)
         os.makedirs(original_dir_path, exist_ok=True)
@@ -149,6 +156,11 @@ class TranscodeService:
                     # Official Output - Copy original file to original directory
                     # This should happen after the transcode as it is less likely to fail
                     shutil.copy(original_file, original_dir_path)
+
+                    optimized_file_folder = os.path.basename(expected_final_dir)
+                    dash_video_file = f'{optimized_file_folder}\\{optimized_file_folder}.mpd'
+    
+                    self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_video_file, output_framerate)
 
                     self.task_service.set_task_progress(transcode_task_id, 100)
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
