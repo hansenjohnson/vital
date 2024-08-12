@@ -49,8 +49,9 @@ const killPythonServer = async (pythonServer) => {
   if (is.dev) {
     pythonServer.kill('SIGKILL')
   } else {
-    child_process.exec('taskkill /f /t /im server.exe')
+    child_process.execSync('taskkill /f /t /im server.exe')
   }
+  return
 }
 
 export { launchPythonServer, killPythonServer }

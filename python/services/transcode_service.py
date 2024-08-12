@@ -109,6 +109,8 @@ class TranscodeService:
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
                     original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
                     expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
+                    expected_original_dir = os.path.join(original_dir_path, *original_subdirs)
+                    os.makedirs(expected_original_dir, exist_ok=True)
                     temp_files = [
                         os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
                         for height in heights_to_use
@@ -152,11 +154,12 @@ class TranscodeService:
                     # Official Output - Copy the whole DASH folder to the optimized directory
                     if os.path.isdir(expected_final_dir):
                         shutil.rmtree(expected_final_dir, ignore_errors=True)
+                    os.makedirs(os.path.dirname(expected_final_dir), exist_ok=True)
                     shutil.move(temp_dash_container, os.path.dirname(expected_final_dir))
 
                     # Official Output - Copy original file to original directory
                     # This should happen after the transcode as it is less likely to fail
-                    shutil.copy(original_file, os.path.join(original_dir_path, *original_subdirs))
+                    shutil.copy(original_file, expected_original_dir)
 
                     expected_final_full_path = os.path.join(expected_final_dir, f'{original_file_name}.mpd')
                     dash_file_partial_leaf = expected_final_full_path.replace(f'{optimized_dir_path}{os.path.sep}', '')
@@ -220,7 +223,7 @@ class TranscodeService:
 
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
-        print_out(command)
+        print_out(' '.join(command))
         with subprocess.Popen(command, stdout=PIPE, stderr=PIPE) as proc:
             add_terminator(proc.terminate)
             for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
@@ -244,7 +247,7 @@ class TranscodeService:
         ratio_sum = sum(ratios)
         bounds = []
         for index, ratio in enumerate(ratios):
-            lower_bound = 0 if index == 0 else bounds[-1][1]
+            lower_bound = 0 if index == 0 else bounds[-1][1] + 1
             relative_upper_bound = int((ratio / ratio_sum) * length_of_transcodes)
             upper_bound = length_of_transcodes if index == len(ratios) - 1 else lower_bound + relative_upper_bound
             bounds.append((lower_bound, upper_bound))

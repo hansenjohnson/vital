@@ -109,12 +109,9 @@ app.whenReady().then(() => {
   createWindow()
 })
 
-app.on('before-quit', () => {
-  killPythonServer(pythonServer)
-})
-
 // Quit when all windows are closed
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await killPythonServer(pythonServer)
   app.quit()
 })
 
