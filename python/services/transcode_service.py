@@ -107,16 +107,18 @@ class TranscodeService:
                     shared_extension = '.mp4'
                     original_file = transcode_settings.file_path
                     original_file_name = os.path.splitext(os.path.basename(original_file))[0]
+                    output_file_name = transcode_settings.new_name or original_file_name
                     original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
-                    expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
+                    expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, output_file_name)
                     expected_original_dir = os.path.join(original_dir_path, *original_subdirs)
                     os.makedirs(expected_original_dir, exist_ok=True)
                     temp_files = [
-                        os.path.join(temp_dir, f'{original_file_name}_{height}{shared_extension}')
+                        os.path.join(temp_dir, f'{output_file_name}_{height}{shared_extension}')
                         for height in heights_to_use
                     ]
-                    temp_dash_container = os.path.join(temp_dir, original_file_name)
-                    temp_mpd_file = os.path.join(temp_dash_container, f'{original_file_name}.mpd')
+                    temp_dash_container = os.path.join(temp_dir, output_file_name)
+                    output_file_name_mpd = f'{output_file_name}.mpd'
+                    temp_mpd_file = os.path.join(temp_dash_container, output_file_name_mpd)
                     os.makedirs(temp_dash_container, exist_ok=True)
 
                     # Transcode the video into multiple intermediates
@@ -148,7 +150,7 @@ class TranscodeService:
                         f'{temp_file}#video:id={heights_to_use[index]}'
                         for index, temp_file in enumerate(temp_files)
                     ]
-                    mp4box_command = self.generate_dash_command(intermediate_files, temp_mpd_file, original_file_name)
+                    mp4box_command = self.generate_dash_command(intermediate_files, temp_mpd_file, output_file_name_mpd)
                     TranscodeService.run_command_with_terminator(mp4box_command)
 
                     # Official Output - Copy the whole DASH folder to the optimized directory
@@ -161,7 +163,7 @@ class TranscodeService:
                     # This should happen after the transcode as it is less likely to fail
                     shutil.copy(original_file, expected_original_dir)
 
-                    expected_final_full_path = os.path.join(expected_final_dir, f'{original_file_name}.mpd')
+                    expected_final_full_path = os.path.join(expected_final_dir, output_file_name_mpd)
                     dash_file_partial_leaf = expected_final_full_path.replace(f'{optimized_dir_path}{os.path.sep}', '')
 
                     self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_file_partial_leaf, output_framerate)
@@ -197,7 +199,7 @@ class TranscodeService:
             temp_file
         ]
 
-    def generate_dash_command(self, intermediate_files, temp_mpd_file, original_file_name):
+    def generate_dash_command(self, intermediate_files, temp_mpd_file, output_file_name_mpd):
         return [
             self.mp4box_path,
             '-dash', '4000',
@@ -205,7 +207,7 @@ class TranscodeService:
             '-segment-name', 'segment_$RepresentationID$_',
             *intermediate_files,
             '-out', temp_mpd_file,
-            '-mpd-title', f'{original_file_name}.mpd'
+            '-mpd-title', output_file_name_mpd
         ]
 
     def create_ffmpeg_line_handler(self, transcode_task_id, total_frames, progress_bounds=(0, 100)):
