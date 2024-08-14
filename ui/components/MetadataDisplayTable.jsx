@@ -16,18 +16,20 @@ const tableHeaderCellStyle = {
   whiteSpace: 'nowrap',
 }
 
-const standardComparator = (a, b, orderBy, transformer) => {
-  const trueA = transformer ? transformer(a[orderBy]) : a[orderBy]
-  const trueB = transformer ? transformer(b[orderBy]) : b[orderBy]
+const standardComparator = (a, b, orderBy, orderByAlt, transformer) => {
+  const currentA = orderByAlt ? a[orderByAlt] : a[orderBy]
+  const currentB = orderByAlt ? b[orderByAlt] : b[orderBy]
+  const trueA = transformer ? transformer(currentA) : currentA
+  const trueB = transformer ? transformer(currentB) : currentB
   if (trueB < trueA) return -1
   if (trueB > trueA) return 1
   return 0
 }
 
-const getDirectionalSorter = (order, orderBy, transformer) => {
+const getDirectionalSorter = (order, orderBy, orderByAlt, transformer) => {
   return order === 'desc'
-    ? (a, b) => standardComparator(a, b, orderBy, transformer)
-    : (a, b) => -standardComparator(a, b, orderBy, transformer)
+    ? (a, b) => standardComparator(a, b, orderBy, orderByAlt, transformer)
+    : (a, b) => -standardComparator(a, b, orderBy, orderByAlt, transformer)
 }
 
 const statusTransformer = (status) => {
@@ -41,18 +43,21 @@ const MetadataDisplayTable = ({ columns, data }) => {
   // Sort by File Name as Default (aka index 0)
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState(columns[0].key)
+  const [orderByAlt, setOrderByAlt] = useState(columns[0].key)
 
-  const createSortHandler = (property) => () => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
+  const createSortHandler =
+    (property, altProperty = null) =>
+    () => {
+      const isAsc = orderBy === property && order === 'asc'
+      setOrder(isAsc ? 'desc' : 'asc')
+      setOrderBy(property)
+      setOrderByAlt(altProperty)
+    }
 
-  // TODO: Sort By overwriteKey if it exists
   const sortedData = useMemo(() => {
     const columnData = columns.find((column) => column.key === orderBy)
     const transformer = orderBy === 'status' ? statusTransformer : columnData?.comparatorTransformer
-    const directionalSorter = getDirectionalSorter(order, orderBy, transformer)
+    const directionalSorter = getDirectionalSorter(order, orderBy, orderByAlt, transformer)
     return data.slice().sort(directionalSorter)
   }, [JSON.stringify(columns), JSON.stringify(data), order, orderBy])
 
@@ -92,7 +97,7 @@ const MetadataDisplayTable = ({ columns, data }) => {
                 <TableSortLabel
                   active={orderBy === column.key}
                   direction={orderBy === column.key ? order : 'asc'}
-                  onClick={createSortHandler(column.key)}
+                  onClick={createSortHandler(column.key, column.overwriteKey)}
                 >
                   {column.label}
                 </TableSortLabel>
