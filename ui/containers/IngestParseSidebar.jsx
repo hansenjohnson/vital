@@ -3,7 +3,6 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import TextField from '@mui/material/TextField'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -13,6 +12,7 @@ import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import IssueSummaryControls from '../components/IssueSummaryControls'
 import StyledButton from '../components/StyledButton'
+import BatchRenameController from '../components/BatchRenameController'
 
 const IngestParseSidebar = ({
   status,
@@ -93,107 +93,13 @@ const IngestParseSidebar = ({
             setMetadataFilter={setMetadataFilter}
           />
 
-          <Box sx={{ fontSize: '20px' }}>
-            Batch Rename Files
-            <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontSize: '12px' })}>
-              Example:
-              <br />
-              <Box component="span" sx={{ color: 'text.disabled' }}>
-                {oneFileName}
-              </Box>
-              &nbsp;&nbsp;→
-              <br />
-              {oneNewName}
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 1,
-              paddingTop: 0.5,
-              marginTop: -0.5,
-              overflow: 'auto',
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Trim Start"
-                type="number"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.trimStart}
-                onChange={(event) => setOneBatchRenameRule('trimStart', event.target.value)}
-              />
-              <TextField
-                label="Trim End"
-                type="number"
-                color="secondary"
-                size="small"
-                value={batchRenameRules.trimEnd}
-                onChange={(event) => setOneBatchRenameRule('trimEnd', event.target.value)}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Add Prefix"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.prefix}
-                onChange={(event) => setOneBatchRenameRule('prefix', event.target.value)}
-              />
-              <TextField
-                label="Add Suffix"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.suffix}
-                onChange={(event) => setOneBatchRenameRule('suffix', event.target.value)}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Insert Text"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.insertText}
-                onChange={(event) => setOneBatchRenameRule('insertText', event.target.value)}
-              />
-              <TextField
-                label="Insert At"
-                type="number"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.insertAt}
-                onChange={(event) => setOneBatchRenameRule('insertAt', event.target.value)}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField
-                label="Find"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.findString}
-                onChange={(event) => setOneBatchRenameRule('findString', event.target.value)}
-              />
-              <TextField
-                label="Replace With"
-                size="small"
-                color="secondary"
-                value={batchRenameRules.replaceString}
-                onChange={(event) => setOneBatchRenameRule('replaceString', event.target.value)}
-              />
-            </Box>
-            <Button
-              variant="contained"
-              color="secondary"
-              sx={{ alignSelf: 'flex-end', color: 'white' }}
-              disableElevation
-              onClick={applyBatchRenameRules}
-              disabled={batchRenameRules.applied}
-            >
-              {batchRenameRules.applied ? 'Rules Applied' : 'Apply Rules'}
-            </Button>
-          </Box>
+          <BatchRenameController
+            oneFileName={oneFileName}
+            oneNewName={oneNewName}
+            batchRenameRules={batchRenameRules}
+            setOneBatchRenameRule={setOneBatchRenameRule}
+            applyBatchRenameRules={applyBatchRenameRules}
+          />
 
           <Box sx={{ flexGrow: 1 }} />
           <StyledButton
