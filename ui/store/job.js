@@ -23,7 +23,7 @@ const initialState = {
     insertAt: 0,
     findString: '',
     replaceString: '',
-    applied: false,
+    applied: true,
   },
   compressionBuckets: {
     small: {},
@@ -105,6 +105,10 @@ const useJobStore = create((set, get) => ({
   applyBatchRenameRules: () => {
     const { batchRenameRules } = get()
     set({ batchRenameRules: { ...batchRenameRules, applied: true } })
+  },
+  invalidateBatchRenameRules: () => {
+    const { batchRenameRules } = get()
+    set({ batchRenameRules: { ...batchRenameRules, applied: false } })
   },
   processBatchRenameOnString: (string) => {
     const { batchRenameRules } = get()

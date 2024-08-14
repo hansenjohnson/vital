@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
+import useStore from '../store'
 import useJobStore from '../store/job'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
@@ -13,7 +14,6 @@ import {
   calculateStatus,
 } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
-import { nameNoExt } from '../utilities/paths'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -154,16 +154,55 @@ const LinkageAnnotationPage = () => {
     })
   }, [JSON.stringify(mediaGroupsFiltered), issueIgnoreList])
 
+  // Apply batch rename rules to all filenames in the data
+  // Capture Name Duplicates to report the Conflict to the user
+  const makeAlert = useStore((state) => state.makeAlert)
+  const invalidateBatchRenameRules = useJobStore((state) => state.invalidateBatchRenameRules)
   useEffect(() => {
     if (!batchRenameRules.applied) return
+    const newNameOldNameMap = {}
+    const duplicates = {}
+
     const newMediaGroups = mediaGroups.map((group) => {
       const newMediaList = group.mediaList.map((media) => {
-        const newName = processBatchRenameOnString(nameNoExt(media.fileName))
+        const newName = processBatchRenameOnString(media.fileName)
+        if (newNameOldNameMap?.[group]?.[newName]) {
+          if (!duplicates?.[group]?.[newName]) {
+            if (!duplicates[group]) {
+              duplicates[group] = {}
+            }
+            duplicates[group][newName] = [newNameOldNameMap[group][newName]]
+          }
+          duplicates[group][newName].push(media.fileName)
+        } else {
+          if (!newNameOldNameMap[group]) {
+            newNameOldNameMap[group] = {}
+          }
+          newNameOldNameMap[group][newName] = media.fileName
+        }
         return { ...media, newName }
       })
       return { ...group, mediaList: newMediaList }
     })
-    // TODO: check for conflicts & report them to the user
+
+    if (Object.keys(duplicates).length > 0) {
+      const exampleConflicts = Object.values(duplicates).flatMap((group) =>
+        Object.entries(group)
+          .map(([newName, oldNames], index) => {
+            if (index > 2) return
+            return `${oldNames.map((oldName) => `${oldName} → ${newName}`).join('\n')}`
+          })
+          .join('\n\n')
+      )
+      makeAlert(
+        `Name Conflicts found in Batch Rename Rules. Here are some examples:\n
+        ${exampleConflicts}`,
+        'error'
+      )
+      invalidateBatchRenameRules()
+      return
+    }
+
     setMediaGroups(newMediaGroups)
   }, [batchRenameRules.applied, JSON.stringify(mediaGroups)])
 
@@ -171,6 +210,12 @@ const LinkageAnnotationPage = () => {
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
       { key: 'fileName', overwriteKey: 'newName', label: 'File Name', maxWidth: 200 },
+      {
+        key: 'extension',
+        label: 'Type',
+        align: 'right',
+        transformer: (value) => value.toUpperCase(),
+      },
       {
         key: 'resolution',
         label: 'Resolution',
@@ -207,6 +252,16 @@ const LinkageAnnotationPage = () => {
         },
       ]
     )
+    const canTriggerNextAction = (() => {
+      if (!batchRenameRules.applied) return false
+      return mediaGroupsFilteredAndIgnored.every((group) => {
+        if (group.status === STATUSES.ERROR) return false
+        return group.mediaList.every((media) => {
+          if (media.status === STATUSES.ERROR) return false
+          return true
+        })
+      })
+    })()
     return (
       <Box sx={{ display: 'flex', height: '100%' }}>
         <IngestParseSidebar
@@ -214,15 +269,9 @@ const LinkageAnnotationPage = () => {
           totalSize={totalSize}
           allWarnings={allWarnings}
           allErrors={allErrors}
-          oneFileName={nameNoExt(mediaGroups[0]?.mediaList[0]?.fileName ?? '')}
+          oneFileName={mediaGroups[0]?.mediaList[0]?.fileName}
           actionName="Execute Transcode"
-          canTrigger={mediaGroupsFilteredAndIgnored.every((group) => {
-            if (group.status === STATUSES.ERROR) return false
-            return group.mediaList.every((media) => {
-              if (media.status === STATUSES.ERROR) return false
-              return true
-            })
-          })}
+          canTrigger={canTriggerNextAction}
           onTriggerAction={executeJob}
         />
         <Box

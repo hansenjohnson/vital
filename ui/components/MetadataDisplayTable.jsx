@@ -14,7 +14,6 @@ const tableHeaderCellStyle = {
   fontWeight: 400,
   fontSize: '12px',
   whiteSpace: 'nowrap',
-  paddingLeft: 1,
 }
 
 const standardComparator = (a, b, orderBy, transformer) => {
@@ -83,7 +82,10 @@ const MetadataDisplayTable = ({ columns, data }) => {
               <TableCell
                 key={`${index}-${column.key}`}
                 padding="none"
-                sx={{ ...tableHeaderCellStyle, ...(index === 0 ? { paddingLeft: 0.5 } : {}) }}
+                sx={{
+                  ...tableHeaderCellStyle,
+                  ...(index === 0 ? { paddingLeft: 0.5 } : {}),
+                }}
                 align={column.align === 'center' ? 'right' : column.align}
                 sortDirection={orderBy === column.key ? order : false}
               >
@@ -97,7 +99,10 @@ const MetadataDisplayTable = ({ columns, data }) => {
               </TableCell>
             ))}
 
-            <TableCell padding="none" sx={{ ...tableHeaderCellStyle, minWidth: '200px' }}>
+            <TableCell
+              padding="none"
+              sx={{ ...tableHeaderCellStyle, paddingLeft: 1, minWidth: '200px' }}
+            >
               Warnings/Errors
             </TableCell>
           </TableRow>

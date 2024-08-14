@@ -1,4 +1,4 @@
-import { Fragment, forwardRef } from 'react'
+import { forwardRef } from 'react'
 
 import { useTheme } from '@mui/material'
 import Dialog from '@mui/material/Dialog'
@@ -45,14 +45,7 @@ const AlertDialog = ({ open, onClose, variant = 'warning', body }) => {
       <DialogContent
         sx={{ marginTop: 2, height: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}
       >
-        <Box sx={{ flexGrow: 1, fontSize: '18px' }}>
-          {body?.split('\n').map((partial) => (
-            <Fragment key={partial}>
-              {partial}
-              <br />
-            </Fragment>
-          ))}
-        </Box>
+        <Box sx={{ flexGrow: 1, fontSize: '18px', whiteSpace: 'pre-line' }}>{body}</Box>
       </DialogContent>
       <DialogActions>
         <Button variant="text" color={variant} onClick={onClose}>

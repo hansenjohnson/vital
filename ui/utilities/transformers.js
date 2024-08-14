@@ -1,6 +1,6 @@
 import { ROOT_FOLDER } from '../constants/fileTypes'
 import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
-import { joinPath, splitPath } from './paths'
+import { joinPath, splitPath, nameNoExt } from './paths'
 import { yearMonthDayString } from './strings'
 
 export const transformFolderData = (folderRow) => {
@@ -127,9 +127,12 @@ export const transformMediaMetadata = (media) => {
   const warnings = media?.validation_status?.warnings || []
   const errors = media?.validation_status?.errors || []
   const status = calculateStatus(errors, warnings)
+  const fileName = nameNoExt(media.file_name)
+  const extension = media.file_name.replace(`${fileName}.`, '')
   return {
     filePath: media.file_path,
-    fileName: media.file_name,
+    fileName,
+    extension,
     fileSize: media.size,
     resolution: `${media.width}x${media.height}`,
     width: media.width,
