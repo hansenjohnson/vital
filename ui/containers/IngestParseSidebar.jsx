@@ -93,31 +93,42 @@ const IngestParseSidebar = ({
             setMetadataFilter={setMetadataFilter}
           />
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 1 }}>
-            <Box sx={{ fontSize: '20px' }}>
-              Batch Rename Files
-              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontSize: '12px' })}>
-                Example:
-                <br />
-                <Box component="span" sx={{ color: 'text.disabled' }}>
-                  {oneFileName}
-                </Box>
-                &nbsp;&nbsp;→
-                <br />
-                {oneNewName}
+          <Box sx={{ fontSize: '20px' }}>
+            Batch Rename Files
+            <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontSize: '12px' })}>
+              Example:
+              <br />
+              <Box component="span" sx={{ color: 'text.disabled' }}>
+                {oneFileName}
               </Box>
+              &nbsp;&nbsp;→
+              <br />
+              {oneNewName}
             </Box>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              paddingTop: 0.5,
+              marginTop: -0.5,
+              overflow: 'auto',
+            }}
+          >
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField
                 label="Trim Start"
                 type="number"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.trimStart}
                 onChange={(event) => setOneBatchRenameRule('trimStart', event.target.value)}
               />
               <TextField
                 label="Trim End"
                 type="number"
+                color="secondary"
                 size="small"
                 value={batchRenameRules.trimEnd}
                 onChange={(event) => setOneBatchRenameRule('trimEnd', event.target.value)}
@@ -127,12 +138,14 @@ const IngestParseSidebar = ({
               <TextField
                 label="Add Prefix"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.prefix}
                 onChange={(event) => setOneBatchRenameRule('prefix', event.target.value)}
               />
               <TextField
                 label="Add Suffix"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.suffix}
                 onChange={(event) => setOneBatchRenameRule('suffix', event.target.value)}
               />
@@ -141,6 +154,7 @@ const IngestParseSidebar = ({
               <TextField
                 label="Insert Text"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.insertText}
                 onChange={(event) => setOneBatchRenameRule('insertText', event.target.value)}
               />
@@ -148,6 +162,7 @@ const IngestParseSidebar = ({
                 label="Insert At"
                 type="number"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.insertAt}
                 onChange={(event) => setOneBatchRenameRule('insertAt', event.target.value)}
               />
@@ -156,12 +171,14 @@ const IngestParseSidebar = ({
               <TextField
                 label="Find"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.findString}
                 onChange={(event) => setOneBatchRenameRule('findString', event.target.value)}
               />
               <TextField
                 label="Replace With"
                 size="small"
+                color="secondary"
                 value={batchRenameRules.replaceString}
                 onChange={(event) => setOneBatchRenameRule('replaceString', event.target.value)}
               />
@@ -169,7 +186,7 @@ const IngestParseSidebar = ({
             <Button
               variant="contained"
               color="secondary"
-              sx={{ alignSelf: 'flex-end' }}
+              sx={{ alignSelf: 'flex-end', color: 'white' }}
               disableElevation
               onClick={applyBatchRenameRules}
               disabled={batchRenameRules.applied}
