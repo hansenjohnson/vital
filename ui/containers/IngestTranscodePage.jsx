@@ -7,7 +7,12 @@ import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import { ROOT_FOLDER } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
-import { bytesToSize, twoPrecisionStrNum, secondsToDuration } from '../utilities/strings'
+import {
+  bytesToSize,
+  twoPrecisionStrNum,
+  secondsToDuration,
+  fileNameGoodLength,
+} from '../utilities/strings'
 import {
   transformMediaMetadata,
   groupMediaMetadataBySubfolder,
@@ -142,24 +147,30 @@ const LinkageAnnotationPage = () => {
         newGroupStatus = STATUSES.SUCCESS
       }
       const mediaList = group.mediaList.map((media) => {
+        const hasNewNameOfGoodLength = media.newName && fileNameGoodLength(media.newName)
         const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
-        const newMediaStatus = calculateStatus(media.errors, newWarnings)
+        const newErrors = media.errors.filter((e) => {
+          if (e === 'LENGTH_ERROR' && hasNewNameOfGoodLength) return false
+          return true
+        })
+        const newMediaStatus = calculateStatus(newErrors, newWarnings)
         return {
           ...media,
           status: newMediaStatus,
           warnings: newWarnings,
+          errors: newErrors,
         }
       })
       return { ...group, status: newGroupStatus, mediaList }
     })
   }, [JSON.stringify(mediaGroupsFiltered), issueIgnoreList])
 
-  // Apply batch rename rules to all filenames in the data
-  // Capture Name Duplicates to report the Conflict to the user
+  /* Apply batch rename rules to all filenames in the data */
   const makeAlert = useStore((state) => state.makeAlert)
   const invalidateBatchRenameRules = useJobStore((state) => state.invalidateBatchRenameRules)
   useEffect(() => {
     if (!batchRenameRules.applied) return
+    // Capture Name Duplicates to report the Conflict to the user
     const newNameOldNameMap = {}
     const duplicates = {}
 
