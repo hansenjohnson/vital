@@ -14,6 +14,11 @@ from blueprints.thumbnails_controller.thumbnails import bp as thumbnails_bp
 from blueprints.still_exports_controller.still_exports import bp as still_exports_bp
 from blueprints.ingest_controller.ingest import bp as ingest_bp
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+
+from model.config import DB_PATH
+
 log_werkzeug = logging.getLogger("werkzeug")
 log_werkzeug.addFilter(FilterRequestLogs())
 
@@ -42,5 +47,18 @@ def terminate():
     sys.exit(0)
 
 
+jobstores = {
+    'default': SQLAlchemyJobStore(url=f'sqlite:///{DB_PATH}')
+}
+
+scheduler = BackgroundScheduler(jobstores=jobstores)
+
+@app.teardown_appcontext
+def shutdown_scheduler(exception=None):
+    if scheduler.running:
+        scheduler.shutdown()
+
+
 if __name__ == '__main__':
+    scheduler.start()
     app.run(host='127.0.0.1', port=5000)

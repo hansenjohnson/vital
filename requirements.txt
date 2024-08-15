@@ -3,3 +3,5 @@ pyinstaller==6.5.0
 pandas==2.2.1
 openpyxl==3.1.2
 flask-cors==4.0.0
+sqlalchemy==2.0.32
+APScheduler==3.10.4

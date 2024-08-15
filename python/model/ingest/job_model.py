@@ -1,7 +1,7 @@
 import sqlite3
 from enum import Enum
 
-from model.config import DB_NAME
+from model.config import DB_PATH
 
 class JobStatus(Enum):
     PENDING = "PENDING"
@@ -14,7 +14,7 @@ class JobType(Enum):
 
 
 class JobModel:
-    def __init__(self, db_name=DB_NAME):
+    def __init__(self, db_name=DB_PATH):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
