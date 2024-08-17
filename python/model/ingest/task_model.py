@@ -34,7 +34,7 @@ class TaskModel:
 
     def create(self, job_id: int, transcode_settings: TranscodeSettings) -> int:
         transcode_settings_json = self.serialize_dataclass(transcode_settings)
-        self.cursor.execute("INSERT INTO task (job_id, transcode_settings, status) VALUES (?, ?, ?)", (job_id, transcode_settings_json, TaskStatus.PENDING.value,))
+        self.cursor.execute("INSERT INTO task (job_id, transcode_settings, status) VALUES (?, ?, ?)", (job_id, transcode_settings_json, TaskStatus.QUEUED.value,))
         self.conn.commit()
         return self.cursor.lastrowid
 

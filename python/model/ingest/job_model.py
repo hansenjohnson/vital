@@ -7,6 +7,8 @@ class JobStatus(Enum):
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
+    QUEUED = "QUEUED"
+    INCOMPLETE = "INCOMPLETE"
 
 class JobType(Enum):
     METADATA = "METADATA"
@@ -30,8 +32,8 @@ class JobModel:
 
         self.conn.commit()
 
-    def create(self, job_type: JobType):
-        self.cursor.execute("INSERT INTO job (type, status) VALUES (?, ?)", (job_type.value, JobStatus.PENDING.value,))
+    def create(self, job_type: JobType, jobStatus: JobStatus, json_data):
+        self.cursor.execute("INSERT INTO job (type, status, data) VALUES (?, ?, ?)", (job_type.value, jobStatus.value, json_data))
         self.conn.commit()
         return self.cursor.lastrowid
 
@@ -40,10 +42,27 @@ class JobModel:
         self.conn.commit()
 
     def get_data(self, job_id):
-        print(job_id)
         self.cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
+    
+    def get_non_complete_jobs(self):
+        self.cursor.execute("SELECT * FROM job WHERE status != 'COMPLETED'")
+        rows = self.cursor.fetchall()
+        jobs = []
+        for row in rows:
+            job = {
+                "id": row[0],
+                "type": row[1],
+                "status": row[2],
+                "data": row[3]
+            }
+            jobs.append(job)
+        return jobs
 
     def get_status(self, job_id):
         self.cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
+    
+    def set_status(self, job_status):
+        self.cursor.execute("UPDATE job SET status = ?", (job_status.value,))
+        self.conn.commit()

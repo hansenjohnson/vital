@@ -8,11 +8,12 @@ import shutil
 import subprocess
 from subprocess import PIPE
 from typing import List
+from retry import retry
 
 from data.transcode_settings import TranscodeSettings
 from services.job_service import JobService
 from services.task_service import TaskService
-from model.ingest.job_model import JobType
+from model.ingest.job_model import JobType, JobStatus
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
@@ -52,28 +53,29 @@ class TranscodeService:
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
 
-    def start_transcode_job(self, source_dir: str, transcode_settings_list: List[TranscodeSettings]) -> int:
-        transcode_job_id = self.job_service.create_job(JobType.TRANSCODE)
+    def queue_transcode_job(self, source_dir: str, transcode_settings_list: List[TranscodeSettings]) -> int:
+        transcode_job_id = self.job_service.create_job(JobType.TRANSCODE, JobStatus.PENDING, {"source_dir": source_dir})
 
-        transcode_task_ids = []
+        # transcode_task_ids = []
         for transcode_settings_json in transcode_settings_list:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             transcode_task_id = self.task_service.create_task(transcode_job_id, transcode_settings)
-            transcode_task_ids.append(transcode_task_id)
+            # transcode_task_ids.append(transcode_task_id)
 
-        threading.Thread(target=self.transcode_videos, args=(source_dir, transcode_task_ids,)).start()
+        # threading.Thread(target=self.transcode_videos, args=(transcode_job_id, source_dir, transcode_task_ids,)).start()
 
         return transcode_job_id
 
     def restart_transcode_job(self, job_id: int, source_dir: str) -> int:
-        failed_transcode_task_ids = self.task_service.get_all_task_ids_by_status(job_id, TaskStatus.PENDING)
+        failed_transcode_task_ids = self.task_service.get_all_task_ids_by_status(job_id, TaskStatus.QUEUED)
         failed_transcode_task_ids.extend(self.task_service.get_all_task_ids_by_status(job_id, TaskStatus.ERROR))
 
         threading.Thread(target=self.transcode_videos, args=(source_dir, failed_transcode_task_ids,)).start()
 
         return job_id
 
-    def transcode_videos(self, source_dir, transcode_task_ids: List[int]):
+    @retry()
+    def transcode_videos(self,transcode_job_id, source_dir, transcode_task_ids: List[int]):
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
@@ -174,6 +176,9 @@ class TranscodeService:
                     print_err(str(e))
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                     self.task_service.set_task_error_message(transcode_task_id, str(e))
+                
+                finally:
+                    self.job_service.set_job_status(transcode_job_id)
 
     def generate_transcode_command(self, original_file, keyframe_rate, output_framerate, output_height, bandwidth, temp_file):
         return [

@@ -13,11 +13,9 @@ from blueprints.folders_controller.folders import bp as folders_bp
 from blueprints.thumbnails_controller.thumbnails import bp as thumbnails_bp
 from blueprints.still_exports_controller.still_exports import bp as still_exports_bp
 from blueprints.ingest_controller.ingest import bp as ingest_bp
+from blueprints.queue_controller.queue import bp as queue_bp
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-
-from model.config import DB_PATH
+from services.schedueler_service import SchedulerService
 
 log_werkzeug = logging.getLogger("werkzeug")
 log_werkzeug.addFilter(FilterRequestLogs())
@@ -33,7 +31,9 @@ app.register_blueprint(folders_bp, url_prefix='/folders')
 app.register_blueprint(thumbnails_bp, url_prefix='/thumbnails')
 app.register_blueprint(still_exports_bp, url_prefix='/still_exports')
 app.register_blueprint(ingest_bp, url_prefix='/ingest')
+app.register_blueprint(queue_bp, url_prefix='/queue')
 
+scheduler = SchedulerService()
 
 @app.route('/ping', methods=['GET'])
 def ping():
@@ -45,19 +45,6 @@ def terminate():
     for terminator in get_terminators():
         terminator()
     sys.exit(0)
-
-
-jobstores = {
-    'default': SQLAlchemyJobStore(url=f'sqlite:///{DB_PATH}')
-}
-
-scheduler = BackgroundScheduler(jobstores=jobstores)
-
-@app.teardown_appcontext
-def shutdown_scheduler(exception=None):
-    if scheduler.running:
-        scheduler.shutdown()
-
 
 if __name__ == '__main__':
     scheduler.start()
