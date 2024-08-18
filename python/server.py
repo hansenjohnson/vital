@@ -4,7 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from utils.custom_flask_logs import FilterRequestLogs
-from utils.death import get_terminators
+from utils.death import terminate_all
 from blueprints.linkages_controller.linkages import bp as linkages_bp
 from blueprints.sightings_controller.sightings import bp as sightings_bp
 from blueprints.settings_controller.settings import bp as settings_bp
@@ -42,8 +42,7 @@ def ping():
 
 @app.route('/terminate', methods=['GET'])
 def terminate():
-    for terminator in get_terminators():
-        terminator()
+    terminate_all()
     sys.exit(0)
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ from services.task_service import TaskService
 
 from data.task import TaskStatus
 
-from model.ingest.job_model import JobStatus
+from model.ingest.job_model import JobStatus, JobType
 
 from utils.prints import print_out
 
@@ -22,10 +22,11 @@ def schedule_job_run(run_date):
     
 
 def execute_jobs():
-    jobs = job_service.get_non_complete_jobs()
+    jobs = job_service.get_non_complete_jobs(JobType.TRANSCODE)
 
     for job in jobs:
-        print_out(job)
+        job_service.set_job_status(job["id"], )
+
         job_data = json.loads(job["data"])
         source_dir = job_data["source_dir"]
 

@@ -29,7 +29,7 @@ class IngestService:
         self.validator_service = ValidatorService()
 
     def create_parse_video_job(self, source_dir):
-        job_id = self.job_service.create_job(JobType.METADATA, JobStatus.PENDING)
+        job_id = self.job_service.create_job(JobType.METADATA, JobStatus.INCOMPLETE)
         threading.Thread(target=self.parse_videos, args=(job_id, source_dir,)).start()
         return job_id
 

@@ -4,7 +4,8 @@ from model.ingest.job_model import JobModel, JobType, JobStatus
 from services.task_service import TaskService
 from model.ingest.task_model import TaskStatus
 
-
+from utils.death import terminate_all
+from utils.prints import print_out
 
 
 class JobService:
@@ -23,8 +24,8 @@ class JobService:
     def get_job_data(self, job_id):
         return json.loads(self.job_model.get_data(job_id))
     
-    def get_non_complete_jobs(self, ):
-        return self.job_model.get_non_complete_jobs()
+    def get_non_complete_jobs(self, job_type):
+        return self.job_model.get_non_complete_jobs(job_type)
 
     def check_job_status(self, job_id):
         return self.job_model.get_status(job_id)
@@ -34,7 +35,15 @@ class JobService:
 
         for task in tasks:
             if task.status != TaskStatus.COMPLETED.value:
-                self.job_model.set_status(JobStatus.INCOMPLETE)
+                self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
                 return
         
-        self.job_model.set_status(JobStatus.COMPLETED)
+        self.job_model.set_status(job_id, JobStatus.COMPLETED)
+
+    def delete_job(self, job_id):
+        print_out(self.check_job_status(job_id))
+        if self.check_job_status(job_id) == JobStatus.INCOMPLETE.value:
+            terminate_all()
+
+        self.task_service.delete_by_job_id(job_id)
+        return self.job_model.delete(job_id)

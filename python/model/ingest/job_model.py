@@ -4,7 +4,6 @@ from enum import Enum
 from model.config import DB_PATH
 
 class JobStatus(Enum):
-    PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
     QUEUED = "QUEUED"
@@ -45,8 +44,8 @@ class JobModel:
         self.cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
     
-    def get_non_complete_jobs(self):
-        self.cursor.execute("SELECT * FROM job WHERE status != 'COMPLETED'")
+    def get_non_complete_jobs(self, job_type):
+        self.cursor.execute("SELECT * FROM job WHERE type = ? AND status != 'COMPLETED'", (job_type.value,))
         rows = self.cursor.fetchall()
         jobs = []
         for row in rows:
@@ -63,6 +62,11 @@ class JobModel:
         self.cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
     
-    def set_status(self, job_status):
-        self.cursor.execute("UPDATE job SET status = ?", (job_status.value,))
+    def set_status(self, job_id, job_status):
+        self.cursor.execute("UPDATE job SET status = ? where id = ?", (job_status.value, job_id,))
         self.conn.commit()
+
+    def delete(self, job_id):
+        self.cursor.execute("DELETE FROM job WHERE id = ?", (job_id,))
+        self.conn.commit()
+        return job_id

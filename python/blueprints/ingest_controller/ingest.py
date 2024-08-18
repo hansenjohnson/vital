@@ -58,12 +58,21 @@ def task_statuses(job_id):
 
 
 @bp.route('/transcode', methods=['POST'])
-def start_transcode():
+def queue_transcode():
     payload = request.json
     try:
         transcode_list = payload['transcode_list']
         source_dir = payload['source_dir']
         job_id = transcode_service.queue_transcode_job(source_dir, transcode_list)
+        return jsonify({"job_id": job_id}), 200
+    except Exception as e:
+        return jsonify({"error:", str(e)}), 400
+    
+
+@bp.route('/job/<int:job_id>', methods=['DELETE'])
+def delete_job(job_id):
+    try:
+        job_id = job_service.delete_job(job_id)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error:", str(e)}), 400

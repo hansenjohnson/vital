@@ -78,3 +78,7 @@ class TaskModel:
     def set_task_error_message(self, task_id: int, error_message: str):
         self.cursor.execute("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
         self.conn.commit()
+
+    def delete_by_job_id(self, job_id):
+        self.cursor.execute("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
+        self.conn.commit()
