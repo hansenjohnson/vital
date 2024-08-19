@@ -20,7 +20,6 @@ def schedule_job_run(run_date):
     job_id = scheduler.add_job(execute_jobs, run_date)
     return job_id
     
-
 def execute_jobs():
     jobs = job_service.get_non_complete_jobs(JobType.TRANSCODE)
 
@@ -39,3 +38,6 @@ def execute_jobs():
 
 
         transcode_service.transcode_videos(job["id"], source_dir, non_complete_task_ids)
+
+def remove_scheduled_jobs():
+    scheduler.remove_jobs()

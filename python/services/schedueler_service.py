@@ -34,6 +34,10 @@ class SchedulerService():
         self.ap_scheduler.shutdown(wait=False)
 
     def add_job(self, func, run_time, args=None):
+
+        # only one queue job can be scheduled at a time
+        self.remove_jobs()
+
         trigger = DateTrigger(run_date=run_time)
 
         # if job fires more than 60 seconds after it was supposed to (if the app was started after fire time, for example)
@@ -42,8 +46,9 @@ class SchedulerService():
 
         return job.id
 
-    def remove_job(self, job_id):
-        self.ap_scheduler.remove_job(job_id)
+    def remove_jobs(self):
+        for job in self.ap_scheduler.get_jobs():
+            self.ap_scheduler.remove_job(job.id)
 
     def get_job(self, job_id):
         return self.ap_scheduler.get_job(job_id)
