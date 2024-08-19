@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -11,12 +12,14 @@ import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import IssueSummaryControls from '../components/IssueSummaryControls'
 import StyledButton from '../components/StyledButton'
+import BatchRenameController from '../components/BatchRenameController'
 
 const IngestParseSidebar = ({
   status,
   totalSize,
   allWarnings,
   allErrors,
+  oneFileName,
   actionName,
   canTrigger,
   onTriggerAction,
@@ -30,6 +33,14 @@ const IngestParseSidebar = ({
   const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
   const addToIgnoreList = useJobStore((state) => state.addToIgnoreList)
   const removeFromIgnoreList = useJobStore((state) => state.removeFromIgnoreList)
+
+  const batchRenameRules = useJobStore((state) => state.batchRenameRules)
+  const setOneBatchRenameRule = useJobStore((state) => state.setOneBatchRenameRule)
+  const applyBatchRenameRules = useJobStore((state) => state.applyBatchRenameRules)
+  const processBatchRenameOnString = useJobStore((state) => state.processBatchRenameOnString)
+  const oneNewName = useMemo(() => {
+    return processBatchRenameOnString(oneFileName)
+  }, [oneFileName, JSON.stringify(batchRenameRules)])
 
   return (
     <Sidebar spacing={1}>
@@ -62,6 +73,7 @@ const IngestParseSidebar = ({
               </Button>
             </Box>
           </Box>
+
           <IssueSummaryControls
             title="Warnings"
             orderedIssuesWithCounts={[...allWarnings.entries()]}
@@ -80,6 +92,15 @@ const IngestParseSidebar = ({
             metadataFilter={metadataFilter}
             setMetadataFilter={setMetadataFilter}
           />
+
+          <BatchRenameController
+            oneFileName={oneFileName}
+            oneNewName={oneNewName}
+            batchRenameRules={batchRenameRules}
+            setOneBatchRenameRule={setOneBatchRenameRule}
+            applyBatchRenameRules={applyBatchRenameRules}
+          />
+
           <Box sx={{ flexGrow: 1 }} />
           <StyledButton
             variant="outlined"

@@ -13,3 +13,7 @@ export const joinPath = (parts) => {
 }
 
 export const folderSlash = () => '\\'
+
+export const nameNoExt = (path) => {
+  return path.split('.').slice(0, -1).join('.')
+}
