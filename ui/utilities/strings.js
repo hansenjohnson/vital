@@ -57,3 +57,6 @@ export const secondsToDuration = (seconds) => {
 }
 
 export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)
+
+// NOTE: Make sure this number matches the one used on the backend
+export const fileNameGoodLength = (fileName) => fileName.length <= 20

@@ -19,10 +19,11 @@ const initialState = {
     trimEnd: 0,
     prefix: '',
     suffix: '',
-    insertAt: -1,
     insertText: '',
+    insertAt: 0,
     findString: '',
     replaceString: '',
+    applied: true,
   },
   compressionBuckets: {
     small: {},
@@ -97,7 +98,43 @@ const useJobStore = create((set, get) => ({
     set({ issueIgnoreList: issueIgnoreList.filter((issue) => issue !== issueToRemove) })
   },
 
-  setBatchRenameRules: valueSetter(set, 'batchRenameRules'),
+  setOneBatchRenameRule: (key, value) => {
+    const { batchRenameRules } = get()
+    set({ batchRenameRules: { ...batchRenameRules, applied: false, [key]: value } })
+  },
+  applyBatchRenameRules: () => {
+    const { batchRenameRules } = get()
+    set({ batchRenameRules: { ...batchRenameRules, applied: true } })
+  },
+  invalidateBatchRenameRules: () => {
+    const { batchRenameRules } = get()
+    set({ batchRenameRules: { ...batchRenameRules, applied: false } })
+  },
+  processBatchRenameOnString: (string) => {
+    const { batchRenameRules } = get()
+    const { trimStart, trimEnd, prefix, suffix, insertText, insertAt, findString, replaceString } =
+      batchRenameRules
+    let newString = string
+    if (trimStart > 0) {
+      newString = newString.slice(trimStart)
+    }
+    if (trimEnd > 0) {
+      newString = newString.slice(0, -trimEnd)
+    }
+    if (prefix) {
+      newString = `${prefix}${newString}`
+    }
+    if (suffix) {
+      newString = `${newString}${suffix}`
+    }
+    if (insertText) {
+      newString = newString.slice(0, insertAt) + insertText + newString.slice(insertAt)
+    }
+    if (findString) {
+      newString = newString.replaceAll(findString, replaceString)
+    }
+    return newString
+  },
 
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
 
