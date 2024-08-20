@@ -13,6 +13,7 @@ import Tools from './containers/Tools'
 import LinkageAnnotationPage from './containers/LinkageAnnotationPage'
 import IngestTranscodePage from './containers/IngestTranscodePage'
 import Navbar from './containers/Navbar'
+import JobQueue from './containers/JobQueue'
 import CenteredLoadingCircle from './components/CenteredLoadingCircle'
 import AlertDialog from './components/AlertDialog'
 import ConfirmationDialog from './components/ConfirmationDialog'
@@ -74,6 +75,8 @@ const App = () => {
           </>
         )}
       </Box>
+
+      <JobQueue />
 
       <AlertDialog open={alertDialogOpen} onClose={closeAlert} {...alertDialogProps} />
 

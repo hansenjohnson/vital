@@ -25,9 +25,13 @@ const Navbar = ({ width }) => {
   const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
   const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
 
+  const jobQueueOpen = useStore((state) => state.jobQueueOpen)
+  const setJobQueueOpen = useStore((state) => state.setJobQueueOpen)
+
   const handleToolsClick = () => {
     const action = () => {
       setSettingsOpen(false)
+      setJobQueueOpen(false)
       if (route === ROUTES.TOOLS) return
       setRoute(ROUTES.TOOLS)
       resetStore()
@@ -46,6 +50,13 @@ const Navbar = ({ width }) => {
     }
   }
 
+  const tabSelected = (() => {
+    if (settingsOpen) return 1
+    if (jobQueueOpen) return 2
+    if (route === ROUTES.TOOLS) return 0
+    return null
+  })()
+
   if (width === 0) return null
 
   return (
@@ -59,16 +70,31 @@ const Navbar = ({ width }) => {
       }}
     >
       <NavbarButton
-        selected={route === ROUTES.TOOLS && !settingsOpen}
+        selected={tabSelected === 0}
         disabled={!settingsInitialized}
         onClick={handleToolsClick}
       >
         Tools
       </NavbarButton>
-      <NavbarButton selected={settingsOpen} onClick={() => setSettingsOpen(true)}>
+      <NavbarButton
+        selected={tabSelected === 1}
+        onClick={() => {
+          setJobQueueOpen(false)
+          setSettingsOpen(true)
+        }}
+      >
         Settings
       </NavbarButton>
-      <NavbarButton disabled={!settingsInitialized}>Work Queue (0)</NavbarButton>
+      <NavbarButton
+        selected={tabSelected === 2}
+        disabled={!settingsInitialized}
+        onClick={() => {
+          setSettingsOpen(false)
+          setJobQueueOpen(true)
+        }}
+      >
+        Job Queue (0)
+      </NavbarButton>
       <Box
         sx={{
           flexGrow: 1,
