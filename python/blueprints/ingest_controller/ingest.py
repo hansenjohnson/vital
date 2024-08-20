@@ -72,8 +72,8 @@ def queue_transcode():
 @bp.route('/job/<int:job_id>', methods=['DELETE'])
 def delete_job(job_id):
     try:
-        job_id = job_service.delete_job(job_id)
-        return jsonify({"job_id": job_id}), 200
+        orphaned_tasks = job_service.delete_job(job_id)
+        return jsonify({"orphaned_tasks": orphaned_tasks}), 200
     except Exception as e:
         return jsonify({"error:", str(e)}), 400
 

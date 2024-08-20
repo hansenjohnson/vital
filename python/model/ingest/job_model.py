@@ -5,7 +5,6 @@ from model.config import DB_PATH
 
 class JobStatus(Enum):
     COMPLETED = "COMPLETED"
-    ERROR = "ERROR"
     QUEUED = "QUEUED"
     INCOMPLETE = "INCOMPLETE"
 
