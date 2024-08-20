@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import path from 'path'
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, powerSaveBlocker } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import log from 'electron-log/main'
 import ElectronStore from 'electron-store'
@@ -107,6 +107,8 @@ app.whenReady().then(() => {
   pythonServer = launchPythonServer()
 
   createWindow()
+
+  powerSaveBlocker.start('prevent-app-suspension')
 })
 
 // Quit when all windows are closed
