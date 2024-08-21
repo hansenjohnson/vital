@@ -1,6 +1,8 @@
 import sqlite3
 from enum import Enum
 
+from utils.prints import print_out
+
 from model.config import DB_PATH
 
 class JobStatus(Enum):
@@ -24,7 +26,8 @@ class JobModel:
                    id INTEGER PRIMARY KEY,
                    type TEXT,
                    status TEXT,
-                   data TEXT
+                   data TEXT,
+                   completed_date DATETIME DEFAULT CURRENT_TIMESTAMP 
                )
            """)
 
@@ -43,8 +46,14 @@ class JobModel:
         self.cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
         return self.cursor.fetchone()[0]
     
-    def get_non_complete_jobs(self, job_type):
-        self.cursor.execute("SELECT * FROM job WHERE type = ? AND status != 'COMPLETED'", (job_type.value,))
+    def get_jobs(self, job_type, completed, limit, offset):
+        if completed:
+            self.cursor.execute("SELECT * FROM job WHERE type = ? AND status = ? LIMIT ? OFFSET ?",
+                                 (job_type.value, JobStatus.COMPLETED.value, limit, offset))
+        else:
+            self.cursor.execute("SELECT * FROM job WHERE type = ? AND status != ? LIMIT ? OFFSET ?",
+                                 (job_type.value, JobStatus.COMPLETED.value, limit, offset))
+        
         rows = self.cursor.fetchall()
         jobs = []
         for row in rows:
@@ -52,7 +61,8 @@ class JobModel:
                 "id": row[0],
                 "type": row[1],
                 "status": row[2],
-                "data": row[3]
+                "data": row[3],
+                "completed_date": row[4]
             }
             jobs.append(job)
         return jobs
