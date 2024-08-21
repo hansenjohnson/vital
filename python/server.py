@@ -15,7 +15,7 @@ from blueprints.still_exports_controller.still_exports import bp as still_export
 from blueprints.ingest_controller.ingest import bp as ingest_bp
 from blueprints.queue_controller.queue import bp as queue_bp
 
-from services.schedueler_service import SchedulerService
+from services.scheduler_service import SchedulerService
 
 log_werkzeug = logging.getLogger("werkzeug")
 log_werkzeug.addFilter(FilterRequestLogs())

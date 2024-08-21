@@ -50,8 +50,9 @@ class SchedulerService():
         for job in self.ap_scheduler.get_jobs():
             self.ap_scheduler.remove_job(job.id)
 
-    def get_job(self, job_id):
-        return self.ap_scheduler.get_job(job_id)
+    def get_job(self):
+        jobs = list(self.ap_scheduler.get_jobs())
+        return jobs[0] if len(jobs) else None
 
     def _job_listener(self, event):
         if event.exception:

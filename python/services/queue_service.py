@@ -1,6 +1,6 @@
 import json
 
-from services.schedueler_service import SchedulerService
+from services.scheduler_service import SchedulerService
 from services.transcode_service import TranscodeService
 from services.job_service import JobService
 from services.task_service import TaskService
