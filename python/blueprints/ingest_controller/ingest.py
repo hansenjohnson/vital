@@ -69,8 +69,8 @@ def queue_transcode():
         job_id = transcode_service.queue_transcode_job(source_dir, transcode_list)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
-        return jsonify({"error:", str(e)}), 400
-    
+        return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/job/<int:job_id>', methods=['DELETE'])
 def delete_job(job_id):
@@ -78,18 +78,17 @@ def delete_job(job_id):
         orphaned_tasks = job_service.delete_job(job_id)
         return jsonify({"orphaned_tasks": orphaned_tasks}), 200
     except Exception as e:
-        return jsonify({"error:", str(e)}), 400
-    
+        return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/job/schedule', methods=["GET"])
 def get_scheduled_queue():
     try:
         scheduled_job = scheduler_service.get_job()
-        print(scheduled_job)
-        return jsonify({"scheduled_job": scheduled_job}), 200
+        return jsonify({"scheduled_job": str(scheduled_job.next_run_time)}), 200
     except Exception as e:
-        return jsonify({"error:", str(e)}), 400
-        
+        return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/job', methods=["GET"])
 def get_jobs():
@@ -101,7 +100,7 @@ def get_jobs():
         jobs = job_service.get_jobs(JobType.TRANSCODE, completed, page, page_size)
         return jsonify(jobs), 200
     except Exception as e:
-        return jsonify({"error:", str(e)}), 400
+        return jsonify({"error": str(e)}), 400
 
 def str_to_bool(value):
     return value.lower() == 'true'
