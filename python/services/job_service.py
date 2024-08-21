@@ -24,6 +24,10 @@ class JobService:
     def get_job_data(self, job_id):
         return json.loads(self.job_model.get_data(job_id))
     
+    def get_jobs(self, job_type, completed, page=1, page_size=10):
+        offset = (page - 1) * page_size
+        return self.job_model.get_jobs(job_type, completed, page_size, offset)
+    
     def get_non_complete_jobs(self, job_type):
         return self.job_model.get_non_complete_jobs(job_type)
 
@@ -41,9 +45,10 @@ class JobService:
         self.job_model.set_status(job_id, JobStatus.COMPLETED)
 
     def delete_job(self, job_id):
-        print_out(self.check_job_status(job_id))
         if self.check_job_status(job_id) == JobStatus.INCOMPLETE.value:
             terminate_all()
 
-        self.task_service.delete_by_job_id(job_id)
-        return self.job_model.delete(job_id)
+        orphaned_tasks = self.task_service.delete_by_job_id(job_id)
+        self.job_model.delete(job_id)
+
+        return orphaned_tasks

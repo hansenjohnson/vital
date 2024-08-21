@@ -80,6 +80,7 @@ class TranscodeService:
         for transcode_task_id in transcode_task_ids:
             with tempfile.TemporaryDirectory() as temp_dir:
                 try:
+                    self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
                     self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
 
                 except Exception as e:

@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request
 from services.ingest_service import IngestService
-from services.job_service import JobService
+from services.job_service import JobService, JobType
 from services.transcode_service import TranscodeService
 from services.task_service import TaskService
+from services.schedueler_service import SchedulerService
+from utils.prints import print_out
 
 from urllib.parse import unquote
 
@@ -11,6 +13,7 @@ ingest_service = IngestService()
 job_service = JobService()
 transcode_service = TranscodeService()
 task_service = TaskService()
+scheduler_service = SchedulerService()
 
 
 @bp.route('/count_files/<string:source_folder_as_encoded_uri_component>', methods=['GET'])
@@ -72,19 +75,33 @@ def queue_transcode():
 @bp.route('/job/<int:job_id>', methods=['DELETE'])
 def delete_job(job_id):
     try:
-        job_id = job_service.delete_job(job_id)
-        return jsonify({"job_id": job_id}), 200
+        orphaned_tasks = job_service.delete_job(job_id)
+        return jsonify({"orphaned_tasks": orphaned_tasks}), 200
+    except Exception as e:
+        return jsonify({"error:", str(e)}), 400
+    
+
+@bp.route('/job/schedule', methods=["GET"])
+def get_scheduled_queue():
+    try:
+        scheduled_job = scheduler_service.get_job()
+        print(scheduled_job)
+        return jsonify({"scheduled_job": scheduled_job}), 200
+    except Exception as e:
+        return jsonify({"error:", str(e)}), 400
+        
+
+@bp.route('/job', methods=["GET"])
+def get_jobs():
+    try:
+        completed = str_to_bool(request.args.get('completed', default="true", type=str))
+        page = request.args.get('page', default=1, type=int)
+        page_size = request.args.get('page_size', default=10, type=int)
+
+        jobs = job_service.get_jobs(JobType.TRANSCODE, completed, page, page_size)
+        return jsonify(jobs), 200
     except Exception as e:
         return jsonify({"error:", str(e)}), 400
 
-
-@bp.route('/restart', methods=['POST'])
-def restart_transcode():
-    payload = request.json
-    try:
-        job_id = payload['job_id']
-        source_dir = payload['source_dir']
-        transcode_service.restart_transcode_job(job_id, source_dir)
-        return jsonify({"job_id": job_id}), 200 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+def str_to_bool(value):
+    return value.lower() == 'true'

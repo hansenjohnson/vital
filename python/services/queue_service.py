@@ -21,7 +21,7 @@ def schedule_job_run(run_date):
     return job_id
     
 def execute_jobs():
-    jobs = job_service.get_non_complete_jobs(JobType.TRANSCODE)
+    jobs = job_service.get_jobs(JobType.TRANSCODE, False)
 
     for job in jobs:
         job_service.set_job_status(job["id"], )
