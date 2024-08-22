@@ -26,7 +26,7 @@ class JobModel:
                    type TEXT,
                    status TEXT,
                    data TEXT,
-                   completed_date DATETIME DEFAULT CURRENT_TIMESTAMP 
+                   completed_date DATETIME
                )
            """)
 
