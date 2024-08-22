@@ -82,7 +82,7 @@ const LinkageAnnotationPage = () => {
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
-  /* Trigger & Poll for Execute Data, handle statuses */
+  /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
   const setPhase = useJobStore((state) => state.setPhase)
   const executeJob = () => {

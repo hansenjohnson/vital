@@ -4,6 +4,7 @@ import { valueSetter } from './utils'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
 import { leafPath } from '../utilities/paths'
+import useQueueStore from './queue'
 
 const initialState = {
   phase: JOB_PHASES.INPUTS,
@@ -71,6 +72,7 @@ const useJobStore = create((set, get) => ({
       jobId = await ingestAPI.transcode(sourceFolder, settingsList)
     }
     set({ jobId })
+    useQueueStore.getState().fetchJobsData()
   },
 
   setSourceFolder: (sourceFolder) => {

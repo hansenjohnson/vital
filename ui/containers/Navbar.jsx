@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
 import useJobStore from '../store/job'
+import useQueueStore from '../store/queue'
 import { isSaveable } from '../store/linkages'
 import ROUTES from '../constants/routes'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
@@ -25,6 +26,7 @@ const Navbar = ({ width }) => {
   const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
   const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
 
+  const numJobs = useQueueStore((state) => state.incompleteJobs.length)
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
   const setJobQueueOpen = useStore((state) => state.setJobQueueOpen)
 
@@ -93,7 +95,7 @@ const Navbar = ({ width }) => {
           setJobQueueOpen(true)
         }}
       >
-        Job Queue (0)
+        Job Queue ({numJobs})
       </NavbarButton>
       <Box
         sx={{

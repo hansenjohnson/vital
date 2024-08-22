@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -14,6 +14,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import TocIcon from '@mui/icons-material/Toc'
 
 import useStore from '../store'
+import useQueueStore, { canStart } from '../store/queue'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { JOB_TYPES } from '../constants/routes'
 import statuses from '../constants/statuses'
@@ -26,22 +27,20 @@ const JobQueue = () => {
   const setJobQueueOpen = useStore((state) => state.setJobQueueOpen)
   const closeDialog = () => setJobQueueOpen(false)
 
-  const [incompleteJobs, setIncompleteJobs] = useState([])
-  const [completeJobs, setCompleteJobs] = useState([])
-  const nextPage = useRef(2)
+  const incompleteJobs = useQueueStore((state) => state.incompleteJobs)
+  const completeJobs = useQueueStore((state) => state.completeJobs)
+  const fetchJobsData = useQueueStore((state) => state.fetchJobsData)
+  const loadMoreCompletedJobs = useQueueStore((state) => state.loadMoreCompletedJobs)
   useEffect(() => {
-    ingestAPI.getIncompleteJobs().then((jobs) => setIncompleteJobs(jobs))
-    ingestAPI.getCompleteJobs(1).then((jobs) => setCompleteJobs(jobs))
+    fetchJobsData()
   }, [])
 
-  const loadMoreCompletedJobs = () => {
-    ingestAPI.getCompleteJobs(nextPage.current).then((jobs) => {
-      setCompleteJobs((prevJobs) => [...prevJobs, ...jobs])
-      nextPage.current += 1
-    })
+  const deleteJob = async (jobId) => {
+    await ingestAPI.deleteJob(jobId)
+    await fetchJobsData()
   }
 
-  const canStart = incompleteJobs.length > 0
+  const canQueueStart = useQueueStore(canStart)
 
   console.log('incompleteJobs', incompleteJobs)
   console.log('completeJobs', completeJobs)
@@ -66,10 +65,10 @@ const JobQueue = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginRight: 6 }}>
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
-        <Button color="tertiary" disabled={!canStart}>
+        <Button color="tertiary" disabled={!canQueueStart}>
           Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
         </Button>
-        <Button color="secondary" disabled={!canStart}>
+        <Button color="secondary" disabled={!canQueueStart}>
           Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
         </Button>
       </Box>
@@ -87,6 +86,8 @@ const JobQueue = () => {
 
       <DialogContent sx={{ paddingTop: 0 }}>
         <Typography variant="h6">Incomplete Jobs</Typography>
+
+        {incompleteJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
 
         {incompleteJobs.map((job, index) => {
           const { id, type, status, data } = job
@@ -151,7 +152,7 @@ const JobQueue = () => {
                 }}
               >
                 <IconButton size="small" color="error">
-                  <DeleteForeverIcon />
+                  <DeleteForeverIcon onClick={() => deleteJob(id)} />
                 </IconButton>
               </Tooltip>
             </Box>
