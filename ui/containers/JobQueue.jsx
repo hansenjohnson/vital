@@ -1,28 +1,47 @@
+import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
-import CloseIcon from '@mui/icons-material/Close'
+import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
-import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 
 import useStore from '../store'
+import ingestAPI from '../api/ingest'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
-import { Typography } from '@mui/material'
 
-const SettingsContainer = () => {
+const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
   const setJobQueueOpen = useStore((state) => state.setJobQueueOpen)
   const closeDialog = () => setJobQueueOpen(false)
+
+  const [incompleteJobs, setIncompleteJobs] = useState([])
+  const [completeJobs, setCompleteJobs] = useState([])
+  const nextPage = useRef(2)
+  useEffect(() => {
+    ingestAPI.getIncompleteJobs().then((jobs) => setIncompleteJobs(jobs))
+    ingestAPI.getCompleteJobs(1).then((jobs) => setCompleteJobs(jobs))
+  }, [])
+
+  const loadMoreCompletedJobs = () => {
+    ingestAPI.getCompleteJobs(nextPage.current).then((jobs) => {
+      setCompleteJobs((prevJobs) => [...prevJobs, ...jobs])
+      nextPage.current += 1
+    })
+  }
+
+  const canStart = incompleteJobs.length > 0
 
   return (
     <Dialog
       open={jobQueueOpen}
       onClose={closeDialog}
       fullWidth
-      maxWidth="md"
+      maxWidth="sm"
       disablePortal
       sx={{
         position: 'aboslute',
@@ -37,11 +56,11 @@ const SettingsContainer = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginRight: 6 }}>
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
-        <Button>
-          Start Now <PlayArrowIcon />
+        <Button color="tertiary" disabled={!canStart}>
+          Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
         </Button>
-        <Button>
-          Schedule <ScheduleIcon />
+        <Button color="secondary" disabled={!canStart}>
+          Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
         </Button>
       </Box>
       <IconButton
@@ -82,4 +101,4 @@ const SettingsContainer = () => {
   )
 }
 
-export default SettingsContainer
+export default JobQueue

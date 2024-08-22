@@ -6,6 +6,9 @@ const ingestURL = `${baseURL}/ingest`
 const jobStatus = (jobId) => getJSON(`${ingestURL}/job_status/${jobId}`)
 const taskStatusesForJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}/tasks`)
 
+const getIncompleteJobs = () => getJSON(`${ingestURL}/job?completed=false`)
+const getCompleteJobs = (page) => getJSON(`${ingestURL}/job?page=${page}`)
+
 const countFiles = (sourceFolder) =>
   getJSON(`${ingestURL}/count_files/${encodeURIComponent(sourceFolder)}`)
 
@@ -31,6 +34,8 @@ const transcode = async (sourceFolder, settingsList) => {
 export default {
   jobStatus,
   taskStatusesForJob,
+  getIncompleteJobs,
+  getCompleteJobs,
   countFiles,
   parse,
   getParsedMetadata,

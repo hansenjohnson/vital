@@ -71,12 +71,11 @@ const App = () => {
         ) : (
           <>
             <SettingsContainer />
+            <JobQueue />
             <ActiveRouteComponent />
           </>
         )}
       </Box>
-
-      <JobQueue />
 
       <AlertDialog open={alertDialogOpen} onClose={closeAlert} {...alertDialogProps} />
 
