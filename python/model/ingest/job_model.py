@@ -19,42 +19,52 @@ class JobModel:
     def __init__(self, db_name=DB_PATH):
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
-        self.cursor = self.conn.cursor()
 
-        self.cursor.execute("""
+        self.conn.cursor().execute("""
                CREATE TABLE IF NOT EXISTS job (
                    id INTEGER PRIMARY KEY,
                    type TEXT,
                    status TEXT,
                    data TEXT,
-                   completed_date DATETIME DEFAULT CURRENT_TIMESTAMP 
+                   completed_date DATETIME
                )
            """)
 
         self.conn.commit()
 
     def create(self, job_type: JobType, jobStatus: JobStatus, json_data):
-        self.cursor.execute("INSERT INTO job (type, status, data) VALUES (?, ?, ?)", (job_type.value, jobStatus.value, json_data))
+        cursor = self.conn.cursor()
+        cursor.execute("INSERT INTO job (type, status, data) VALUES (?, ?, ?)", (job_type.value, jobStatus.value, json_data))
         self.conn.commit()
-        return self.cursor.lastrowid
+        return cursor.lastrowid
 
     def store_data(self, job_id, data):
-        self.cursor.execute("UPDATE job SET status = ?, data = ? WHERE id = ?", (JobStatus.COMPLETED.value, data, job_id))
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE job SET status = ?, data = ? WHERE id = ?", (JobStatus.COMPLETED.value, data, job_id))
         self.conn.commit()
 
     def get_data(self, job_id):
-        self.cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
-        return self.cursor.fetchone()[0]
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
+        return cursor.fetchone()[0]
     
-    def get_jobs(self, job_type, completed, limit, offset):
+    def get_jobs(self, job_type, completed, limit=None, offset=None):
+        cursor = self.conn.cursor()
+        base_query = "SELECT * FROM job WHERE type = ?"
+        params = [job_type.value]
+
         if completed:
-            self.cursor.execute("SELECT * FROM job WHERE type = ? AND status = ? LIMIT ? OFFSET ?",
-                                 (job_type.value, JobStatus.COMPLETED.value, limit, offset))
+            base_query += " AND status = ?"
+            params.append(JobStatus.COMPLETED.value)
         else:
-            self.cursor.execute("SELECT * FROM job WHERE type = ? AND status != ? LIMIT ? OFFSET ?",
-                                 (job_type.value, JobStatus.COMPLETED.value, limit, offset))
+            base_query += " AND status != ?"
+            params.append(JobStatus.COMPLETED.value)
+
+        if limit is not None and offset is not None:
+            base_query += " LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
         
-        rows = self.cursor.fetchall()
+        rows = cursor.execute(base_query, params)
         jobs = []
         for row in rows:
             job = {
@@ -68,14 +78,17 @@ class JobModel:
         return jobs
 
     def get_status(self, job_id):
-        self.cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
-        return self.cursor.fetchone()[0]
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
+        return cursor.fetchone()[0]
     
     def set_status(self, job_id, job_status):
-        self.cursor.execute("UPDATE job SET status = ? where id = ?", (job_status.value, job_id,))
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE job SET status = ? where id = ?", (job_status.value, job_id,))
         self.conn.commit()
 
     def delete(self, job_id):
-        self.cursor.execute("DELETE FROM job WHERE id = ?", (job_id,))
+        cursor = self.conn.cursor()
+        cursor.execute("DELETE FROM job WHERE id = ?", (job_id,))
         self.conn.commit()
         return job_id

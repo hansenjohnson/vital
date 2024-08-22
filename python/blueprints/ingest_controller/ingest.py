@@ -94,8 +94,8 @@ def get_scheduled_queue():
 def get_jobs():
     try:
         completed = str_to_bool(request.args.get('completed', default="true", type=str))
-        page = request.args.get('page', default=1, type=int)
-        page_size = request.args.get('page_size', default=10, type=int)
+        page = request.args.get('page', type=int)
+        page_size = request.args.get('page_size', type=int)
 
         jobs = job_service.get_jobs(JobType.TRANSCODE, completed, page, page_size)
         return jsonify(jobs), 200
