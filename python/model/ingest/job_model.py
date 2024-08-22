@@ -1,5 +1,6 @@
 import sqlite3
 from enum import Enum
+from datetime import datetime
 
 from utils.prints import print_out
 
@@ -81,10 +82,18 @@ class JobModel:
         cursor = self.conn.cursor()
         cursor.execute("SELECT status FROM job WHERE id = ?", (job_id,))
         return cursor.fetchone()[0]
-    
+
     def set_status(self, job_id, job_status):
+        base_query = "UPDATE job SET status = ? "
+        params = [job_status.value]
+        if job_status == JobStatus.COMPLETED:
+            base_query += ", completed_date = ?"
+            params.append(datetime.now().isoformat())
+        base_query += " WHERE id = ?"
+        params.append(job_id)
+
         cursor = self.conn.cursor()
-        cursor.execute("UPDATE job SET status = ? where id = ?", (job_status.value, job_id,))
+        cursor.execute(base_query, params)
         self.conn.commit()
 
     def delete(self, job_id):
