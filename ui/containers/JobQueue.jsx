@@ -154,8 +154,8 @@ const JobQueue = () => {
                   },
                 }}
               >
-                <IconButton size="small" color="error">
-                  <DeleteForeverIcon onClick={() => deleteJob(id)} />
+                <IconButton size="small" color="error" onClick={() => deleteJob(id)}>
+                  <DeleteForeverIcon />
                 </IconButton>
               </Tooltip>
             </Box>
