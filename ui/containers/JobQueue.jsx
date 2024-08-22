@@ -15,11 +15,12 @@ import TocIcon from '@mui/icons-material/Toc'
 
 import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
+import ingestAPI from '../api/ingest'
+import queueAPI from '../api/queue'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { JOB_TYPES } from '../constants/routes'
 import statuses from '../constants/statuses'
 import { leafPath } from '../utilities/paths'
-import ingestAPI from '../api/ingest'
 import { Tooltip } from '@mui/material'
 
 const JobQueue = () => {
@@ -65,9 +66,11 @@ const JobQueue = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginRight: 6 }}>
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
-        <Button color="tertiary" disabled={!canQueueStart}>
+
+        <Button color="tertiary" disabled={!canQueueStart} onClick={() => queueAPI.executeNow()}>
           Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
         </Button>
+
         <Button color="secondary" disabled={!canQueueStart}>
           Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
         </Button>
