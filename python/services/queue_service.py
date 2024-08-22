@@ -1,4 +1,5 @@
 import json
+import threading
 
 from services.scheduler_service import SchedulerService
 from services.transcode_service import TranscodeService
@@ -7,9 +8,7 @@ from services.task_service import TaskService
 
 from data.task import TaskStatus
 
-from model.ingest.job_model import JobStatus, JobType
-
-from utils.prints import print_out
+from model.ingest.job_model import JobType
 
 scheduler = SchedulerService()
 transcode_service = TranscodeService()
@@ -19,7 +18,7 @@ task_service = TaskService()
 def schedule_job_run(run_date):
     job_id = scheduler.add_job(execute_jobs, run_date)
     return job_id
-    
+
 def execute_jobs():
     jobs = job_service.get_jobs(JobType.TRANSCODE, False)
 
@@ -36,8 +35,10 @@ def execute_jobs():
             if task.status != TaskStatus.COMPLETED.value:
                 non_complete_task_ids.append(task.id)
 
-
         transcode_service.transcode_videos(job["id"], source_dir, non_complete_task_ids)
+
+def execute_job_now():
+    threading.Thread(target=execute_jobs).start()
 
 def remove_scheduled_jobs():
     scheduler.remove_jobs()

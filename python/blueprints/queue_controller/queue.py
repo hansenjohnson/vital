@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from services.queue_service import schedule_job_run, remove_scheduled_jobs
+from services.queue_service import schedule_job_run, remove_scheduled_jobs, execute_job_now
 bp = Blueprint('queue', __name__)
 
 
@@ -12,6 +12,16 @@ def schedule():
         return jsonify(schedule_job_run(run_date)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+
+@bp.route('/now', methods=['POST'])
+def now():
+    try:
+        execute_job_now()
+        return jsonify({"message": "queue has been started"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 @bp.route('/remove', methods=['GET'])
 def remove_scheduled_queue_run():
