@@ -24,6 +24,8 @@ export { WARNINGS, ERRORS }
 export default {
   LOADING: 'loading',
   PENDING: 'pending',
+  QUEUED: 'QUEUED',
+  INCOMPLETE: 'INCOMPLETE',
   COMPLETED: 'completed',
   SUCCESS: 'success',
   WARNING: 'warning',

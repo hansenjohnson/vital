@@ -6,13 +6,20 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ScheduleIcon from '@mui/icons-material/Schedule'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import TocIcon from '@mui/icons-material/Toc'
 
 import useStore from '../store'
-import ingestAPI from '../api/ingest'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+import { JOB_TYPES } from '../constants/routes'
+import statuses from '../constants/statuses'
+import { leafPath } from '../utilities/paths'
+import ingestAPI from '../api/ingest'
+import { Tooltip } from '@mui/material'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -35,6 +42,9 @@ const JobQueue = () => {
   }
 
   const canStart = incompleteJobs.length > 0
+
+  console.log('incompleteJobs', incompleteJobs)
+  console.log('completeJobs', completeJobs)
 
   return (
     <Dialog
@@ -75,19 +85,82 @@ const JobQueue = () => {
         <CloseIcon sx={{ fontSize: '30px' }} />
       </IconButton>
 
-      <DialogContent>
+      <DialogContent sx={{ paddingTop: 0 }}>
         <Typography variant="h6">Incomplete Jobs</Typography>
-        <Box>
-          Fake Job 2 - Incomplete - 76% <Button>See Tasks</Button>
-          <Button>Delete Job</Button>
-        </Box>
-        <Box>
-          Fake Job 4 - Queued <Button>See Tasks</Button>
-          <Button>Delete Job</Button>
-        </Box>
-        <Box sx={{ marginTop: 2 }} />
 
-        <Typography variant="h6">Complete Jobs</Typography>
+        {incompleteJobs.map((job, index) => {
+          const { id, type, status, data } = job
+          const dataObj = JSON.parse(data)
+          const jobName = leafPath(dataObj.source_dir)
+          return (
+            <Box
+              key={id}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: 1,
+                paddingRight: 1,
+                paddingTop: 0.5,
+                paddingBottom: 0.5,
+                borderRadius: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                marginBottom: index !== incompleteJobs.length - 1 ? '2px' : 0,
+              }}
+            >
+              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
+                {jobName} &mdash; ## {JOB_TYPES[type]}
+                {status === statuses.QUEUED && (
+                  <Box
+                    sx={{
+                      fontSize: '14px',
+                      color: 'text.secondary',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    Queued
+                  </Box>
+                )}
+                {status === statuses.INCOMPLETE && (
+                  <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
+                    ---------------- ??%
+                  </Box>
+                )}
+              </Box>
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Tooltip title="See Tasks" placement="top" arrow>
+                <IconButton size="small">
+                  <TocIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip
+                title="Delete Job"
+                placement="top"
+                arrow
+                componentsProps={{
+                  tooltip: {
+                    sx: (theme) => ({ backgroundColor: theme.palette.error.dark }),
+                  },
+                  arrow: {
+                    sx: (theme) => ({ color: theme.palette.error.dark }),
+                  },
+                }}
+              >
+                <IconButton size="small" color="error">
+                  <DeleteForeverIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )
+        })}
+
+        <Typography variant="h6" mt={2}>
+          Complete Jobs
+        </Typography>
         <Box>
           Fake Job 3 - Completed on Jul 17th @ 9pm <Button>View Report</Button>
         </Box>
@@ -95,7 +168,7 @@ const JobQueue = () => {
           Fake Job 1 - Completed on Jul 17th @ 7pm <Button>View Report</Button>
         </Box>
         <Box sx={{ marginTop: 2 }} />
-        <Button>Load More</Button>
+        <Button onClick={loadMoreCompletedJobs}>Load More</Button>
       </DialogContent>
     </Dialog>
   )
