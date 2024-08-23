@@ -19,7 +19,7 @@ import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { JOB_TYPES } from '../constants/routes'
-import statuses from '../constants/statuses'
+import STATUSES from '../constants/statuses'
 import { leafPath } from '../utilities/paths'
 import { Tooltip } from '@mui/material'
 import { completionTimeString } from '../utilities/strings'
@@ -112,7 +112,7 @@ const JobQueue = () => {
             >
               <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
                 {jobName} &mdash; ## {JOB_TYPES[type]}
-                {status === statuses.QUEUED && (
+                {status === STATUSES.QUEUED && (
                   <Box
                     sx={{
                       fontSize: '14px',
@@ -125,7 +125,7 @@ const JobQueue = () => {
                     Queued
                   </Box>
                 )}
-                {status === statuses.INCOMPLETE && (
+                {status === STATUSES.INCOMPLETE && (
                   <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
                     ---------------- ??%
                   </Box>

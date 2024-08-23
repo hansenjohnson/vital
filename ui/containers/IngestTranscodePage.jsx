@@ -56,13 +56,12 @@ const LinkageAnnotationPage = () => {
 
     const checkForMetadata = async () => {
       const status = await ingestAPI.jobStatus(jobId)
-      const statusLowerCase = status.toLowerCase()
-      if (statusLowerCase === STATUSES.PENDING) return
-      if (statusLowerCase === STATUSES.ERROR) {
+      if (status === STATUSES.INCOMPLETE) return
+      if (status === STATUSES.ERROR) {
         // TODO: handle error case, currently the backend doesn't return this
         return
       }
-      if (statusLowerCase !== STATUSES.COMPLETED) {
+      if (status !== STATUSES.COMPLETED) {
         console.log('Unknown status:', status)
         return
       }
