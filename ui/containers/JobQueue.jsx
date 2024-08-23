@@ -6,24 +6,17 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import LinearProgress from '@mui/material/LinearProgress'
-import Tooltip from '@mui/material/Tooltip'
 
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ScheduleIcon from '@mui/icons-material/Schedule'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import TocIcon from '@mui/icons-material/Toc'
 
 import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
-import { JOB_TYPES } from '../constants/routes'
-import STATUSES from '../constants/statuses'
-import { leafPath } from '../utilities/paths'
-import { completionTimeString } from '../utilities/strings'
+import JobQueueItem from '../components/JobQueueItem'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -90,150 +83,56 @@ const JobQueue = () => {
 
       <DialogContent sx={{ paddingTop: 0 }}>
         <Typography variant="h6">Incomplete Jobs</Typography>
-
         {incompleteJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
-
         {incompleteJobs.map((job, index) => {
           const { id, type, status, data } = job
-          const dataObj = JSON.parse(data)
-          const jobName = leafPath(dataObj.source_dir)
           const jobCompletion = job.tasks.reduce(
             (acc, task) => acc + task.size * (task.progress / 100),
             0
           )
           const jobCompletionPercent = (jobCompletion / job.size) * 100
           return (
-            <Box
+            <JobQueueItem
               key={id}
-              sx={(theme) => ({
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: 1,
-                paddingRight: 1,
-                paddingTop: 0.5,
-                paddingBottom: 0.5,
-                borderRadius: 1,
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                marginBottom: index !== incompleteJobs.length - 1 ? '2px' : 0,
-                outline:
-                  queueRunning && index === 0
-                    ? `1px solid ${theme.palette.secondary.main}`
-                    : 'none',
-              })}
-            >
-              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                {jobName} &mdash; {job.tasks.length} {JOB_TYPES[type]}
-                {status === STATUSES.QUEUED && (
-                  <Box
-                    sx={{
-                      fontSize: '14px',
-                      lineHeight: '20px',
-                      color: 'text.secondary',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                    }}
-                  >
-                    Queued
-                  </Box>
-                )}
-                {status === STATUSES.INCOMPLETE && (
-                  <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                    <LinearProgress
-                      color={queueRunning ? 'secondary' : 'inherit'}
-                      variant="determinate"
-                      value={jobCompletionPercent}
-                      sx={{
-                        width: '350px',
-                        borderRadius: 1,
-                        // This spacing is meant to align with the text above
-                        height: '8px',
-                        marginTop: '6px',
-                        marginBottom: '6px',
-                        color: queueRunning ? undefined : 'action.disabled',
-                      }}
-                    />
-                  </Box>
-                )}
-              </Box>
-
-              <Box sx={{ flexGrow: 1 }} />
-
-              <Box sx={{ marginRight: 1, color: queueRunning ? undefined : 'action.disabled' }}>
-                {parseInt(jobCompletionPercent, 10)}%
-              </Box>
-
-              <Tooltip title="See Tasks" placement="top" arrow>
-                <IconButton size="small">
-                  <TocIcon />
-                </IconButton>
-              </Tooltip>
-
-              <Tooltip
-                title="Delete Job"
-                placement="top"
-                arrow
-                componentsProps={{
-                  tooltip: {
-                    sx: (theme) => ({ backgroundColor: theme.palette.error.dark }),
-                  },
-                  arrow: {
-                    sx: (theme) => ({ color: theme.palette.error.dark }),
-                  },
-                }}
-              >
-                <IconButton size="small" color="error" onClick={() => deleteJob(id)}>
-                  <DeleteForeverIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
+              id={id}
+              type={type}
+              status={status}
+              numTasks={job.tasks.length}
+              info={{
+                data: JSON.parse(data),
+                progress: jobCompletionPercent,
+              }}
+              actions={{
+                deleteJob,
+              }}
+              queueRunning={queueRunning}
+              firstItem={index === 0}
+              lastItem={index === incompleteJobs.length - 1}
+            />
           )
         })}
 
         <Typography variant="h6" mt={2}>
           Complete Jobs
         </Typography>
-
         {completeJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
-
         {completeJobs.map((job, index) => {
-          const { id, type, completed_date, data } = job
-          const dataObj = JSON.parse(data)
-          const jobName = leafPath(dataObj.source_dir)
+          const { id, type, status, completed_date, data } = job
           return (
-            <Box
+            <JobQueueItem
               key={id}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: 1,
-                paddingRight: 1,
-                paddingTop: 0.5,
-                paddingBottom: 0.5,
-                borderRadius: 1,
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                marginBottom: index !== completeJobs.length - 1 ? '2px' : 0,
+              id={id}
+              type={type}
+              status={status}
+              numTasks={job.tasks.length}
+              info={{
+                data: JSON.parse(data),
+                completedDate: completed_date,
               }}
-            >
-              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                {jobName} &mdash; {job.tasks.length} {JOB_TYPES[type]}
-                <Box
-                  sx={{
-                    fontSize: '14px',
-                    color: 'text.secondary',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  Completed on {completionTimeString(completed_date)}
-                </Box>
-              </Box>
-
-              <Box sx={{ flexGrow: 1 }} />
-
-              <Button disabled>View Report</Button>
-            </Box>
+              queueRunning={queueRunning}
+              firstItem={index === 0}
+              lastItem={index === completeJobs.length - 1}
+            />
           )
         })}
 
