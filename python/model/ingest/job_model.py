@@ -48,7 +48,7 @@ class JobModel:
         cursor = self.conn.cursor()
         cursor.execute("SELECT data FROM job WHERE id = ?", (job_id,))
         return cursor.fetchone()[0]
-    
+
     def get_jobs(self, job_type, completed, limit=None, offset=None):
         cursor = self.conn.cursor()
         base_query = "SELECT * FROM job WHERE type = ?"
@@ -62,9 +62,12 @@ class JobModel:
             params.append(JobStatus.COMPLETED.value)
 
         if limit is not None and offset is not None:
+            # if we're limiting, lets apply a meaningful sort order
+            base_query += " ORDER BY completed_date DESC"
+            # apply the limit
             base_query += " LIMIT ? OFFSET ?"
             params.extend([limit, offset])
-        
+
         rows = cursor.execute(base_query, params)
         jobs = []
         for row in rows:
