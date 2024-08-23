@@ -25,6 +25,7 @@ class SchedulerService():
         self.ap_scheduler = BackgroundScheduler(jobstores=jobstores)
         self.ap_scheduler.add_listener(self._job_listener, EVENT_JOB_ERROR | EVENT_JOB_EXECUTED)
         self.MISFIRE_GRACE_PERIOD = 60
+        self.running = False
 
 
     def start(self):
@@ -32,6 +33,12 @@ class SchedulerService():
 
     def stop(self):
         self.ap_scheduler.shutdown(wait=False)
+
+    def get_run_status(self):
+        return self.running
+
+    def set_run_status(self, is_running):
+        self.running = is_running
 
     def add_job(self, func, run_time, args=None):
 

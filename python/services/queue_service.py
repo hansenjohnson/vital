@@ -6,9 +6,11 @@ from services.transcode_service import TranscodeService
 from services.job_service import JobService
 from services.task_service import TaskService
 
+from utils.prints import print_err
+
 from data.task import TaskStatus
 
-from model.ingest.job_model import JobType
+from model.ingest.job_model import JobType, JobStatus
 
 scheduler = SchedulerService()
 transcode_service = TranscodeService()
@@ -20,22 +22,34 @@ def schedule_job_run(run_date):
     return job_id
 
 def execute_jobs():
-    jobs = job_service.get_jobs(JobType.TRANSCODE, False)
+    try:
+        scheduler.set_run_status(True)
+        while True:
+            jobs = job_service.get_jobs(JobType.TRANSCODE, False)
 
-    for job in jobs:
-        job_service.set_job_status(job["id"], )
+            if not jobs:
+                break
 
-        job_data = json.loads(job["data"])
-        source_dir = job_data["source_dir"]
+            for job in jobs:
+                job_service.set_job_status(job["id"], )
 
-        tasks = task_service.get_tasks_by_job_id(job["id"])
+                job_data = json.loads(job["data"])
+                source_dir = job_data["source_dir"]
 
-        non_complete_task_ids = []
-        for task in tasks:
-            if task.status != TaskStatus.COMPLETED.value:
-                non_complete_task_ids.append(task.id)
+                tasks = task_service.get_tasks_by_job_id(job["id"])
 
-        transcode_service.transcode_videos(job["id"], source_dir, non_complete_task_ids)
+                non_complete_task_ids = []
+                for task in tasks:
+                    if task.status != TaskStatus.COMPLETED.value:
+                        non_complete_task_ids.append(task.id)
+
+                transcode_service.transcode_videos(job["id"], source_dir, non_complete_task_ids)
+    except Exception as e:
+        print_err(f"Failed excecuting jobs: {e}")
+        raise e
+    finally:
+        scheduler.set_run_status(False)
+
 
 def execute_job_now():
     threading.Thread(target=execute_jobs).start()
