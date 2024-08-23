@@ -26,20 +26,20 @@ def get_scheduled_queue():
         return jsonify({"error": str(e)}), 400
 
 
+@bp.route('/schedule', methods=['DELETE'])
+def remove_scheduled_queue_run():
+    try:
+        remove_scheduled_jobs()
+        return jsonify("Removed Queued Job"), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bp.route('/now', methods=['POST'])
 def now():
     try:
         execute_job_now()
         return jsonify({"message": "queue has been started"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-
-@bp.route('/remove', methods=['GET'])
-def remove_scheduled_queue_run():
-    try:
-        remove_scheduled_jobs()
-        return jsonify("Removed Queued Job"), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
