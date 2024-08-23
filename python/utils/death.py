@@ -8,3 +8,7 @@ def get_terminators():
 
 def remove_last_terminator():
     del terminators[-1]
+
+def terminate_all():
+    for terminator in get_terminators():
+        terminator()

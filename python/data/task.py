@@ -20,7 +20,8 @@ class Task:
 
 
 class TaskStatus(Enum):
-    PENDING = "PENDING"
+    QUEUED = "QUEUED"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
+    INCOMPLETE = "INCOMPLETE"
 

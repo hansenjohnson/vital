@@ -39,3 +39,8 @@ class TaskService:
 
     def set_task_error_message(self, task_id: int, error_message: str):
         self.task_model.set_task_error_message(task_id, error_message)
+
+    def delete_by_job_id(self, job_id):
+        orphaned_tasks = self.task_model.get_tasks_by_job_id(job_id)
+        self.task_model.delete_by_job_id(job_id)
+        return orphaned_tasks
