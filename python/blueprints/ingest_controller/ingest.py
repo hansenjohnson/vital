@@ -3,7 +3,6 @@ from services.ingest_service import IngestService
 from services.job_service import JobService, JobType
 from services.transcode_service import TranscodeService
 from services.task_service import TaskService
-from services.scheduler_service import SchedulerService
 from utils.prints import print_out
 
 from urllib.parse import unquote
@@ -13,7 +12,6 @@ ingest_service = IngestService()
 job_service = JobService()
 transcode_service = TranscodeService()
 task_service = TaskService()
-scheduler_service = SchedulerService()
 
 
 @bp.route('/count_files/<string:source_folder_as_encoded_uri_component>', methods=['GET'])
@@ -77,15 +75,6 @@ def delete_job(job_id):
     try:
         orphaned_tasks = job_service.delete_job(job_id)
         return jsonify({"orphaned_tasks": orphaned_tasks}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-
-
-@bp.route('/job/schedule', methods=["GET"])
-def get_scheduled_queue():
-    try:
-        scheduled_job = scheduler_service.get_job()
-        return jsonify({"scheduled_job": str(scheduled_job.next_run_time)}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
