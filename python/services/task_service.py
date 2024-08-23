@@ -19,6 +19,7 @@ class TaskService:
             task.id: {
                 "status": task.status,
                 "progress": task.progress,
+                "size": task.transcode_settings.get('num_frames') or 1,
                 "error_message": task.error_message,
             }
             for task in tasks

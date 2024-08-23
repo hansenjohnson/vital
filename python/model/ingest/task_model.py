@@ -1,7 +1,5 @@
 import sqlite3
 import json
-from enum import Enum
-from typing import List
 
 from model.config import DB_PATH
 from data.transcode_settings import TranscodeSettings
@@ -64,7 +62,7 @@ class TaskModel:
                 job_id=job_id,
                 status=status,
                 progress=progress,
-                transcode_settings=transcode_settings_json,
+                transcode_settings=json.loads(transcode_settings_json),
                 error_message=error_message
             )
             tasks.append(task)
