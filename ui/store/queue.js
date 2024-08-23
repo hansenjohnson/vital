@@ -21,7 +21,7 @@ const useQueueStore = create((set, get) => ({
 
   loadMoreCompletedJobs: async () => {
     const { nextPage, completeJobs } = get()
-    const moreJobs = ingestAPI.getCompleteJobs(nextPage)
+    const moreJobs = await ingestAPI.getCompleteJobs(nextPage)
     set({ completeJobs: [...completeJobs, ...moreJobs], nextPage: nextPage + 1 })
   },
 }))

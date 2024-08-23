@@ -22,6 +22,7 @@ import { JOB_TYPES } from '../constants/routes'
 import statuses from '../constants/statuses'
 import { leafPath } from '../utilities/paths'
 import { Tooltip } from '@mui/material'
+import { completionTimeString } from '../utilities/strings'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -42,9 +43,7 @@ const JobQueue = () => {
   }
 
   const canQueueStart = useQueueStore(canStart)
-
-  console.log('incompleteJobs', incompleteJobs)
-  console.log('completeJobs', completeJobs)
+  const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
 
   return (
     <Dialog
@@ -165,14 +164,54 @@ const JobQueue = () => {
         <Typography variant="h6" mt={2}>
           Complete Jobs
         </Typography>
-        <Box>
-          Fake Job 3 - Completed on Jul 17th @ 9pm <Button>View Report</Button>
-        </Box>
-        <Box>
-          Fake Job 1 - Completed on Jul 17th @ 7pm <Button>View Report</Button>
-        </Box>
+
+        {completeJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
+
+        {completeJobs.map((job, index) => {
+          const { id, type, completed_date, data } = job
+          const dataObj = JSON.parse(data)
+          const jobName = leafPath(dataObj.source_dir)
+          return (
+            <Box
+              key={id}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: 1,
+                paddingRight: 1,
+                paddingTop: 0.5,
+                paddingBottom: 0.5,
+                borderRadius: 1,
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                marginBottom: index !== completeJobs.length - 1 ? '2px' : 0,
+              }}
+            >
+              <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
+                {jobName} &mdash; ## {JOB_TYPES[type]}
+                <Box
+                  sx={{
+                    fontSize: '14px',
+                    color: 'text.secondary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  Completed on {completionTimeString(completed_date)}
+                </Box>
+              </Box>
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Button disabled>View Report</Button>
+            </Box>
+          )
+        })}
+
         <Box sx={{ marginTop: 2 }} />
-        <Button onClick={loadMoreCompletedJobs}>Load More</Button>
+        <Button onClick={loadMoreCompletedJobs} disabled={!canLoadMore}>
+          Load More
+        </Button>
       </DialogContent>
     </Dialog>
   )
