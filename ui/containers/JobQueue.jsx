@@ -6,6 +6,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Tooltip from '@mui/material/Tooltip'
 
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
@@ -21,7 +23,6 @@ import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import { JOB_TYPES } from '../constants/routes'
 import STATUSES from '../constants/statuses'
 import { leafPath } from '../utilities/paths'
-import { Tooltip } from '@mui/material'
 import { completionTimeString } from '../utilities/strings'
 
 const JobQueue = () => {
@@ -44,6 +45,7 @@ const JobQueue = () => {
 
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
+  const queueRunning = true
 
   return (
     <Dialog
@@ -95,10 +97,15 @@ const JobQueue = () => {
           const { id, type, status, data } = job
           const dataObj = JSON.parse(data)
           const jobName = leafPath(dataObj.source_dir)
+          const jobCompletion = job.tasks.reduce(
+            (acc, task) => acc + task.size * (task.progress / 100),
+            0
+          )
+          const jobCompletionPercent = (jobCompletion / job.size) * 100
           return (
             <Box
               key={id}
-              sx={{
+              sx={(theme) => ({
                 display: 'flex',
                 alignItems: 'center',
                 paddingLeft: 1,
@@ -108,14 +115,19 @@ const JobQueue = () => {
                 borderRadius: 1,
                 backgroundColor: 'rgba(0, 0, 0, 0.1)',
                 marginBottom: index !== incompleteJobs.length - 1 ? '2px' : 0,
-              }}
+                outline:
+                  queueRunning && index === 0
+                    ? `1px solid ${theme.palette.secondary.main}`
+                    : 'none',
+              })}
             >
               <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                {jobName} &mdash; ## {JOB_TYPES[type]}
+                {jobName} &mdash; {job.tasks.length} {JOB_TYPES[type]}
                 {status === STATUSES.QUEUED && (
                   <Box
                     sx={{
                       fontSize: '14px',
+                      lineHeight: '20px',
                       color: 'text.secondary',
                       display: 'flex',
                       alignItems: 'center',
@@ -127,12 +139,29 @@ const JobQueue = () => {
                 )}
                 {status === STATUSES.INCOMPLETE && (
                   <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                    ---------------- ??%
+                    <LinearProgress
+                      color={queueRunning ? 'secondary' : 'inherit'}
+                      variant="determinate"
+                      value={jobCompletionPercent}
+                      sx={{
+                        width: '350px',
+                        borderRadius: 1,
+                        // This spacing is meant to align with the text above
+                        height: '8px',
+                        marginTop: '6px',
+                        marginBottom: '6px',
+                        color: queueRunning ? undefined : 'action.disabled',
+                      }}
+                    />
                   </Box>
                 )}
               </Box>
 
               <Box sx={{ flexGrow: 1 }} />
+
+              <Box sx={{ marginRight: 1, color: queueRunning ? undefined : 'action.disabled' }}>
+                {parseInt(jobCompletionPercent, 10)}%
+              </Box>
 
               <Tooltip title="See Tasks" placement="top" arrow>
                 <IconButton size="small">
@@ -187,7 +216,7 @@ const JobQueue = () => {
               }}
             >
               <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
-                {jobName} &mdash; ## {JOB_TYPES[type]}
+                {jobName} &mdash; {job.tasks.length} {JOB_TYPES[type]}
                 <Box
                   sx={{
                     fontSize: '14px',

@@ -72,5 +72,7 @@ export const completionTimeString = (dateStr) => {
     hour: 'numeric',
     minute: 'numeric',
   })
-  return formatter.format(date)
+  const resultStr = formatter.format(date)
+  const adjustedStr = resultStr.replace(/(\d{4,5}),\s(\d{1,2}:)/, '$1 @ $2')
+  return adjustedStr
 }
