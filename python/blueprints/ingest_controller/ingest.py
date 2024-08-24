@@ -42,6 +42,14 @@ def parse_videos():
         return jsonify({"error": str(e)}), 400
 
 
+@bp.route('/job/<int:job_id>', methods=['GET'])
+def get_job(job_id):
+    try:
+        return jsonify(job_service.get_job(job_id)), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bp.route('/job_status/<int:job_id>', methods=['GET'])
 def job_status(job_id):
     try:

@@ -4,6 +4,7 @@ import { getJSON, postJSONWithResponse, deleteThis } from './fetchers'
 const ingestURL = `${baseURL}/ingest`
 
 // Job Information - One
+const getJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}`)
 const jobStatus = (jobId) => getJSON(`${ingestURL}/job_status/${jobId}`)
 const taskStatusesForJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}/tasks`)
 const deleteJob = (jobId) => deleteThis(`${ingestURL}/job/${jobId}`)
@@ -37,6 +38,7 @@ const transcode = async (sourceFolder, settingsList) => {
 }
 
 export default {
+  getJob,
   jobStatus,
   taskStatusesForJob,
   deleteJob,
