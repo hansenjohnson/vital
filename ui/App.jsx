@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 
 import useStore from './store'
 import useSettingsStore from './store/settings'
+import useQueueStore from './store/queue'
 import ROUTES from './constants/routes'
 import { TITLEBAR_HEIGHT } from './constants/dimensions'
 import useWindowSize from './hooks/useWindowSize'
@@ -25,9 +26,13 @@ const App = () => {
   const [settingsLoading, loadSettings] = useSettingsStore(
     useShallow((state) => [state.loading, state.loadSettings])
   )
+  const fetchSchedule = useQueueStore((state) => state.fetchSchedule)
+
+  // Fetch any initial data from backend, now that we have a connection
   useEffect(() => {
     if (!serverReachable) return
     loadSettings()
+    fetchSchedule()
   }, [serverReachable])
 
   const ActiveRouteComponent = (() => {

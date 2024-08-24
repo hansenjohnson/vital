@@ -94,6 +94,11 @@ const useQueueStore = create((set, get) => ({
     }
     checkerLoop()
   },
+
+  fetchSchedule: async () => {
+    const schedule = await queueAPI.getSchedule()
+    set({ schedule })
+  },
 }))
 
 const collateJobsWithTasks = async (jobsPromise) => {

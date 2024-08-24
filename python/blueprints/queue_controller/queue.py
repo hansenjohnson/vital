@@ -21,7 +21,7 @@ def schedule():
 def get_scheduled_queue():
     try:
         scheduled_job = scheduler_service.get_job()
-        scheduled_job_time = None if scheduled_job is None else str(scheduled_job.get('next_run_time'))
+        scheduled_job_time = None if scheduled_job is None else str(scheduled_job.next_run_time)
         return jsonify({"scheduled_job": scheduled_job_time}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

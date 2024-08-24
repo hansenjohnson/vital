@@ -17,11 +17,13 @@ import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
+import { scheduleTimeString } from '../utilities/strings'
 import STATUSES from '../constants/statuses'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 
 import JobQueueItem from '../components/JobQueueItem'
 import SchedulePad from '../components/SchedulePad'
+import TinyTextButton from '../components/TinyTextButton'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -54,8 +56,70 @@ const JobQueue = () => {
     setScheduleOpen(!scheduleOpen)
   }
 
+  const fetchSchedule = useQueueStore((state) => state.fetchSchedule)
+  const commitSchedule = async (timeString) => {
+    const todayDate = new Date().toISOString().split('T')[0]
+    const [hh, mm, period] = timeString.split(':')
+    const hh24 = period === 'PM' ? parseInt(hh) + 12 : parseInt(hh)
+    const timestamp = new Date(`${todayDate}T${hh24}:${mm}:00`)
+    await queueAPI.setSchedule(timestamp)
+    await fetchSchedule()
+    setScheduleOpen(false)
+  }
+  const deleteSchedule = async () => {
+    await queueAPI.deleteSchedule()
+    await fetchSchedule()
+  }
+
+  const schedule = useQueueStore((state) => state.schedule)
+  const scheduleTime = scheduleTimeString(schedule)
+
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
+
+  let topActionSection = null
+  if (queueRunning) {
+    topActionSection = <Box sx={{ color: 'secondary.main' }}>Running</Box>
+  } else if (schedule != null) {
+    topActionSection = (
+      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+        <Box component="span" sx={{ color: 'text.secondary' }}>
+          Scheduled Run
+        </Box>
+        <Box component="span" sx={{ fontWeight: 500 }}>
+          Today @ {scheduleTime}
+        </Box>
+        <Box sx={{ marginLeft: 0 }}>
+          <TinyTextButton onClick={deleteSchedule}>clear</TinyTextButton>
+        </Box>
+      </Box>
+    )
+  } else {
+    topActionSection = (
+      <>
+        <Button color="tertiary" disabled={!canQueueStart || scheduleOpen} onClick={startQueue}>
+          Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
+        </Button>
+
+        <Button
+          color="secondary"
+          disabled={!canQueueStart}
+          onClick={toggleSchedule}
+          variant={scheduleOpen ? 'contained' : 'text'}
+          sx={{ color: scheduleOpen ? 'white' : undefined }}
+          disableElevation
+        >
+          Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
+        </Button>
+        <SchedulePad
+          open={scheduleOpen}
+          onClose={() => setScheduleOpen(false)}
+          parent={queueDialogRef.current}
+          onCommit={commitSchedule}
+        />
+      </>
+    )
+  }
 
   return (
     <Dialog
@@ -85,32 +149,7 @@ const JobQueue = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginRight: 6 }}>
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
-
-        {queueRunning ? (
-          <Box sx={{ color: 'secondary.main' }}>Running</Box>
-        ) : (
-          <>
-            <Button color="tertiary" disabled={!canQueueStart || scheduleOpen} onClick={startQueue}>
-              Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
-            </Button>
-
-            <Button
-              color="secondary"
-              disabled={!canQueueStart}
-              onClick={toggleSchedule}
-              variant={scheduleOpen ? 'contained' : 'text'}
-              sx={{ color: scheduleOpen ? 'white' : undefined }}
-              disableElevation
-            >
-              Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
-            </Button>
-            <SchedulePad
-              open={scheduleOpen}
-              onClose={() => setScheduleOpen(false)}
-              parent={queueDialogRef.current}
-            />
-          </>
-        )}
+        {topActionSection}
       </Box>
       <IconButton
         onClick={closeDialog}

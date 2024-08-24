@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box'
 
 import SectionHeading from './SectionHeading'
+import TinyTextButton from './TinyTextButton'
 
 const HeadingWithButton = ({
   heading,
@@ -19,26 +20,9 @@ const HeadingWithButton = ({
   >
     <SectionHeading size={16}>{heading}</SectionHeading>
     {showButton && (
-      <Box
-        onClick={onClick}
-        sx={(theme) => ({
-          paddingBottom: '2px',
-          fontSize: '14px',
-          lineHeight: '14px',
-          color: disableButton ? theme.palette.action.disabled : theme.palette.secondary.main,
-          borderBottom: disableButton ? 'none' : `1px dotted ${theme.palette.secondary.main}`,
-          userSelect: 'none',
-          '&:hover': disableButton
-            ? {}
-            : {
-                cursor: 'pointer',
-                color: 'secondary.light',
-                borderColor: 'secondary.light',
-              },
-        })}
-      >
+      <TinyTextButton disabled={disableButton} onClick={onClick}>
         {buttonText}
-      </Box>
+      </TinyTextButton>
     )}
     {children}
   </Box>

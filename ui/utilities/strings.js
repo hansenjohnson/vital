@@ -77,3 +77,15 @@ export const completionTimeString = (dateStr) => {
   const adjustedStr = resultStr.replace(/(\d{4,5}),\s(\d{1,2}:)/, '$1 @ $2')
   return adjustedStr
 }
+
+export const scheduleTimeString = (dateStr) => {
+  if (dateStr == null) return ''
+  const date = new Date(dateStr)
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    hour12: true,
+    hour: 'numeric',
+    minute: 'numeric',
+  })
+  const resultStr = formatter.format(date)
+  return resultStr
+}
