@@ -62,6 +62,7 @@ export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)
 export const fileNameGoodLength = (fileName) => fileName.length <= 20
 
 export const completionTimeString = (dateStr) => {
+  if (dateStr == null) return ''
   const date = new Date(dateStr)
   const formatter = new Intl.DateTimeFormat('en-US', {
     weekday: 'short',

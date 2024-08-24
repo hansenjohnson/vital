@@ -108,11 +108,11 @@ const JobQueueItem = ({
           placement="top"
           arrow
           componentsProps={{
-            ToolTip: {
-              sx: (theme) => ({ backgroundColor: theme.palette.error.dark }),
+            tooltip: {
+              sx: { backgroundColor: theme.palette.error.dark },
             },
             arrow: {
-              sx: (theme) => ({ color: theme.palette.error.dark }),
+              sx: { color: theme.palette.error.dark },
             },
           }}
         >
@@ -140,7 +140,7 @@ const JobQueueItem = ({
         outline: itemOutline,
       }}
     >
-      <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily })}>
+      <Box sx={{ fontFamily: theme.typography.monoFamily }}>
         {name} &mdash; {numTasks} {JOB_TYPES[type]}
         {secondarySection}
       </Box>

@@ -15,6 +15,8 @@ class TaskService:
 
     def get_tasks_statuses_by_job_id(self, job_id: int):
         tasks = self.get_tasks_by_job_id(job_id)
+        if len(tasks) == 0:
+            return {}
         status_report = {
             task.id: {
                 "status": task.status,
