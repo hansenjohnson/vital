@@ -60,7 +60,7 @@ const JobQueue = () => {
   const commitSchedule = async (timeString) => {
     const todayDate = new Date().toISOString().split('T')[0]
     const [hh, mm, period] = timeString.split(':')
-    const hh24 = period === 'PM' ? parseInt(hh) + 12 : parseInt(hh)
+    const hh24 = period === 'PM' ? parseInt(hh) + 12 : hh
     const timestamp = new Date(`${todayDate}T${hh24}:${mm}:00`)
     await queueAPI.setSchedule(timestamp)
     await fetchSchedule()

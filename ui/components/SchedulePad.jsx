@@ -26,6 +26,18 @@ const SchedulePad = ({ open, onClose, parent, onCommit }) => {
     setTimeout(onClose, 0)
   }
 
+  const [timeError, setTimeError] = useState('')
+  useEffect(() => {
+    const todayDate = new Date().toISOString().split('T')[0]
+    const hh24 = period === 'PM' ? parseInt(hour) + 12 : hour
+    const timestamp = new Date(`${todayDate}T${hh24}:${minute}:00`)
+    if (timestamp < new Date()) {
+      setTimeError('Time must be in the future')
+    } else {
+      setTimeError('')
+    }
+  }, [hour, minute, period])
+
   const handleCommit = () => {
     onCommit(`${hour}:${minute}:${period}`)
   }
@@ -100,6 +112,7 @@ const SchedulePad = ({ open, onClose, parent, onCommit }) => {
           <MenuItem value={'PM'}>PM</MenuItem>
         </Select>
       </Box>
+      {timeError && <Box sx={{ color: 'error.main' }}>{timeError}</Box>}
       <Box
         sx={{
           marginTop: 2,
@@ -120,6 +133,7 @@ const SchedulePad = ({ open, onClose, parent, onCommit }) => {
           disableElevation
           sx={{ color: 'white' }}
           onClick={handleCommit}
+          disabled={!!timeError}
         >
           Set
         </Button>
