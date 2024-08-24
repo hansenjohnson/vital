@@ -4,6 +4,7 @@ from services.job_service import JobService, JobType
 from services.transcode_service import TranscodeService
 from services.task_service import TaskService
 from services.scheduler_service import SchedulerService
+from services.metadata_service import MediaType
 from utils.prints import print_out
 
 from urllib.parse import unquote
@@ -25,7 +26,7 @@ def count_media(source_folder_as_encoded_uri_component):
         return jsonify({"error": str(e)}), 400
 
 
-@bp.route('/parse_videos/<int:job_id>', methods=['GET'])
+@bp.route('/job_data/<int:job_id>', methods=['GET'])
 def get_parsed_videos(job_id):
     try:
         return jsonify(job_service.get_job_data(job_id)), 200
@@ -33,12 +34,24 @@ def get_parsed_videos(job_id):
         return jsonify({"error": str(e)}), 400
 
 
+@bp.route('/parse_images', methods=['POST'])
+def parse_images():
+    payload = request.json
+    try:
+        source_dir = payload['source_dir']
+        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.IMAGE)
+        return jsonify({"job_id": job_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+
 @bp.route('/parse_videos', methods=['POST'])
 def parse_videos():
     payload = request.json
     try:
         source_dir = payload['source_dir']
-        job_id = ingest_service.create_parse_video_job(source_dir)
+        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.VIDEO)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

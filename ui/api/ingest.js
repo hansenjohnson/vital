@@ -16,7 +16,7 @@ const parse = async (mode, sourceFolder) => {
   return data?.job_id
 }
 
-const getParsedMetadata = (jobId) => getJSON(`${ingestURL}/parse_videos/${jobId}`)
+const getParsedMetadata = (jobId) => getJSON(`${ingestURL}/job_data/${jobId}`)
 
 const getCompressionOptions = () => new Promise((resolve) => setTimeout(resolve, 500))
 
