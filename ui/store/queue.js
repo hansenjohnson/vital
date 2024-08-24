@@ -99,7 +99,9 @@ const useQueueStore = create((set, get) => ({
       // Break the loop if, after triggered by a new schedule, that schedule no longer exists,
       // and the queue is not running.
       if (trigerredBySchedule) {
-        if (get().schedule == null && newIsRunning === false) {
+        const latestSchedule = await queueAPI.getSchedule()
+        if ((get().schedule == null || latestSchedule == null) && newIsRunning === false) {
+          set({ schedule: latestSchedule })
           return
         }
       }
