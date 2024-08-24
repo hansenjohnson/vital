@@ -19,6 +19,7 @@ class ImageMetadataService(MetadataService):
 
     def parse_metadata(self, file_path):
         command = [self.exiftool_path, "-j", file_path]
+        print_out(" ".join(command))
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         metadata_json, error = process.communicate()
         if error:
