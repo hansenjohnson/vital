@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
+import { TransitionGroup } from 'react-transition-group'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Collapse from '@mui/material/Collapse'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -134,25 +136,29 @@ const JobQueue = () => {
           Complete Jobs
         </Typography>
         {completeJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
-        {completeJobs.map((job, index) => {
-          const { id, type, status, completed_date, data } = job
-          return (
-            <JobQueueItem
-              key={id}
-              id={id}
-              type={type}
-              status={status}
-              numTasks={job.tasks.length}
-              info={{
-                data: JSON.parse(data),
-                completedDate: completed_date,
-              }}
-              queueRunning={queueRunning}
-              firstItem={index === 0}
-              lastItem={index === completeJobs.length - 1}
-            />
-          )
-        })}
+
+        <TransitionGroup>
+          {completeJobs.map((job, index) => {
+            const { id, type, status, completed_date, data } = job
+            return (
+              <Collapse key={id}>
+                <JobQueueItem
+                  id={id}
+                  type={type}
+                  status={status}
+                  numTasks={job.tasks.length}
+                  info={{
+                    data: JSON.parse(data),
+                    completedDate: completed_date,
+                  }}
+                  queueRunning={queueRunning}
+                  firstItem={index === 0}
+                  lastItem={index === completeJobs.length - 1}
+                />
+              </Collapse>
+            )
+          })}
+        </TransitionGroup>
 
         <Box sx={{ marginTop: 2 }} />
         <Button onClick={loadMoreCompletedJobs} disabled={!canLoadMore}>

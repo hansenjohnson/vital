@@ -23,7 +23,11 @@ const useQueueStore = create((set, get) => ({
       collateJobsWithTasks(ingestAPI.getCompleteJobs(1)),
     ])
     const [_incompleteJobs, _completeJobs] = jobs
-    set({ incompleteJobs: _incompleteJobs, completeJobs: _completeJobs })
+    set({
+      incompleteJobs: _incompleteJobs,
+      completeJobs: _completeJobs,
+      nextPage: initialState.nextPage,
+    })
   },
 
   loadMoreCompletedJobs: async () => {
