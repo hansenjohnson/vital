@@ -29,7 +29,8 @@ const useQueueStore = create((set, get) => ({
   loadMoreCompletedJobs: async () => {
     const { nextPage, completeJobs } = get()
     const moreJobs = await collateJobsWithTasks(ingestAPI.getCompleteJobs(nextPage))
-    set({ completeJobs: [...completeJobs, ...moreJobs], nextPage: nextPage + 1 })
+    const nextNextPage = moreJobs?.length === 0 ? nextPage : nextPage + 1
+    set({ completeJobs: [...completeJobs, ...moreJobs], nextPage: nextNextPage })
   },
 
   updateActiveJob: async () => {
