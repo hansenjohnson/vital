@@ -68,13 +68,19 @@ const JobQueue = () => {
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
 
-        <Button color="tertiary" disabled={!canQueueStart} onClick={startQueue}>
-          Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
-        </Button>
+        {queueRunning ? (
+          <Box sx={{ color: 'secondary.main' }}>Running</Box>
+        ) : (
+          <>
+            <Button color="tertiary" disabled={!canQueueStart} onClick={startQueue}>
+              Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
+            </Button>
 
-        <Button color="secondary" disabled={!canQueueStart}>
-          Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
-        </Button>
+            <Button color="secondary" disabled={!canQueueStart}>
+              Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
+            </Button>
+          </>
+        )}
       </Box>
       <IconButton
         onClick={closeDialog}
