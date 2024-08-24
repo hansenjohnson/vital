@@ -69,7 +69,7 @@ const useQueueStore = create((set, get) => ({
     set(updatedJobs)
   },
 
-  startRunningChecker: () => {
+  startRunningChecker: ({ trigerredBySchedule = false }) => {
     const LOOP_PERIOD_MS = 1000
     const checkerLoop = async () => {
       const { isRunning: prevIsRunning } = get()
@@ -96,6 +96,14 @@ const useQueueStore = create((set, get) => ({
         return
       }
 
+      // Break the loop if, after triggered by a new schedule, that schedule no longer exists,
+      // and the queue is not running.
+      if (trigerredBySchedule) {
+        if (get().schedule == null && newIsRunning === false) {
+          return
+        }
+      }
+
       set({ isRunning: newIsRunning })
       setTimeout(checkerLoop, LOOP_PERIOD_MS)
     }
@@ -104,10 +112,10 @@ const useQueueStore = create((set, get) => ({
 
   fetchSchedule: async () => {
     const schedule = await queueAPI.getSchedule()
-    if (schedule != null) {
-      get().startRunningChecker()
-    }
     set({ schedule })
+    if (schedule != null) {
+      get().startRunningChecker({ trigerredBySchedule: true })
+    }
   },
 }))
 
