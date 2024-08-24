@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import contextlib
 
 from model.config import DB_PATH
 from data.transcode_settings import TranscodeSettings
@@ -8,9 +9,7 @@ from data.task import Task, TaskStatus
 class TaskModel:
     def __init__(self, db_name=DB_PATH):
         self.db_name = db_name
-        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
-
-        self.conn.cursor().execute("""
+        self.with_cursor("""
                CREATE TABLE IF NOT EXISTS task (
                    id INTEGER PRIMARY KEY,
                    job_id INTEGER,
@@ -21,7 +20,18 @@ class TaskModel:
                )
            """)
 
-        self.conn.commit()
+    def make_connection(self):
+        return sqlite3.connect(self.db_name, check_same_thread=False)
+
+    def with_cursor(self, statement, parameters=None, action=None, attr=None):
+        with contextlib.closing(self.make_connection()) as conn: # auto-closes
+            with conn: # auto-commits
+                with contextlib.closing(conn.cursor()) as cursor: # auto-closes
+                    cursor.execute(statement, parameters or ())
+                    if action:
+                        return cursor.__getattribute__(action)()
+                    if attr:
+                        return cursor.__getattribute__(attr)
 
     def serialize_dataclass(self, instance):
         return json.dumps(instance.__dict__)
@@ -31,29 +41,37 @@ class TaskModel:
 
     def create(self, job_id: int, transcode_settings: TranscodeSettings) -> int:
         transcode_settings_json = self.serialize_dataclass(transcode_settings)
-        cursor = self.conn.cursor()
-        cursor.execute("INSERT INTO task (job_id, transcode_settings, status) VALUES (?, ?, ?)", (job_id, transcode_settings_json, TaskStatus.QUEUED.value,))
-        self.conn.commit()
-        return cursor.lastrowid
+        lastrowid = self.with_cursor(
+            "INSERT INTO task (job_id, transcode_settings, status) VALUES (?, ?, ?)",
+            (job_id, transcode_settings_json, TaskStatus.QUEUED.value,),
+            attr='lastrowid'
+        )
+        return lastrowid
 
     def get_transcode_settings(self, task_id: int) -> TranscodeSettings:
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT transcode_settings FROM task WHERE id = ?", (task_id,))
-        row = cursor.fetchone()[0]
-        transcode_settings = self.deserialize_dataclass(row, TranscodeSettings)
+        row = self.with_cursor(
+            "SELECT transcode_settings FROM task WHERE id = ?",
+            (task_id,),
+            action='fetchone'
+        )
+        transcode_settings_json = row[0]
+        transcode_settings = self.deserialize_dataclass(transcode_settings_json, TranscodeSettings)
         return transcode_settings
 
     def get_all_task_ids_by_status(self, job_id: int, status: TaskStatus):
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT id FROM task WHERE job_id = ? AND status = ?", (job_id, status.value))
-        task_ids =  cursor.fetchall()
-
+        task_ids = self.with_cursor(
+            "SELECT id FROM task WHERE job_id = ? AND status = ?",
+            (job_id, status.value),
+            action='fetchall'
+        )
         return [task_id for (task_id,) in task_ids]
 
     def get_tasks_by_job_id(self, job_id) -> str:
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT id, job_id, status, progress, transcode_settings, error_message FROM task WHERE job_id = ?", (job_id,))
-        tasks_data = cursor.fetchall()
+        tasks_data = self.with_cursor(
+            "SELECT * FROM task WHERE job_id = ?",
+            (job_id,),
+            action='fetchall'
+        )
         tasks = []
         for task_data in tasks_data:
             task_id, job_id, status, progress, transcode_settings_json, error_message = task_data
@@ -69,21 +87,13 @@ class TaskModel:
         return tasks
 
     def update_task_status(self, task_id: int, status: TaskStatus):
-        cursor = self.conn.cursor()
-        cursor.execute("UPDATE task SET status = ? WHERE id = ?", (status.value, task_id))
-        self.conn.commit()
+        self.with_cursor("UPDATE task SET status = ? WHERE id = ?", (status.value, task_id))
 
     def update_task_progress(self, task_id: int, progress: int):
-        cursor = self.conn.cursor()
-        cursor.execute("UPDATE task SET progress = ? WHERE id = ?", (progress, task_id))
-        self.conn.commit()
+        self.with_cursor("UPDATE task SET progress = ? WHERE id = ?", (progress, task_id))
 
     def set_task_error_message(self, task_id: int, error_message: str):
-        cursor = self.conn.cursor()
-        cursor.execute("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
-        self.conn.commit()
+        self.with_cursor("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
 
     def delete_by_job_id(self, job_id):
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
-        self.conn.commit()
+        self.with_cursor("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
