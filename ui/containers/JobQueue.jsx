@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TransitionGroup } from 'react-transition-group'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -19,7 +19,9 @@ import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import STATUSES from '../constants/statuses'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+
 import JobQueueItem from '../components/JobQueueItem'
+import SchedulePad from '../components/SchedulePad'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -46,6 +48,12 @@ const JobQueue = () => {
     startRunningChecker()
   }
 
+  const queueDialogRef = useRef(null)
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const toggleSchedule = () => {
+    setScheduleOpen(!scheduleOpen)
+  }
+
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
 
@@ -65,6 +73,14 @@ const JobQueue = () => {
           sx: { top: `${TITLEBAR_HEIGHT}px` },
         },
       }}
+      PaperProps={{
+        ref: queueDialogRef,
+        sx: {
+          right: scheduleOpen ? '250px' : '0px',
+          transition: 'right 0.3s ease',
+          position: 'relative',
+        },
+      }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginRight: 6 }}>
         <DialogTitle>Job Queue</DialogTitle>
@@ -74,13 +90,25 @@ const JobQueue = () => {
           <Box sx={{ color: 'secondary.main' }}>Running</Box>
         ) : (
           <>
-            <Button color="tertiary" disabled={!canQueueStart} onClick={startQueue}>
+            <Button color="tertiary" disabled={!canQueueStart || scheduleOpen} onClick={startQueue}>
               Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
             </Button>
 
-            <Button color="secondary" disabled={!canQueueStart}>
+            <Button
+              color="secondary"
+              disabled={!canQueueStart}
+              onClick={toggleSchedule}
+              variant={scheduleOpen ? 'contained' : 'text'}
+              sx={{ color: scheduleOpen ? 'white' : undefined }}
+              disableElevation
+            >
               Schedule <ScheduleIcon sx={{ marginLeft: 0.5, fontSize: '20px' }} />
             </Button>
+            <SchedulePad
+              open={scheduleOpen}
+              onClose={() => setScheduleOpen(false)}
+              parent={queueDialogRef.current}
+            />
           </>
         )}
       </Box>
