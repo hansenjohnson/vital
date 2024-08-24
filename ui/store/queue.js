@@ -71,10 +71,14 @@ const useQueueStore = create((set, get) => ({
 
   startRunningChecker: () => {
     const LOOP_PERIOD_MS = 1000
-    const runningChecker = async () => {
+    const checkerLoop = async () => {
       const { isRunning: prevIsRunning } = get()
       const newIsRunning = await queueAPI.isRunning()
-      set({ isRunning: newIsRunning })
+
+      if (prevIsRunning === false && newIsRunning === true) {
+        // If we just started running, we can update the related UI immediately
+        set({ isRunning: newIsRunning })
+      }
 
       if (newIsRunning === true || prevIsRunning === true) {
         // If we are running, fetch updated info about the running job on the same interval
@@ -82,21 +86,27 @@ const useQueueStore = create((set, get) => ({
         await get().updateActiveJob()
       }
 
-      return [prevIsRunning, newIsRunning]
-    }
-    const checkerLoop = async () => {
-      const [prevIsRunning, newIsRunning] = await runningChecker()
+      // Break the loop if we move from Running to Not Running
       if (prevIsRunning === true && newIsRunning === false) {
-        // Break the loop if we move from Running to Not Running
+        // Get the latest schedule from the backend, which should be null, now that it's finished
+        // and only set the latest isRunning after that check has completed, so that we can't have
+        // a state of isRunning=false with a schedule still present
+        await get().fetchSchedule()
+        set({ isRunning: newIsRunning })
         return
       }
+
+      set({ isRunning: newIsRunning })
       setTimeout(checkerLoop, LOOP_PERIOD_MS)
     }
-    checkerLoop()
+    checkerLoop() // officially start the loop
   },
 
   fetchSchedule: async () => {
     const schedule = await queueAPI.getSchedule()
+    if (schedule != null) {
+      get().startRunningChecker()
+    }
     set({ schedule })
   },
 }))
