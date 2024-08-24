@@ -6,8 +6,12 @@ const ingestURL = `${baseURL}/ingest`
 // Job Information - One
 const getJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}`)
 const jobStatus = (jobId) => getJSON(`${ingestURL}/job_status/${jobId}`)
-const taskStatusesForJob = (jobId) => getJSON(`${ingestURL}/job/${jobId}/tasks`)
 const deleteJob = (jobId) => deleteThis(`${ingestURL}/job/${jobId}`)
+const taskStatusesForJob = async (jobId) => {
+  const tasksObj = await getJSON(`${ingestURL}/job/${jobId}/tasks`)
+  const tasksList = Object.entries(tasksObj).map(([taskId, task]) => ({ ...task, id: taskId }))
+  return tasksList
+}
 
 // Job Information - Many
 const getIncompleteJobs = () => getJSON(`${ingestURL}/job?completed=false`)

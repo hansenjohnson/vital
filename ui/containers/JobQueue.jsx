@@ -15,6 +15,7 @@ import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
+import STATUSES from '../constants/statuses'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 import JobQueueItem from '../components/JobQueueItem'
 
@@ -36,9 +37,15 @@ const JobQueue = () => {
     await fetchJobsData()
   }
 
+  const queueRunning = useQueueStore((state) => state.isRunning)
+  const startRunningChecker = useQueueStore((state) => state.startRunningChecker)
+  const startQueue = () => {
+    queueAPI.executeNow()
+    startRunningChecker()
+  }
+
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
-  const queueRunning = true
 
   return (
     <Dialog
@@ -61,7 +68,7 @@ const JobQueue = () => {
         <DialogTitle>Job Queue</DialogTitle>
         <Box sx={{ flexGrow: 1 }} />
 
-        <Button color="tertiary" disabled={!canQueueStart} onClick={() => queueAPI.executeNow()}>
+        <Button color="tertiary" disabled={!canQueueStart} onClick={startQueue}>
           Start Now <PlayArrowIcon sx={{ fontSize: '20px' }} />
         </Button>
 
@@ -86,10 +93,15 @@ const JobQueue = () => {
         {incompleteJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
         {incompleteJobs.map((job, index) => {
           const { id, type, status, data } = job
-          const jobCompletion = job.tasks.reduce(
-            (acc, task) => acc + task.size * (task.progress / 100),
-            0
-          )
+          const jobCompletion = job.tasks.reduce((acc, task) => {
+            let taskProgress = task.progress
+            if (task.status === STATUSES.COMPLETED) {
+              taskProgress = 100
+            } else if (task.status === STATUSES.ERROR) {
+              taskProgress = 0
+            }
+            return acc + task.size * (taskProgress / 100)
+          }, 0)
           const jobCompletionPercent = (jobCompletion / job.size) * 100
           return (
             <JobQueueItem
