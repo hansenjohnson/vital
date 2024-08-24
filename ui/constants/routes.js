@@ -36,5 +36,10 @@ const JOB_MODES = {
   BY_VIDEO: 'video',
 }
 
-export { TITLES, VIEW_MODES, LINKAGE_MODES, JOB_MODES, JOB_PHASES }
+const JOB_TYPES = {
+  TRANSCODE: 'Videos',
+  TODO: 'Images',
+}
+
+export { TITLES, VIEW_MODES, LINKAGE_MODES, JOB_MODES, JOB_PHASES, JOB_TYPES }
 export default ROUTES

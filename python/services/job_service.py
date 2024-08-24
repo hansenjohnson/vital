@@ -23,12 +23,15 @@ class JobService:
 
     def get_job_data(self, job_id):
         return json.loads(self.job_model.get_data(job_id))
-    
+
+    def get_job(self, job_id):
+        return self.job_model.get_job(job_id)
+
     def get_jobs(self, job_type, completed, page=None, page_size=None):
         if page:
             page = (page - 1) * page_size
         return self.job_model.get_jobs(job_type, completed, page_size, page)
-    
+
     def get_non_complete_jobs(self, job_type):
         return self.job_model.get_non_complete_jobs(job_type)
 

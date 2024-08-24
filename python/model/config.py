@@ -1,4 +1,4 @@
 import os
 
-SCHEMA_VERSION = '0015'
+SCHEMA_VERSION = '0016'
 DB_PATH = os.path.join(os.getenv('APPDATA'), 'VITAL', f'vital-{SCHEMA_VERSION}.db')

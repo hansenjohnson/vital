@@ -8,6 +8,7 @@ const initialState = {
   confirmationDialogProps: null,
   alertDialogOpen: false,
   alertDialogProps: null,
+  jobQueueOpen: false,
 }
 
 const createDialogsStore = (set, get) => ({
@@ -22,6 +23,8 @@ const createDialogsStore = (set, get) => ({
 
   setConfirmationDialogOpen: valueSetter(set, 'confirmationDialogOpen'),
   setConfirmationDialogProps: valueSetter(set, 'confirmationDialogProps'),
+
+  setJobQueueOpen: valueSetter(set, 'jobQueueOpen'),
 
   makeAlert: (body, variant = undefined, id = undefined) => {
     if (get().alertDialogOpen) return // prevent a new dialog from overwritting an existing one

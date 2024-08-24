@@ -60,3 +60,32 @@ export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)
 
 // NOTE: Make sure this number matches the one used on the backend
 export const fileNameGoodLength = (fileName) => fileName.length <= 20
+
+export const completionTimeString = (dateStr) => {
+  if (dateStr == null) return ''
+  const date = new Date(dateStr)
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour12: true,
+    hour: 'numeric',
+    minute: 'numeric',
+  })
+  const resultStr = formatter.format(date)
+  const adjustedStr = resultStr.replace(/(\d{4,5}),\s(\d{1,2}:)/, '$1 @ $2')
+  return adjustedStr
+}
+
+export const scheduleTimeString = (dateStr) => {
+  if (dateStr == null) return ''
+  const date = new Date(dateStr)
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    hour12: true,
+    hour: 'numeric',
+    minute: 'numeric',
+  })
+  const resultStr = formatter.format(date)
+  return resultStr
+}

@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 
 import { valueSetter } from './utils'
-import { JOB_PHASES, JOB_MODES } from '../constants/routes'
+import ROUTES, { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
 import { leafPath } from '../utilities/paths'
+import useQueueStore from './queue'
+import useRootStore from './index'
 
 const initialState = {
   phase: JOB_PHASES.INPUTS,
@@ -71,6 +73,14 @@ const useJobStore = create((set, get) => ({
       jobId = await ingestAPI.transcode(sourceFolder, settingsList)
     }
     set({ jobId })
+
+    // After submitting a new job to the queue, Navigate the user back home,
+    // reload the queue data, and reset some of the stores like we do in the Navbar
+    useQueueStore.getState().fetchJobsData()
+    useRootStore.getState().setRoute(ROUTES.TOOLS)
+    useRootStore.getState().resetStore()
+    get().reset()
+    useRootStore.getState().setJobQueueOpen(true)
   },
 
   setSourceFolder: (sourceFolder) => {
