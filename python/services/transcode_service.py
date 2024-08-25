@@ -204,7 +204,7 @@ class TranscodeService:
             '-segment-name', 'segment_$RepresentationID$_',
             *intermediate_files,
             '-out', temp_mpd_file,
-            '-mpd-title', output_file_name_mpd
+            '-mpd-title', f'"{output_file_name_mpd}"'
         ]
 
     def create_ffmpeg_line_handler(self, transcode_task_id, total_frames, progress_bounds=(0, 100)):

@@ -22,10 +22,11 @@ ERRORS.set('LENGTH_ERROR', {
 
 export { WARNINGS, ERRORS }
 export default {
-  LOADING: 'loading',
-  PENDING: 'pending',
-  COMPLETED: 'completed',
-  SUCCESS: 'success',
-  WARNING: 'warning',
-  ERROR: 'error',
+  LOADING: 'LOADING',
+  QUEUED: 'QUEUED',
+  INCOMPLETE: 'INCOMPLETE',
+  COMPLETED: 'COMPLETED',
+  SUCCESS: 'SUCCESS',
+  WARNING: 'WARNING',
+  ERROR: 'ERROR',
 }

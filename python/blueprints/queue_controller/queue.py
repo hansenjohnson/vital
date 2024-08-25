@@ -17,6 +17,25 @@ def schedule():
         return jsonify({"error": str(e)}), 400
 
 
+@bp.route('/schedule', methods=["GET"])
+def get_scheduled_queue():
+    try:
+        scheduled_job = scheduler_service.get_job()
+        scheduled_job_time = None if scheduled_job is None else str(scheduled_job.next_run_time)
+        return jsonify({"scheduled_job": scheduled_job_time}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@bp.route('/schedule', methods=['DELETE'])
+def remove_scheduled_queue_run():
+    try:
+        remove_scheduled_jobs()
+        return jsonify("Removed Queued Job"), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 @bp.route('/now', methods=['POST'])
 def now():
     try:
@@ -25,14 +44,6 @@ def now():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-
-@bp.route('/remove', methods=['GET'])
-def remove_scheduled_queue_run():
-    try:
-        remove_scheduled_jobs()
-        return jsonify("Removed Queued Job"), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
 
 @bp.route('/status', methods=['GET'])
 def get_queue_status():

@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
 import useJobStore from '../store/job'
+import useQueueStore from '../store/queue'
 import { isSaveable } from '../store/linkages'
 import ROUTES from '../constants/routes'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
@@ -25,9 +26,14 @@ const Navbar = ({ width }) => {
   const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
   const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
 
+  const numJobs = useQueueStore((state) => state.incompleteJobs.length)
+  const jobQueueOpen = useStore((state) => state.jobQueueOpen)
+  const setJobQueueOpen = useStore((state) => state.setJobQueueOpen)
+
   const handleToolsClick = () => {
     const action = () => {
       setSettingsOpen(false)
+      setJobQueueOpen(false)
       if (route === ROUTES.TOOLS) return
       setRoute(ROUTES.TOOLS)
       resetStore()
@@ -46,6 +52,13 @@ const Navbar = ({ width }) => {
     }
   }
 
+  const tabSelected = (() => {
+    if (settingsOpen) return 1
+    if (jobQueueOpen) return 2
+    if (route === ROUTES.TOOLS) return 0
+    return null
+  })()
+
   if (width === 0) return null
 
   return (
@@ -59,16 +72,31 @@ const Navbar = ({ width }) => {
       }}
     >
       <NavbarButton
-        selected={route === ROUTES.TOOLS && !settingsOpen}
+        selected={tabSelected === 0}
         disabled={!settingsInitialized}
         onClick={handleToolsClick}
       >
         Tools
       </NavbarButton>
-      <NavbarButton selected={settingsOpen} onClick={() => setSettingsOpen(true)}>
+      <NavbarButton
+        selected={tabSelected === 1}
+        onClick={() => {
+          setJobQueueOpen(false)
+          setSettingsOpen(true)
+        }}
+      >
         Settings
       </NavbarButton>
-      <NavbarButton disabled={!settingsInitialized}>Work Queue (0)</NavbarButton>
+      <NavbarButton
+        selected={tabSelected === 2}
+        disabled={!settingsInitialized}
+        onClick={() => {
+          setSettingsOpen(false)
+          setJobQueueOpen(true)
+        }}
+      >
+        Job Queue ({numJobs})
+      </NavbarButton>
       <Box
         sx={{
           flexGrow: 1,
