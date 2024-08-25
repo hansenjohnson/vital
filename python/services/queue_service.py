@@ -1,16 +1,17 @@
 import json
 import threading
+import uuid
 
 from services.scheduler_service import SchedulerService
 from services.transcode_service import TranscodeService
 from services.job_service import JobService
 from services.task_service import TaskService
 
-from utils.prints import print_err
+from utils.prints import print_err, print_out
 
 from data.task import TaskStatus
 
-from model.ingest.job_model import JobType, JobStatus
+from model.ingest.job_model import JobType
 
 scheduler = SchedulerService()
 transcode_service = TranscodeService()
@@ -22,10 +23,16 @@ def schedule_job_run(run_date):
     return job_id
 
 def execute_jobs():
+    # Create a unique id for this specific run of execute_jobs, so that we only run
+    # available jobs once. Future runs will have a different id, allowing them to run
+    # any imcomplete job that was not completed in this run.
+    execution_run_id = str(uuid.uuid4())
+
     try:
         scheduler.set_run_status(True)
         while True:
-            jobs = job_service.get_jobs(JobType.TRANSCODE, False)
+            jobs = job_service.get_jobs(JobType.TRANSCODE, False, current_execution_id=execution_run_id)
+            print_out(f"Found {len(jobs)} incomplete jobs to execute")
 
             if not jobs:
                 break
