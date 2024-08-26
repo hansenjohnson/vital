@@ -65,14 +65,14 @@ const useJobStore = create((set, get) => ({
 
   triggerExecute: async () => {
     const { jobMode, sourceFolder, settingsList } = get()
-    // let jobId = null
-    // if (jobMode === JOB_MODES.BY_IMAGE) {
-    //   await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
-    //   return
-    // } else if (jobMode === JOB_MODES.BY_VIDEO) {
-    //   jobId = await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
-    // }
-    let jobId = await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
+    let jobId = null
+    if (jobMode === JOB_MODES.BY_IMAGE) {
+      await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
+      return
+    } else if (jobMode === JOB_MODES.BY_VIDEO) {
+      jobId = await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
+    }
+    // let jobId = await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
     set({ jobId })
 
     // After submitting a new job to the queue, Navigate the user back home,

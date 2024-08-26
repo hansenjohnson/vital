@@ -3,7 +3,7 @@ from enum import Enum
 
 class MediaType(Enum):
     VIDEO = "video"
-    IMAGE = "imageg"
+    IMAGE = "image"
 
 
 class MetadataService(ABC):

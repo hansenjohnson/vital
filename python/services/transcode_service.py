@@ -113,7 +113,7 @@ class TranscodeService:
                         if (media_type == MediaType.VIDEO):
                             self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
                         else:
-                            self.transcode_image(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                            self.transcode_image(optimized_dir_path, original_dir_path, transcode_task_id, temp_dir)
 
                     except FileNotFoundError as e:
                         # We catch and retry on this error because it might signal that the user lost internet connection or
@@ -272,7 +272,7 @@ class TranscodeService:
         return line_callback
     
 
-    def transcode_image(self, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
+    def transcode_image(self, optimized_dir_path, original_dir_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
         file_path = transcode_settings.file_path
@@ -281,19 +281,21 @@ class TranscodeService:
         jpeg_quality = transcode_settings.jpeg_quality
 
         file_name, file_extension = os.path.splitext(file_path)
+        file_name = os.path.basename(file_name)
 
         temp_decode_file = f'{temp_dir}\\temp_{file_name}'
         optimized_output_file = f'{optimized_dir_path}\\{file_name}.jpg'
 
         if file_extension in self.standard_image_extensions:
-            decode_command = self.generate_decode_command_standard(file_path, temp_decode_file)
-
+            temp_path = f'{temp_decode_file}.png'
+            decode_command = self.generate_decode_command_standard(file_path, temp_path)
         else:
+            temp_path = f'{temp_decode_file}.ppm'
             decode_command = self.generate_decode_command_raw(file_path, temp_decode_file)
 
         TranscodeService.run_command_with_terminator(decode_command)
 
-        encode_command = self.generate_encode_command(decode_command['temp_path'], optimized_output_file, jpeg_quality)
+        encode_command = self.generate_encode_command(temp_path, optimized_output_file, jpeg_quality)
 
         TranscodeService.run_command_with_terminator(encode_command)
 
@@ -309,7 +311,6 @@ class TranscodeService:
     def generate_decode_command_standard(self, input_path, temp_path):
         # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
         # temp_path should end in .png
-        temp_path = f'{temp_path}.png'
         return [
             self.ffmpeg_path,
             '-y',
@@ -322,7 +323,6 @@ class TranscodeService:
     def generate_decode_command_raw(self, input_path, temp_path):
         # inputs are ['.orf', '.cr2', '.dng', '.nef']
         # temp_path should end in .ppm
-        temp_path = f'{temp_path}.ppm'
         return [
             self.dcraw_emu_path,
             '-w',
