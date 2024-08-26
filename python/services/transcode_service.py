@@ -53,6 +53,8 @@ class TranscodeService:
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
+        self.dcraw_emu_path = os.path.join(base_dir, 'resources', 'dcraw_emu.exe')
+        self.cjpeg_static = os.path.join(base_dir, 'resources', 'cjpeg-static.exe')
 
         self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff'] 
         self.raw_image_extensions = ['.orf', '.cr2', '.dng', '.nef']
@@ -86,10 +88,10 @@ class TranscodeService:
                 try:
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
 
-                    if (media_type == MediaType.VIDEO):
+                    if (media_type == MediaType.video):
                         self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
                     else:
-                        self.transcode_image(transcode_job_id, source_dir, transcode_task_ids)
+                        self.transcode_image(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
 
 
                 except Exception as e:
@@ -121,8 +123,11 @@ class TranscodeService:
         original_file_name = os.path.splitext(os.path.basename(original_file))[0]
         output_file_name = transcode_settings.new_name or original_file_name
         original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+        print_out(original_subdirs)
         expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, output_file_name)
+        print_out(expected_final_dir)
         expected_original_dir = os.path.join(original_dir_path, *original_subdirs)
+        print_out(expected_original_dir)
         os.makedirs(expected_original_dir, exist_ok=True)
         temp_files = [
             os.path.join(temp_dir, f'{output_file_name}_{height}{shared_extension}')
@@ -231,7 +236,7 @@ class TranscodeService:
     
 
     @retry()
-    def transcode_image(self, source_dir, transcode_task_id, temp_dir):
+    def transcode_image(self, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
         file_path = transcode_settings.file_path
@@ -242,7 +247,7 @@ class TranscodeService:
         file_name, file_extension = os.path.splitext(file_path)
 
         temp_decode_file = f'{temp_dir}\\temp_{file_name}'
-        output_file = f'{file_name}.jpg'
+        optimized_output_file = f'{optimized_dir_path}\\{file_name}.jpg'
 
         if file_extension in self.standard_image_extensions:
             decode_command = self.generate_decode_command_standard(file_path, temp_decode_file)
@@ -252,12 +257,18 @@ class TranscodeService:
 
         TranscodeService.run_command_with_terminator(decode_command)
 
-        encode_command = self.generate_encode_command(decode_command['temp_path'], output_file, jpeg_quality)
+        encode_command = self.generate_encode_command(decode_command['temp_path'], optimized_output_file, jpeg_quality)
 
         TranscodeService.run_command_with_terminator(encode_command)
 
-        
+        shutil.copy(file_path, original_dir_path)
 
+        shutil.copy(optimized_output_file, optimized_dir_path)
+
+        shutil.copy(optimized_output_file, local_export_path)
+
+        self.task_service.set_task_progress(transcode_task_id, 100)
+        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
     
     def generate_decode_command_standard(self, input_path, temp_path):
         # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
@@ -277,7 +288,7 @@ class TranscodeService:
         # temp_path should end in .ppm
         temp_path = f'{temp_path}.ppm'
         return [
-            'Path\\to\\dcraw_emu.exe',
+            self.dcraw_emu_path,
             '-w',
             '-o', '1',
             '-q', '0',
@@ -290,7 +301,7 @@ class TranscodeService:
         # output_path should end in .jpg
         # jpeg_quality should be between 0-100
         return [
-            'Path\\to\\cjpeg-static.exe',
+            self.cjpeg_static,
             '-q', f'{jpeg_quality}',
             '-outfile', output_path,
             input_path,

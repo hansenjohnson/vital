@@ -31,7 +31,7 @@ class IngestService:
 
 
     def parse_media(self, job_id, source_dir, media_type):
-        if (media_type == MediaType.VIDEO):
+        if (media_type == MediaType.video):
             files = self.get_files(source_dir, self.video_extensions)
             media_service = VideoMetadataService()
         else:

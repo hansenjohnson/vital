@@ -44,7 +44,7 @@ def execute_jobs():
                     if task.status != TaskStatus.COMPLETED.value:
                         non_complete_task_ids.append(task.id)
           
-                print_out(json.loads(job['data'])['media_type'])
+
                 media_type = MediaType[json.loads(job['data'])['media_type']]
 
                 transcode_service.transcode_media(job["id"], source_dir, media_type, non_complete_task_ids)

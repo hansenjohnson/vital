@@ -38,7 +38,7 @@ def parse_images():
     payload = request.json
     try:
         source_dir = payload['source_dir']
-        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.IMAGE)
+        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.image)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -50,7 +50,7 @@ def parse_videos():
     payload = request.json
     try:
         source_dir = payload['source_dir']
-        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.VIDEO)
+        job_id = ingest_service.create_parse_media_job(source_dir, MediaType.video)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
