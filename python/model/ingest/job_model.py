@@ -18,6 +18,9 @@ class JobType(Enum):
     METADATA = "METADATA"
     TRANSCODE = "TRANSCODE"
 
+class JobErrors(Enum):
+    NONE = None
+    FILE_NOT_FOUND = "FILE_NOT_FOUND"
 
 class JobModel:
     def __init__(self, db_name=DB_PATH):
@@ -28,7 +31,9 @@ class JobModel:
                    type TEXT,
                    status TEXT,
                    data TEXT,
-                   completed_date DATETIME
+                   completed_date DATETIME,
+                   last_executor_id TEXT,
+                   error_message TEXT
                )
            """)
 
@@ -75,7 +80,7 @@ class JobModel:
         )
         return JobModel.transform_job_row(row)
 
-    def get_jobs(self, job_type, completed, limit=None, offset=None):
+    def get_jobs(self, job_type, completed, limit=None, offset=None, current_execution_id=None):
         base_query = "SELECT * FROM job WHERE type = ?"
         params = [job_type.value]
 
@@ -85,6 +90,11 @@ class JobModel:
         else:
             base_query += " AND status != ?"
             params.append(JobStatus.COMPLETED.value)
+
+        if current_execution_id:
+            # uses IS NOT instead of != because NULL values are possible
+            base_query += " AND last_executor_id IS NOT ?"
+            params.append(current_execution_id)
 
         if limit is not None and offset is not None:
             # if we're limiting, lets apply a meaningful sort order
@@ -98,7 +108,19 @@ class JobModel:
         for row in rows:
             job = JobModel.transform_job_row(row)
             jobs.append(job)
+
+        if current_execution_id:
+            job_ids = [job["id"] for job in jobs]
+            self.set_executor_for_jobs(job_ids, current_execution_id)
+
         return jobs
+
+    def set_executor_for_jobs(self, job_ids, executor_id):
+        n_jobs = len(job_ids)
+        self.with_cursor(
+            "UPDATE job SET last_executor_id = ? WHERE id IN (%s)" % ",".join("?" * n_jobs),
+            (executor_id, *job_ids)
+        )
 
     def get_status(self, job_id):
         row = self.with_cursor(
@@ -118,6 +140,10 @@ class JobModel:
         params.append(job_id)
         self.with_cursor(base_query, params)
 
+    def set_error(self, job_id, job_error: JobErrors):
+        query = "UPDATE job SET error_message = ? WHERE id = ?"
+        self.with_cursor(query, (job_error.value, job_id))
+
     def delete(self, job_id):
         self.with_cursor("DELETE FROM job WHERE id = ?", (job_id,))
         return job_id
@@ -131,5 +157,7 @@ class JobModel:
             "type": row[1],
             "status": row[2],
             "data": row[3],
-            "completed_date": row[4]
+            "completed_date": row[4],
+            # "last_executor_id": row[5], // just placing this here for tuple-index reference
+            "error_message": row[6],
         }

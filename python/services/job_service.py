@@ -1,13 +1,11 @@
 import json
 
-from model.ingest.job_model import JobModel, JobType, JobStatus
+from model.ingest.job_model import JobModel, JobType, JobStatus, JobErrors
 from services.task_service import TaskService
 from services.metadata_service import MediaType
 from model.ingest.task_model import TaskStatus
 
 from utils.death import terminate_all
-from utils.prints import print_out
-
 
 class JobService:
     def __init__(self):
@@ -28,10 +26,10 @@ class JobService:
     def get_job(self, job_id):
         return self.job_model.get_job(job_id)
 
-    def get_jobs(self, job_type, completed, page=None, page_size=None):
+    def get_jobs(self, job_type, completed, page=None, page_size=None, current_execution_id=None):
         if page:
             page = (page - 1) * page_size
-        return self.job_model.get_jobs(job_type, completed, page_size, page)
+        return self.job_model.get_jobs(job_type, completed, page_size, page, current_execution_id)
 
     def get_non_complete_jobs(self, job_type):
         return self.job_model.get_non_complete_jobs(job_type)
@@ -46,8 +44,11 @@ class JobService:
             if task.status != TaskStatus.COMPLETED.value:
                 self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
                 return
-        
+
         self.job_model.set_status(job_id, JobStatus.COMPLETED)
+
+    def set_error(self, job_id, job_error: JobErrors):
+        return self.job_model.set_error(job_id, job_error)
 
     def delete_job(self, job_id):
         if self.check_job_status(job_id) == JobStatus.INCOMPLETE.value:

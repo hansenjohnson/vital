@@ -50,6 +50,19 @@ class FolderModel(SQL):
 
     def create_folder(self, year, month, day, observer_code):
         try:
+            cursor_1 = self.conn.cursor()
+            query_1 = f"""SELECT * FROM folder
+                WHERE FolderYear = ?
+                AND FolderMonth = ?
+                AND FolderDay = ?
+                AND ObserverCode = ?
+            """
+            cursor_1.execute(query_1, (year, month, day, observer_code))
+            existing_row = cursor_1.fetchone()
+            cursor_1.close()
+            if existing_row:
+                return existing_row['CatalogFolderId']
+
             cursor = self.conn.cursor()
             query = """
                 INSERT INTO folder

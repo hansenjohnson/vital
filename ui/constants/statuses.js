@@ -19,6 +19,9 @@ ERRORS.set('LENGTH_ERROR', {
   message: 'filename is too long',
   summary: 'Filename too long',
 })
+ERRORS.set('FILE_NOT_FOUND', {
+  summary: 'Folder access denied due to lack of Internet, VPN, Permissions, or it was Deleted',
+})
 
 export { WARNINGS, ERRORS }
 export default {

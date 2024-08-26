@@ -61,3 +61,9 @@ def construct_catalog_folder_path(base_path, year, month, day, observer_code):
 
     folder_path = os.path.join(base_path, folder_year_range, str(year), catalog_folder_name)
     return folder_path
+
+def make_one_dir_ok_exists(path):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 class MediaType(Enum):
-    video = "video"
-    image = "imageg"
+    VIDEO = "video"
+    IMAGE = "imageg"
 
 
 class MetadataService(ABC):

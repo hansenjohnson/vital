@@ -61,7 +61,7 @@ class ValidatorService:
             return self.VALID
 
         if self.is_second_descendant(source_dir, media_path):
-            if media_type == MediaType.video:
+            if media_type == MediaType.VIDEO:
                 return self.MEDIA_PATH_WARNING
 
         return self.MEDIA_PATH_ERROR

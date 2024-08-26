@@ -18,7 +18,6 @@ import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import { scheduleTimeString } from '../utilities/strings'
-import STATUSES from '../constants/statuses'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 
 import JobQueueItem from '../components/JobQueueItem'
@@ -167,17 +166,12 @@ const JobQueue = () => {
         <Typography variant="h6">Incomplete Jobs</Typography>
         {incompleteJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
         {incompleteJobs.map((job, index) => {
-          const { id, type, status, data } = job
-          const jobCompletion = job.tasks.reduce((acc, task) => {
-            let taskProgress = task.progress
-            if (task.status === STATUSES.COMPLETED) {
-              taskProgress = 100
-            } else if (task.status === STATUSES.ERROR) {
-              taskProgress = 0
-            }
-            return acc + task.size * (taskProgress / 100)
-          }, 0)
-          const jobCompletionPercent = (jobCompletion / job.size) * 100
+          const { id, type, status, data, error_message } = job
+          const jobCompletionAbsolute = job.tasks.reduce(
+            (acc, task) => acc + task.size * (task.progress / 100),
+            0
+          )
+          const jobCompletionPercent = (jobCompletionAbsolute / job.size) * 100
           return (
             <JobQueueItem
               key={id}
@@ -195,6 +189,7 @@ const JobQueue = () => {
               queueRunning={queueRunning}
               firstItem={index === 0}
               lastItem={index === incompleteJobs.length - 1}
+              errorMessage={error_message}
             />
           )
         })}

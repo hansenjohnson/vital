@@ -1,30 +1,33 @@
-import threading
 import io
 import os
+import errno
 import sys
 import re
 import tempfile
 import shutil
 import subprocess
+import time
 from subprocess import PIPE
 from typing import List
-from retry import retry
 
 from data.transcode_settings import TranscodeSettings
 from services.job_service import JobService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
-from model.ingest.job_model import JobType, JobStatus
+from model.ingest.job_model import JobType, JobStatus, JobErrors
+
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
 from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel
 
-from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
+from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path, make_one_dir_ok_exists
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
 from utils.death import add_terminator, remove_last_terminator
+
+RETRY_DELAY_SEC = 1
 
 class TranscodeService:
 
@@ -69,6 +72,8 @@ class TranscodeService:
 
 
     def transcode_media(self, transcode_job_id, source_dir, media_type, transcode_task_ids: List[int]):
+        self.job_service.set_error(transcode_job_id, JobErrors.NONE)
+
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
@@ -80,30 +85,53 @@ class TranscodeService:
 
         catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
-        os.makedirs(optimized_dir_path, exist_ok=True)
-        os.makedirs(original_dir_path, exist_ok=True)
+        # We expect that all folders leading up to these leafs will exist, and if not, that an Error should be thrown
+        retry_job = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
+        while retry_job == True:
+            retry_job = False
+            try:
+                make_one_dir_ok_exists(optimized_dir_path)
+                make_one_dir_ok_exists(original_dir_path)
+            except FileNotFoundError as e:
+                # See the task loop for more details on this retry logic
+                retry_job = True
+                print_err(str(e))
+                self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                self.job_service.set_job_status(transcode_job_id)
+                time.sleep(RETRY_DELAY_SEC)
 
+        self.job_service.set_error(transcode_job_id, JobErrors.NONE)
         for transcode_task_id in transcode_task_ids:
             with tempfile.TemporaryDirectory() as temp_dir:
-                try:
-                    self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
+                retry_task = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
+                while retry_task == True:
+                    retry_task = False
+                    try:
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
+                        self.task_service.set_task_error_message(transcode_task_id, '')
 
-                    if (media_type == MediaType.video):
-                        self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
-                    else:
-                        self.transcode_image(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                        if (media_type == MediaType.VIDEO):
+                            self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                        else:
+                            self.transcode_image(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
 
+                    except FileNotFoundError as e:
+                        # We catch and retry on this error because it might signal that the user lost internet connection or
+                        # VPN access to one of the output folders. We set an error string on the Job-level for communication to the UI
+                        retry_task = True
+                        print_err(str(e))
+                        self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                        time.sleep(RETRY_DELAY_SEC)
 
-                except Exception as e:
-                    # will need to catch specific exceptions in the future for more granular error messages
-                    print_err(str(e))
-                    self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
-                    self.task_service.set_task_error_message(transcode_task_id, str(e))
-                
-                finally:
-                    self.job_service.set_job_status(transcode_job_id)
+                    except Exception as e:
+                        print_err(str(e))
+                        self.task_service.set_task_progress(transcode_task_id, 0)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
+                        self.task_service.set_task_error_message(transcode_task_id, str(e))
 
-    @retry()
+                    finally:
+                        self.job_service.set_job_status(transcode_job_id)
+
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
@@ -123,12 +151,20 @@ class TranscodeService:
         original_file_name = os.path.splitext(os.path.basename(original_file))[0]
         output_file_name = transcode_settings.new_name or original_file_name
         original_subdirs = original_file.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
-        print_out(original_subdirs)
         expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, output_file_name)
-        print_out(expected_final_dir)
         expected_original_dir = os.path.join(original_dir_path, *original_subdirs)
-        print_out(expected_original_dir)
-        os.makedirs(expected_original_dir, exist_ok=True)
+
+        if os.path.isdir(expected_final_dir):
+            # if final dir exists we must delete it, in order to perform a move of a whole new folder to that same location
+            # this is because the Dash output will be a folder of files, whereas the original file is a single file
+            shutil.rmtree(expected_final_dir, ignore_errors=True)
+        for jindex, _ in enumerate(original_subdirs):
+            # make each leaf dir up to the final leaf. This prevents accidentally making the base dirs if they don't exist
+            # already for access or non-existence reasons
+            subdirs_to_this_point = original_subdirs[:jindex + 1]
+            make_one_dir_ok_exists(os.path.join(optimized_dir_path, *subdirs_to_this_point))
+            make_one_dir_ok_exists(os.path.join(original_dir_path, *subdirs_to_this_point))
+
         temp_files = [
             os.path.join(temp_dir, f'{output_file_name}_{height}{shared_extension}')
             for height in heights_to_use
@@ -171,10 +207,11 @@ class TranscodeService:
         TranscodeService.run_command_with_terminator(mp4box_command)
 
         # Official Output - Copy the whole DASH folder to the optimized directory
-        if os.path.isdir(expected_final_dir):
-            shutil.rmtree(expected_final_dir, ignore_errors=True)
-        os.makedirs(os.path.dirname(expected_final_dir), exist_ok=True)
-        shutil.move(temp_dash_container, os.path.dirname(expected_final_dir))
+        folder_to_move_into = os.path.dirname(expected_final_dir)
+        if os.path.isdir(folder_to_move_into) == False:
+            # shutil.move() does not throw an error if the destination folder does not exist, so we must do it manually
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), folder_to_move_into)
+        shutil.move(temp_dash_container, folder_to_move_into)
 
         # Official Output - Copy original file to original directory
         # This should happen after the transcode as it is less likely to fail
@@ -235,7 +272,6 @@ class TranscodeService:
         return line_callback
     
 
-    @retry()
     def transcode_image(self, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
