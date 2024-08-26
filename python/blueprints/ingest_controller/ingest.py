@@ -86,7 +86,9 @@ def queue_transcode():
     try:
         transcode_list = payload['transcode_list']
         source_dir = payload['source_dir']
-        job_id = transcode_service.queue_transcode_job(source_dir, transcode_list)
+        media_type = payload['media_type']
+        print_out(payload)
+        job_id = transcode_service.queue_transcode_job(source_dir, media_type, transcode_list)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

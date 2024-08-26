@@ -13,6 +13,7 @@ from retry import retry
 from data.transcode_settings import TranscodeSettings
 from services.job_service import JobService
 from services.task_service import TaskService
+from services.metadata_service import MediaType
 from model.ingest.job_model import JobType, JobStatus
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
@@ -53,16 +54,19 @@ class TranscodeService:
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
 
-    def queue_transcode_job(self, source_dir: str, transcode_settings_list: List[TranscodeSettings]) -> int:
-        transcode_job_id = self.job_service.create_job(JobType.TRANSCODE, JobStatus.QUEUED, {"source_dir": source_dir})
+        self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff'] 
+        self.raw_image_extensions = ['.orf', '.cr2', '.dng', '.nef']
 
+    def queue_transcode_job(self, source_dir: str, media_type: str, transcode_settings_list: List[TranscodeSettings]) -> int:
+        transcode_job_id = self.job_service.create_job(JobType.TRANSCODE, JobStatus.QUEUED, {"source_dir": source_dir, "media_type": media_type})
         for transcode_settings_json in transcode_settings_list:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             self.task_service.create_task(transcode_job_id, transcode_settings)
 
         return transcode_job_id
 
-    def transcode_videos(self,transcode_job_id, source_dir, transcode_task_ids: List[int]):
+
+    def transcode_media(self, transcode_job_id, source_dir, media_type, transcode_task_ids: List[int]):
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
@@ -81,7 +85,12 @@ class TranscodeService:
             with tempfile.TemporaryDirectory() as temp_dir:
                 try:
                     self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
-                    self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+
+                    if (media_type == MediaType.VIDEO):
+                        self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                    else:
+                        self.transcode_image(transcode_job_id, source_dir, transcode_task_ids)
+
 
                 except Exception as e:
                     # will need to catch specific exceptions in the future for more granular error messages
@@ -219,6 +228,73 @@ class TranscodeService:
                 )
                 self.task_service.set_task_progress(transcode_task_id, new_absolute_progress)
         return line_callback
+    
+
+    @retry()
+    def transcode_image(self, source_dir, transcode_task_id, temp_dir):
+        transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
+
+        file_path = transcode_settings.file_path
+        local_export_path = transcode_settings.local_export_path
+
+        jpeg_quality = transcode_settings.jpeg_quality
+
+        file_name, file_extension = os.path.splitext(file_path)
+
+        temp_decode_file = f'{temp_dir}\\temp_{file_name}'
+        output_file = f'{file_name}.jpg'
+
+        if file_extension in self.standard_image_extensions:
+            decode_command = self.generate_decode_command_standard(file_path, temp_decode_file)
+
+        else:
+            decode_command = self.generate_decode_command_raw(file_path, temp_decode_file)
+
+        TranscodeService.run_command_with_terminator(decode_command)
+
+        encode_command = self.generate_encode_command(decode_command['temp_path'], output_file, jpeg_quality)
+
+        TranscodeService.run_command_with_terminator(encode_command)
+
+        
+
+    
+    def generate_decode_command_standard(self, input_path, temp_path):
+        # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
+        # temp_path should end in .png
+        temp_path = f'{temp_path}.png'
+        return [
+            self.ffmpeg_path,
+            '-y',
+            '-i', input_path,
+            '-frames:v', '1',
+            '-update', '1',
+            temp_path,
+        ]
+
+    def generate_decode_command_raw(self, input_path, temp_path):
+        # inputs are ['.orf', '.cr2', '.dng', '.nef']
+        # temp_path should end in .ppm
+        temp_path = f'{temp_path}.ppm'
+        return [
+            'Path\\to\\dcraw_emu.exe',
+            '-w',
+            '-o', '1',
+            '-q', '0',
+            '-H', '0',
+            '-Z', temp_path,
+            input_path,
+        ]
+
+    def generate_encode_command(self, input_path, output_path, jpeg_quality):
+        # output_path should end in .jpg
+        # jpeg_quality should be between 0-100
+        return [
+            'Path\\to\\cjpeg-static.exe',
+            '-q', f'{jpeg_quality}',
+            '-outfile', output_path,
+            input_path,
+        ]
 
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):

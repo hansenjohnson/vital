@@ -2,6 +2,7 @@ import json
 
 from model.ingest.job_model import JobModel, JobType, JobStatus
 from services.task_service import TaskService
+from services.metadata_service import MediaType
 from model.ingest.task_model import TaskStatus
 
 from utils.death import terminate_all

@@ -3,6 +3,10 @@ import contextlib
 from enum import Enum
 from datetime import datetime
 
+from utils.prints import print_out
+
+from services.metadata_service import MediaType
+
 from model.config import DB_PATH
 
 class JobStatus(Enum):
@@ -44,7 +48,7 @@ class JobModel:
     def create(self, job_type: JobType, jobStatus: JobStatus, json_data):
         lastrowid = self.with_cursor(
             "INSERT INTO job (type, status, data) VALUES (?, ?, ?)",
-            (job_type.value, jobStatus.value, json_data),
+            (job_type.value, jobStatus.value, json_data,),
             attr='lastrowid'
         )
         return lastrowid

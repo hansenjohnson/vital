@@ -5,8 +5,9 @@ from services.scheduler_service import SchedulerService
 from services.transcode_service import TranscodeService
 from services.job_service import JobService
 from services.task_service import TaskService
+from services.metadata_service import MediaType
 
-from utils.prints import print_err
+from utils.prints import print_err, print_out
 
 from data.task import TaskStatus
 
@@ -42,8 +43,11 @@ def execute_jobs():
                 for task in tasks:
                     if task.status != TaskStatus.COMPLETED.value:
                         non_complete_task_ids.append(task.id)
+          
+                print_out(json.loads(job['data'])['media_type'])
+                media_type = MediaType[json.loads(job['data'])['media_type']]
 
-                transcode_service.transcode_videos(job["id"], source_dir, non_complete_task_ids)
+                transcode_service.transcode_media(job["id"], source_dir, media_type, non_complete_task_ids)
     except Exception as e:
         print_err(f"Failed excecuting jobs: {e}")
         raise e
