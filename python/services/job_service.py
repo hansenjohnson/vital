@@ -1,12 +1,10 @@
 import json
 
-from model.ingest.job_model import JobModel, JobType, JobStatus
+from model.ingest.job_model import JobModel, JobType, JobStatus, JobErrors
 from services.task_service import TaskService
 from model.ingest.task_model import TaskStatus
 
 from utils.death import terminate_all
-from utils.prints import print_out
-
 
 class JobService:
     def __init__(self):
@@ -45,8 +43,11 @@ class JobService:
             if task.status != TaskStatus.COMPLETED.value:
                 self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
                 return
-        
+
         self.job_model.set_status(job_id, JobStatus.COMPLETED)
+
+    def set_error(self, job_id, job_error: JobErrors):
+        return self.job_model.set_error(job_id, job_error)
 
     def delete_job(self, job_id):
         if self.check_job_status(job_id) == JobStatus.INCOMPLETE.value:

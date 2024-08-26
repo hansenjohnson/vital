@@ -14,6 +14,9 @@ class JobType(Enum):
     METADATA = "METADATA"
     TRANSCODE = "TRANSCODE"
 
+class JobErrors(Enum):
+    NONE = None
+    FILE_NOT_FOUND = "FILE_NOT_FOUND"
 
 class JobModel:
     def __init__(self, db_name=DB_PATH):
@@ -25,7 +28,8 @@ class JobModel:
                    status TEXT,
                    data TEXT,
                    completed_date DATETIME,
-                   last_executor_id TEXT
+                   last_executor_id TEXT,
+                   error_message TEXT
                )
            """)
 
@@ -132,6 +136,10 @@ class JobModel:
         params.append(job_id)
         self.with_cursor(base_query, params)
 
+    def set_error(self, job_id, job_error: JobErrors):
+        query = "UPDATE job SET error_message = ? WHERE id = ?"
+        self.with_cursor(query, (job_error.value, job_id))
+
     def delete(self, job_id):
         self.with_cursor("DELETE FROM job WHERE id = ?", (job_id,))
         return job_id
@@ -145,5 +153,7 @@ class JobModel:
             "type": row[1],
             "status": row[2],
             "data": row[3],
-            "completed_date": row[4]
+            "completed_date": row[4],
+            # "last_executor_id": row[5], // just placing this here for tuple-index reference
+            "error_message": row[6],
         }

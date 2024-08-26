@@ -6,14 +6,14 @@ import re
 import tempfile
 import shutil
 import subprocess
+import time
 from subprocess import PIPE
 from typing import List
-from retry import retry
 
 from data.transcode_settings import TranscodeSettings
 from services.job_service import JobService
 from services.task_service import TaskService
-from model.ingest.job_model import JobType, JobStatus
+from model.ingest.job_model import JobType, JobStatus, JobErrors
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
@@ -21,9 +21,11 @@ from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel
 
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path, make_one_dir_ok_exists
-from utils.prints import print_out, print_err, retry_logger
+from utils.prints import print_out, print_err
 from utils.numbers import find_closest
 from utils.death import add_terminator, remove_last_terminator
+
+RETRY_DELAY_SEC = 1
 
 class TranscodeService:
 
@@ -62,7 +64,8 @@ class TranscodeService:
 
         return transcode_job_id
 
-    def transcode_videos(self,transcode_job_id, source_dir, transcode_task_ids: List[int]):
+    def transcode_videos(self, transcode_job_id, source_dir, transcode_task_ids: List[int]):
+        self.job_service.set_error(transcode_job_id, JobErrors.NONE)
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
         original_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value)
 
@@ -75,30 +78,48 @@ class TranscodeService:
         catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
         # We expect that all folders leading up to these leafs will exist, and if not, that an Error should be thrown
-        make_one_dir_ok_exists(optimized_dir_path)
-        make_one_dir_ok_exists(original_dir_path)
+        retry_job = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
+        while retry_job == True:
+            retry_job = False
+            try:
+                make_one_dir_ok_exists(optimized_dir_path)
+                make_one_dir_ok_exists(original_dir_path)
+            except FileNotFoundError as e:
+                # See the task loop for more details on this retry logic
+                retry_job = True
+                print_err(str(e))
+                self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                self.job_service.set_job_status(transcode_job_id)
+                time.sleep(RETRY_DELAY_SEC)
 
+        self.job_service.set_error(transcode_job_id, JobErrors.NONE)
         for transcode_task_id in transcode_task_ids:
             with tempfile.TemporaryDirectory() as temp_dir:
-                try:
-                    self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
-                    self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                retry_task = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
+                while retry_task == True:
+                    retry_task = False
+                    try:
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.INCOMPLETE)
+                        self.task_service.set_task_error_message(transcode_task_id, '')
+                        self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
 
-                except Exception as e:
-                    print_err(str(e))
-                    self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
-                    self.task_service.set_task_error_message(transcode_task_id, str(e))
+                    except FileNotFoundError as e:
+                        # We catch and retry on this error because it might signal that the user lost internet connection or
+                        # VPN access to one of the output folders. We set an error string on the Job-level for communication to the UI
+                        retry_task = True
+                        print_err(str(e))
+                        self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                        time.sleep(RETRY_DELAY_SEC)
 
-                finally:
-                    self.job_service.set_job_status(transcode_job_id)
+                    except Exception as e:
+                        print_err(str(e))
+                        self.task_service.set_task_progress(transcode_task_id, 0)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
+                        self.task_service.set_task_error_message(transcode_task_id, str(e))
 
-    """
-    Note on @retry decorator:
-      shutil.move() & shutil.copy() will both throw a FileNotFoundError in a number of cases.
-      But the one we are trying to catch is when the user loses internet connection or VPN access to one of the output folders
-      which are expected to be on a Network Drive. When this happens, we want to retry indefinitely until the connection is restored
-    """
-    @retry(exceptions=(FileNotFoundError,), logger=retry_logger)
+                    finally:
+                        self.job_service.set_job_status(transcode_job_id)
+
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
