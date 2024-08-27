@@ -286,12 +286,12 @@ class TranscodeService:
         temp_decode_file = f'{temp_dir}\\temp_{file_name}'
         optimized_output_file = f'{optimized_dir_path}\\{file_name}.jpg'
 
-        if file_extension in self.standard_image_extensions:
+        if file_extension.lower() in self.standard_image_extensions:
             temp_path = f'{temp_decode_file}.png'
             decode_command = self.generate_decode_command_standard(file_path, temp_path)
         else:
             temp_path = f'{temp_decode_file}.ppm'
-            decode_command = self.generate_decode_command_raw(file_path, temp_decode_file)
+            decode_command = self.generate_decode_command_raw(file_path, temp_path)
 
         TranscodeService.run_command_with_terminator(decode_command)
 
