@@ -7,7 +7,7 @@ import ToolTip from '@mui/material/ToolTip'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import TocIcon from '@mui/icons-material/Toc'
 
-import STATUSES from '../constants/statuses'
+import STATUSES, { ERRORS } from '../constants/statuses'
 import { JOB_TYPES } from '../constants/routes'
 import { completionTimeString } from '../utilities/strings'
 import { leafPath } from '../utilities/paths'
@@ -22,15 +22,19 @@ const JobQueueItem = ({
   queueRunning = false,
   firstItem = false,
   lastItem = false,
+  errorMessage = null,
 }) => {
   const theme = useTheme()
   const { data, completedDate, progress } = info
   const { deleteJob } = actions
 
   const name = leafPath(data.source_dir)
+  const hasVisibleJobError = queueRunning && firstItem && ERRORS.has(errorMessage)
 
   let itemOutline = 'none'
-  if (status !== STATUSES.COMPLETED && queueRunning && firstItem) {
+  if (hasVisibleJobError) {
+    itemOutline = `1px solid ${theme.palette.error.main}`
+  } else if (status !== STATUSES.COMPLETED && queueRunning && firstItem) {
     itemOutline = `1px solid ${theme.palette.secondary.main}`
   }
 
@@ -143,6 +147,11 @@ const JobQueueItem = ({
       <Box sx={{ fontFamily: theme.typography.monoFamily }}>
         {name} &mdash; {numTasks} {JOB_TYPES[type]}
         {secondarySection}
+        {hasVisibleJobError && (
+          <Box sx={{ fontSize: '12px', lineHeight: '14px', color: 'error.main' }}>
+            {ERRORS.get(errorMessage)?.summary}
+          </Box>
+        )}
       </Box>
 
       <Box sx={{ flexGrow: 1 }} />

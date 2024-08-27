@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 
-// import { valueSetter } from './utils'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import STATUSES from '../constants/statuses'
@@ -41,17 +40,17 @@ const useQueueStore = create((set, get) => ({
     const { incompleteJobs } = get()
     if (incompleteJobs.length === 0) return
     const activeJob = incompleteJobs[0]
-    const [newStatus, newTasks] = await Promise.all([
-      ingestAPI.jobStatus(activeJob.id),
+    const [newJobData, newTasks] = await Promise.all([
+      ingestAPI.getJob(activeJob.id),
       ingestAPI.taskStatusesForJob(activeJob.id),
     ])
 
     let updatedJobs = {}
-    if (newStatus === STATUSES.COMPLETED) {
+    const updatedJob = { ...activeJob, ...newJobData, tasks: newTasks }
+
+    if (newJobData.status === STATUSES.COMPLETED) {
       // Here we watch for a new completion and move the job between lists, instead of reloading both lists from backend
       // We reduce the completeJobs set so that if it's at a multiple of 10, it will remain so, which is related to the Load More logic
-      const updatedJobData = await ingestAPI.getJob(activeJob.id)
-      const updatedJob = { ...activeJob, ...updatedJobData, tasks: newTasks }
       const { completeJobs } = get()
       const existingCompleteJobs =
         completeJobs.length % 10 === 0
@@ -62,14 +61,13 @@ const useQueueStore = create((set, get) => ({
         completeJobs: [updatedJob, ...existingCompleteJobs],
       }
     } else {
-      const updatedJob = { ...activeJob, status: newStatus, tasks: newTasks }
       updatedJobs = { incompleteJobs: [updatedJob, ...incompleteJobs.slice(1)] }
     }
 
     set(updatedJobs)
   },
 
-  startRunningChecker: ({ trigerredBySchedule = false }) => {
+  startRunningChecker: (trigerredBySchedule = false) => {
     const LOOP_PERIOD_MS = 1000
     const checkerLoop = async () => {
       const { isRunning: prevIsRunning } = get()
@@ -116,7 +114,7 @@ const useQueueStore = create((set, get) => ({
     const schedule = await queueAPI.getSchedule()
     set({ schedule })
     if (schedule != null) {
-      get().startRunningChecker({ trigerredBySchedule: true })
+      get().startRunningChecker(true)
     }
   },
 }))
@@ -138,5 +136,13 @@ const canStart = (state) => {
   return true
 }
 
-export { canStart }
+const isQueueStagnant = (state) => {
+  const { incompleteJobs, isRunning, schedule } = state
+  if (incompleteJobs.length > 0 && isRunning === false && schedule == null) {
+    return true
+  }
+  return false
+}
+
+export { canStart, isQueueStagnant }
 export default useQueueStore
