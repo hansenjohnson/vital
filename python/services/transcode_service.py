@@ -279,14 +279,13 @@ class TranscodeService:
 
         file_path = transcode_settings.file_path
         local_export_path = transcode_settings.local_export_path
-
         jpeg_quality = transcode_settings.jpeg_quality
 
+        # Prepare filepath variables
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
-
-        temp_decode_file = f'{temp_dir}\\temp_{file_name}'
-        optimized_output_file = f'{optimized_dir_path}\\{file_name}.jpg'
+        temp_decode_file = os.path.join(temp_dir, f'temp_{file_name}')
+        optimized_output_file = os.path.join(optimized_dir_path, f'{file_name}.jpg')
 
         if file_extension.lower() in self.standard_image_extensions:
             temp_path = f'{temp_decode_file}.png'
@@ -298,13 +297,11 @@ class TranscodeService:
         TranscodeService.run_command_with_terminator(decode_command)
 
         encode_command = self.generate_encode_command(temp_path, optimized_output_file, jpeg_quality)
-
         TranscodeService.run_command_with_terminator(encode_command)
 
+        # Official Outputs
         shutil.copy(file_path, original_dir_path)
-
         shutil.copy(optimized_output_file, optimized_dir_path)
-
         shutil.copy(optimized_output_file, local_export_path)
 
         self.task_service.set_task_progress(transcode_task_id, 100)

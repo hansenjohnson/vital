@@ -101,7 +101,7 @@ const LinkageAnnotationPage = () => {
         group.mediaList.map((media) => ({
           file_path: media.filePath,
           new_name: media.newName,
-          local_export_path: '', // placeholder
+          local_export_path: '', // placeholder  // TODO!!!
           jpeg_quality: 69, // placeholder
         }))
       )
