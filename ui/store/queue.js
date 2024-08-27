@@ -136,5 +136,13 @@ const canStart = (state) => {
   return true
 }
 
-export { canStart }
+const isQueueStagnant = (state) => {
+  const { incompleteJobs, isRunning, schedule } = state
+  if (incompleteJobs.length > 0 && isRunning === false && schedule == null) {
+    return true
+  }
+  return false
+}
+
+export { canStart, isQueueStagnant }
 export default useQueueStore

@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+import Fade from '@mui/material/Fade'
 
 import TOOLS from '../constants/tools'
 import ROUTES, { JOB_MODES, JOB_PHASES } from '../constants/routes'
-
 import useStore from '../store'
 import useJobStore, { canParse } from '../store/job'
+import useQueueStore, { isQueueStagnant } from '../store/queue'
+
 import ToolButton from '../components/ToolButton'
 import Sidebar from '../components/Sidebar'
 import DescriptionBox from '../components/DescriptionBox'
@@ -35,6 +39,8 @@ const ToolsContainer = () => {
     parseButtonText = `Review ${jobMode[0].toUpperCase() + jobMode.slice(1)}s`
   }
 
+  const queueStagnant = useQueueStore(isQueueStagnant)
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       {/* Tool Selector */}
@@ -49,6 +55,14 @@ const ToolsContainer = () => {
           selected={tool === TOOLS.LINK_ANNOTATE}
           onClick={() => setTool(TOOLS.LINK_ANNOTATE)}
         />
+        <Box sx={{ flexGrow: 1 }} />
+        <Fade in={queueStagnant}>
+          <Alert severity="info" variant="standard">
+            <AlertTitle>Notice</AlertTitle>
+            You have incomplete jobs in the queue but the queue is not running, nor do you have a
+            schedule set.
+          </Alert>
+        </Fade>
       </Sidebar>
 
       {/* Contents of Tool View */}
