@@ -83,7 +83,9 @@ class TranscodeService:
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
 
-        catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
+        catalog_folder_id = None
+        if (media_type == MediaType.VIDEO):
+            catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
         # We expect that all folders leading up to these leafs will exist, and if not, that an Error should be thrown
         retry_job = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
@@ -270,7 +272,7 @@ class TranscodeService:
                 )
                 self.task_service.set_task_progress(transcode_task_id, new_absolute_progress)
         return line_callback
-    
+
 
     def transcode_image(self, optimized_dir_path, original_dir_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
@@ -307,7 +309,7 @@ class TranscodeService:
 
         self.task_service.set_task_progress(transcode_task_id, 100)
         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
-    
+
     def generate_decode_command_standard(self, input_path, temp_path):
         # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
         # temp_path should end in .png
