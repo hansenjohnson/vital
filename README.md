@@ -21,16 +21,24 @@ Server Frameworks: Flask, SQLite
 **Add 3rd Party Executables**
 
 - Download ffmpeg (https://github.com/BtbN/FFmpeg-Builds/releases)
-  - Unzip the prebuilt package
+  - Unzip
   - Move `bin/ffmpeg.exe` to `python/resources`
   - Move `bin/ffprobe.exe` to `python/resources`
 - Build mp4box using Visual Studio, follow these instructions: https://wiki.gpac.io/Build/build/GPAC-Build-Guide-for-Windows/
   - Move the built `mp4box.exe` to `python/resources`
 - Download exiftool (https://exiftool.org/)
-  - Unzip the prebuilt package
+  - Unzip
   - rename `exiftool(-k).exe` to `exiftool.exe`
   - Move `exiftool.exe` to `python/resources`
   - Move folder `exiftool_files` to `python/resources`
+- Download the latest mozjpeg build from https://github.com/garyzyg/mozjpeg-windows/releases
+  - Unzip
+  - Move `cjpeg-static.exe` to `python/resources`
+- Download the latest LibRaw from https://www.libraw.org/download
+  - Unzip
+  - Navigate into `.\LibRaw-X.X.X\bin\
+  - Move `dcraw_emu.exe` to `python/resources`
+  - Move `libraw.dll` to `python/resources`
 
 **Install Source Code Dependencies**
 
