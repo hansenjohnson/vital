@@ -43,6 +43,8 @@ def execute_jobs():
 
                 job_data = json.loads(job["data"])
                 source_dir = job_data["source_dir"]
+                media_type = job_data["media_type"].upper()
+                local_export_path = job_data["local_export_path"]
 
                 tasks = task_service.get_tasks_by_job_id(job["id"])
 
@@ -50,11 +52,14 @@ def execute_jobs():
                 for task in tasks:
                     if task.status != TaskStatus.COMPLETED.value:
                         non_complete_task_ids.append(task.id)
-          
 
-                media_type = MediaType[json.loads(job['data'])['media_type'].upper()]
-
-                transcode_service.transcode_media(job["id"], source_dir, media_type, non_complete_task_ids)
+                transcode_service.transcode_media(
+                    job["id"],
+                    source_dir,
+                    local_export_path,
+                    MediaType[media_type],
+                    non_complete_task_ids,
+                )
     except Exception as e:
         print_err(f"Failed excecuting jobs: {e}")
         raise e

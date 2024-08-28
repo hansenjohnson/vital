@@ -8,13 +8,11 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import TocIcon from '@mui/icons-material/Toc'
 
 import STATUSES, { ERRORS } from '../constants/statuses'
-import { JOB_TYPES } from '../constants/routes'
 import { completionTimeString } from '../utilities/strings'
 import { leafPath } from '../utilities/paths'
 
 const JobQueueItem = ({
   id,
-  type,
   status,
   numTasks,
   info = {},
@@ -28,6 +26,7 @@ const JobQueueItem = ({
   const { data, completedDate, progress } = info
   const { deleteJob } = actions
 
+  const type = data.media_type
   const name = leafPath(data.source_dir)
   const hasVisibleJobError = queueRunning && firstItem && ERRORS.has(errorMessage)
 
@@ -145,7 +144,8 @@ const JobQueueItem = ({
       }}
     >
       <Box sx={{ fontFamily: theme.typography.monoFamily }}>
-        {name} &mdash; {numTasks} {JOB_TYPES[type]}
+        {name} &mdash; {numTasks} {type}
+        {numTasks > 1 ? 's' : ''}
         {secondarySection}
         {hasVisibleJobError && (
           <Box sx={{ fontSize: '12px', lineHeight: '14px', color: 'error.main' }}>

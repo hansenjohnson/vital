@@ -36,9 +36,11 @@ Server Frameworks: Flask, SQLite
   - Move `cjpeg-static.exe` to `python/resources`
 - Download the latest LibRaw from https://www.libraw.org/download
   - Unzip
-  - Navigate into `.\LibRaw-X.X.X\bin\
-  - Move `dcraw_emu.exe` to `python/resources`
-  - Move `libraw.dll` to `python/resources`
+  - Move `bin/dcraw_emu.exe` to `python/resources`
+  - Move `bin/libraw.dll` to `python/resources`
+- Download the latest Imagemagick of type: "Portable Win64 static at 8 bits-per-pixel component." from https://imagemagick.org/script/download.php#windows
+  - Unzip
+  - Move `magick.exe` to `python/resources`
 
 **Install Source Code Dependencies**
 
