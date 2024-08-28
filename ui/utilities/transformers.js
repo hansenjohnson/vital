@@ -182,25 +182,25 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
   const statefulGrouping = [...grouped.entries()]
     .map(([subfolder, mediaList]) => {
       // TODO: make these image/video agnostic
-      const hasPathError = mediaList.some((m) => m.errors.includes('VIDEO_PATH_ERROR'))
-      const hasPathWarning = mediaList.some((m) => m.warnings.includes('VIDEO_PATH_WARNING'))
+      const hasPathError = mediaList.some((m) => m.errors.includes('MEDIA_PATH_ERROR'))
+      const hasPathWarning = mediaList.some((m) => m.warnings.includes('MEDIA_PATH_WARNING'))
 
       let status = STATUSES.SUCCESS
       let statusText = null
       let filteredMediaList = mediaList
       if (hasPathError) {
         status = STATUSES.ERROR
-        statusText = ERRORS.get('VIDEO_PATH_ERROR').message
+        statusText = ERRORS.get('MEDIA_PATH_ERROR').message
         filteredMediaList = mediaList.map((media) => ({
           ...media,
-          errors: media.errors.filter((e) => e !== 'VIDEO_PATH_ERROR'),
+          errors: media.errors.filter((e) => e !== 'MEDIA_PATH_ERROR'),
         }))
       } else if (hasPathWarning) {
         status = STATUSES.WARNING
-        statusText = WARNINGS.get('VIDEO_PATH_WARNING').message
+        statusText = WARNINGS.get('MEDIA_PATH_WARNING').message
         filteredMediaList = mediaList.map((media) => ({
           ...media,
-          warnings: media.warnings.filter((e) => e !== 'VIDEO_PATH_WARNING'),
+          warnings: media.warnings.filter((e) => e !== 'MEDIA_PATH_WARNING'),
         }))
       }
 
