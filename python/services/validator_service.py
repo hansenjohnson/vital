@@ -2,13 +2,16 @@ import os
 
 from datetime import datetime
 from data.validation_status import ValidationStatus
+from services.metadata_service import MediaType
+
+from utils.prints import print_out
 
 class ValidatorService:
 
 
     LENGTH_ERROR = 'LENGTH_ERROR'
-    VIDEO_PATH_WARNING = 'VIDEO_PATH_WARNING'
-    VIDEO_PATH_ERROR = 'VIDEO_PATH_ERROR'
+    MEDIA_PATH_WARNING = 'MEDIA_PATH_WARNING'
+    MEDIA_PATH_ERROR = 'MEDIA_PATH_ERROR'
 
     INCORRECT_CREATED_TIME = 'INCORRECT_CREATED_TIME'
 
@@ -16,51 +19,52 @@ class ValidatorService:
 
     MAX_LENGTH = 20
 
-    def validate_video(self, source_dir, video_metadata):
+    def validate_media(self, source_dir, media_metadata, media_type):
         validation_status = ValidationStatus()
 
-        if not self.validate_length(video_metadata.file_path):
+        if not self.validate_length(media_metadata.file_path):
             validation_status.errors.append(self.LENGTH_ERROR)
 
-        if not self.validate_video_date(source_dir, video_metadata):
+        if not self.validate_media_date(source_dir, media_metadata):
             validation_status.warnings.append(self.INCORRECT_CREATED_TIME)
 
-        validate_path = self.validate_path(source_dir, video_metadata.file_path)
+        validate_path = self.validate_path(source_dir, media_metadata.file_path, media_type)
 
-        if validate_path == self.VIDEO_PATH_WARNING:
-            validation_status.warnings.append(self.VIDEO_PATH_WARNING)
+        if validate_path == self.MEDIA_PATH_WARNING:
+            validation_status.warnings.append(self.MEDIA_PATH_WARNING)
 
-        if validate_path == self.VIDEO_PATH_ERROR:
-            validation_status.errors.append(self.VIDEO_PATH_ERROR)
+        if validate_path == self.MEDIA_PATH_ERROR:
+            validation_status.errors.append(self.MEDIA_PATH_ERROR)
 
         return validation_status
 
 
-    def validate_length(self, video_path):
-        return len(os.path.basename(video_path)) <= self.MAX_LENGTH
+    def validate_length(self, media_path):
+        return len(os.path.basename(media_path)) <= self.MAX_LENGTH
 
 
-    def validate_video_date(self, source_dir, video_metadata):
+    def validate_media_date(self, source_dir, media_metadata):
         folder_name = os.path.basename(source_dir)
 
         date_string = '-'.join(folder_name.split('-')[:3])
         folder_date = datetime.strptime(date_string, "%Y-%m-%d").date()
 
-        video_creation_date = datetime.fromtimestamp(video_metadata.created_date).date()
+        media_creation_date = datetime.fromtimestamp(media_metadata.created_date).date()
 
-        video_modification_date = datetime.fromtimestamp(video_metadata.modified_date).date()
+        media_modification_date = datetime.fromtimestamp(media_metadata.modified_date).date()
 
-        return (folder_date == video_creation_date) or (folder_date == video_modification_date)
+        return (folder_date == media_creation_date) or (folder_date == media_modification_date)
 
 
-    def validate_path(self, source_dir, video_path):
-        if self.is_direct_parent(source_dir, video_path):
+    def validate_path(self, source_dir, media_path, media_type):
+        if self.is_direct_parent(source_dir, media_path):
             return self.VALID
 
-        if self.is_second_descendant(source_dir, video_path):
-            return self.VIDEO_PATH_WARNING
+        if self.is_second_descendant(source_dir, media_path):
+            if media_type == MediaType.VIDEO:
+                return self.MEDIA_PATH_WARNING
 
-        return self.VIDEO_PATH_ERROR
+        return self.MEDIA_PATH_ERROR
 
 
     def is_direct_parent(self, source_dir, file_path):

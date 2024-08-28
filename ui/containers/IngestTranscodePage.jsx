@@ -97,7 +97,14 @@ const LinkageAnnotationPage = () => {
       )
       setSettingsList(settingsList)
     } else {
-      // FUTURE: handle setting image conversion settings here
+      const settingsList = mediaGroups.flatMap((group) =>
+        group.mediaList.map((media) => ({
+          file_path: media.filePath,
+          new_name: media.newName,
+          jpeg_quality: 69, // placeholder
+        }))
+      )
+      setSettingsList(settingsList)
     }
     setPhase(JOB_PHASES.EXECUTE)
   }

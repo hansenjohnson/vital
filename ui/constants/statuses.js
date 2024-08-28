@@ -10,7 +10,7 @@ WARNINGS.set('INCORRECT_CREATED_TIME', {
 })
 
 const ERRORS = new Map()
-ERRORS.set('VIDEO_PATH_ERROR', {
+ERRORS.set('MEDIA_PATH_ERROR', {
   message: 'subfolder is too deeply nested',
   summary: 'Subfolder too deep',
   groupLevel: true,

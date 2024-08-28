@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 from data.validation_status import ValidationStatus
 
 @dataclass
-class VideoMetadata:
+class MediaMetadata:
     file_name: str
     file_path: str
     width: str

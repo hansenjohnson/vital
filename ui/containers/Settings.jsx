@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import Alert from '@mui/material/Alert'
-import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import CloseIcon from '@mui/icons-material/Close'
@@ -9,6 +8,7 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 
@@ -246,7 +246,7 @@ const SettingsContainer = () => {
           }}
         />
 
-        <Box mb={1} />
+        <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
 
         <FilePathSettingInput
           label="Base Folder of Optimized Videos"
@@ -278,8 +278,38 @@ const SettingsContainer = () => {
             setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS, filePath)
           }}
         />
+        <FilePathSettingInput
+          label="Base Folder of Optimized Images"
+          value={settings[SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES]}
+          error={SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES in errors}
+          errorMessage={errors[SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES]}
+          onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES)}
+          onFolderClick={async () => {
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES]
+            )
+            if (!filePath) return
+            setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES, filePath)
+          }}
+        />
+        <FilePathSettingInput
+          label="Base Folder of Original Images"
+          value={settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES]}
+          error={SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES in errors}
+          errorMessage={errors[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES]}
+          onChange={handleChangeFor(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES)}
+          onFolderClick={async () => {
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.FOLDER,
+              settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES]
+            )
+            if (!filePath) return
+            setOneSetting(SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES, filePath)
+          }}
+        />
 
-        <Box mb={1} />
+        <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
 
         <FilePathSettingInput
           label="Thumbnails Folder"

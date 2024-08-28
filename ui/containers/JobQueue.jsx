@@ -166,7 +166,7 @@ const JobQueue = () => {
         <Typography variant="h6">Incomplete Jobs</Typography>
         {incompleteJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
         {incompleteJobs.map((job, index) => {
-          const { id, type, status, data, error_message } = job
+          const { id, status, data, error_message } = job
           const jobCompletionAbsolute = job.tasks.reduce(
             (acc, task) => acc + task.size * (task.progress / 100),
             0
@@ -176,7 +176,6 @@ const JobQueue = () => {
             <JobQueueItem
               key={id}
               id={id}
-              type={type}
               status={status}
               numTasks={job.tasks.length}
               info={{
@@ -201,12 +200,11 @@ const JobQueue = () => {
 
         <TransitionGroup>
           {completeJobs.map((job, index) => {
-            const { id, type, status, completed_date, data } = job
+            const { id, status, completed_date, data } = job
             return (
               <Collapse key={id}>
                 <JobQueueItem
                   id={id}
-                  type={type}
                   status={status}
                   numTasks={job.tasks.length}
                   info={{

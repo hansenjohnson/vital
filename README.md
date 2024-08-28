@@ -17,17 +17,38 @@ Server Frameworks: Flask, SQLite
 - Install python >= `3.12`
 - Install nodejs >= `20.11`
 - `git clone` this repository
+
+**Add 3rd Party Executables**
+
 - Download ffmpeg (https://github.com/BtbN/FFmpeg-Builds/releases)
-  - Unzip the prebuilt package
+  - Unzip
   - Move `bin/ffmpeg.exe` to `python/resources`
   - Move `bin/ffprobe.exe` to `python/resources`
 - Build mp4box using Visual Studio, follow these instructions: https://wiki.gpac.io/Build/build/GPAC-Build-Guide-for-Windows/
   - Move the built `mp4box.exe` to `python/resources`
+- Download exiftool (https://exiftool.org/)
+  - Unzip
+  - rename `exiftool(-k).exe` to `exiftool.exe`
+  - Move `exiftool.exe` to `python/resources`
+  - Move folder `exiftool_files` to `python/resources`
+- Download the latest mozjpeg build from https://github.com/garyzyg/mozjpeg-windows/releases
+  - Unzip
+  - Move `cjpeg-static.exe` to `python/resources`
+- Download the latest LibRaw from https://www.libraw.org/download
+  - Unzip
+  - Move `bin/dcraw_emu.exe` to `python/resources`
+  - Move `bin/libraw.dll` to `python/resources`
+- Download the latest Imagemagick of type: "Portable Win64 static at 8 bits-per-pixel component." from https://imagemagick.org/script/download.php#windows
+  - Unzip
+  - Move `magick.exe` to `python/resources`
 
-**Running**
+**Install Source Code Dependencies**
 
 - `npm install`
 - `pip install -r requirements.txt`
+
+**Running**
+
 - `npm start`
 
 ## Production

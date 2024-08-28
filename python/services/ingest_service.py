@@ -1,14 +1,15 @@
 import os
-import subprocess
-import json
 import threading
-import sys
 
-from data.video_medatadata import VideoMetadata
+from enum import Enum
 
 from services.job_service import JobService
 from services.validator_service import ValidatorService
 from model.ingest.job_model import JobType, JobStatus
+
+from services.metadata_service import MediaType
+from services.video_metadata_service import VideoMetadataService
+from services.image_metadata_service import ImageMetadataService
 
 from utils.prints import print_err, print_out
 
@@ -19,33 +20,33 @@ class IngestService:
         self.video_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv', '.ts', '.m4v']
         self.image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff', '.orf', '.cr2', '.dng', '.nef']
 
-        base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-        self.ffprobe_path = os.path.join(base_dir, 'resources', 'ffprobe.exe')
-        if not os.path.isfile(self.ffprobe_path):
-            print_err(f"ffprobe_path.exe does not exist at {self.ffprobe_path}")
-            raise FileNotFoundError(f"ffprobe_path.exe does not exist at {self.ffprobe_path}")
-
         self.job_service = JobService()
         self.validator_service = ValidatorService()
 
-    def create_parse_video_job(self, source_dir):
+
+    def create_parse_media_job(self, source_dir, media_type):
         job_id = self.job_service.create_job(JobType.METADATA, JobStatus.INCOMPLETE)
-        threading.Thread(target=self.parse_videos, args=(job_id, source_dir,)).start()
+        threading.Thread(target=self.parse_media, args=(job_id, source_dir, media_type)).start()
         return job_id
 
 
-    def parse_videos(self, job_id, source_dir):
-        video_files = self.get_files(source_dir, self.video_extensions)
+    def parse_media(self, job_id, source_dir, media_type):
+        if (media_type == MediaType.VIDEO):
+            files = self.get_files(source_dir, self.video_extensions)
+            media_service = VideoMetadataService()
+        else:
+            files = self.get_files(source_dir, self.image_extensions)
+            media_service = ImageMetadataService()
 
-        video_metadata_arr = []
-        for video_path in video_files:
+        metadata = []
+        for file_path in files:
             # TODO: handle case of ffprobe_metadata failing with relation to reporting that error on UI
-            video_metadata = self.ffprobe_metadata(video_path)
-            video_metadata.validation_status = self.validator_service.validate_video(source_dir, video_metadata)
+            media_metadata = media_service.parse_metadata(file_path)
+            media_metadata.validation_status = self.validator_service.validate_media(source_dir, media_metadata, media_type)
 
-            video_metadata_arr.append(video_metadata.to_dict())
+            metadata.append(media_metadata.to_dict())
 
-        self.job_service.store_job_data(job_id, video_metadata_arr)
+        self.job_service.store_job_data(job_id, metadata)
 
 
     def get_files(self, source_dir, extensions):
@@ -59,67 +60,7 @@ class IngestService:
                     found_files.append(os.path.join(root, filename))
 
         return found_files
-
-    def ffprobe_metadata(self, video_path, start_number=None):
-        command = [
-            self.ffprobe_path,
-            "-loglevel",
-            "panic",
-            "-hide_banner",
-            "-show_streams",
-            "-select_streams",
-            "v",
-            "-print_format",
-            "json",
-            video_path,
-        ]
-        if start_number:
-            command.extend(["-start_number", str(start_number)])
-        print_out(f'Running ffprobe command: {" ".join(command)}')
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        metadata_json, error = process.communicate()
-        if error:
-            print_err.error("ffprobe error: %s", error)
-
-        metadata_obj = json.loads(metadata_json)
-        try:
-            metadata = metadata_obj["streams"][0]
-        except KeyError:
-            print_err("No FFprobe metadata was found at path %s", video_path)
-            return None
-
-        frame_rate = self.parse_frame_rate_str(metadata.get("r_frame_rate"))
-        num_frames = self.calculate_num_frames(metadata, frame_rate)
-        return VideoMetadata(
-            file_name=os.path.basename(video_path),
-            file_path=video_path,
-            width=metadata['width'],
-            height=metadata['height'],
-            duration=metadata['duration'],
-            num_frames=num_frames,
-            frame_rate=frame_rate,
-            size=os.path.getsize(video_path),
-            created_date=os.path.getctime(video_path),
-            modified_date=os.path.getmtime(video_path),
-            validation_status=None
-        )
-
-    def parse_frame_rate_str(self, frame_rate_str):
-        if frame_rate_str:
-            rates = frame_rate_str.split("/")
-            if len(rates) > 1:
-                rate = float(rates[0]) / float(rates[1])
-            else:
-                rate = float(rates[0])
-            return str(rate)
-        return ""
-
-    def calculate_num_frames(self, metadata, frame_rate):
-        if 'nb_frames' in metadata:
-            return int(metadata['nb_frames'])
-        else:
-            duration = float(metadata['duration'])
-            return int(duration * float(frame_rate))
+    
 
     def count_media(self, source_dir):
         video_files_count = len(self.get_files(source_dir, self.video_extensions))

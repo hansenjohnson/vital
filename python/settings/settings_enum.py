@@ -14,6 +14,9 @@ class SettingsEnum(Enum):
     BASE_FOLDER_OF_VIDEOS = 'base_folder_of_videos'
     BASE_FOLDER_OF_ORIGINAL_VIDEOS = 'base_folder_of_original_videos'
 
+    BASE_FOLDER_OF_OPTIMIZED_IMAGES = 'base_folder_of_optimized_images'
+    BASE_FOLDER_OF_ORIGINAL_IMAGES = 'base_folder_of_original_images'
+
     @classmethod
     def has_value(cls, value):
         return value in cls._value2member_map_
