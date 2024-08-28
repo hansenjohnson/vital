@@ -40,7 +40,9 @@ class ValidatorService:
 
 
     def validate_length(self, media_path):
-        return len(os.path.basename(media_path)) <= self.MAX_LENGTH
+        basename = os.path.basename(media_path)
+        name_no_ext = os.path.splitext(basename)[0]
+        return len(name_no_ext) <= self.MAX_LENGTH
 
 
     def validate_media_date(self, source_dir, media_metadata):
