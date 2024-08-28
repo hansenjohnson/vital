@@ -119,15 +119,23 @@ def str_to_bool(value):
     return value.lower() == 'true'
 
 
-@bp.route('/compress_images', methods=["POST"])
-def compress_images():
+@bp.route('/sample', methods=["POST"])
+def create_sample_images():
     try:
         payload = request.json
         small_image_file_path = payload.get('small_image_file_path', None)
         medium_image_file_path = payload.get('medium_image_file_path', None)
         large_image_file_path = payload.get('large_image_file_path', None)
         
-        job_id = transcode_service.run_compress_images(small_image_file_path, medium_image_file_path, large_image_file_path)
+        job_id = transcode_service.create_sample_images(small_image_file_path, medium_image_file_path, large_image_file_path)
         return jsonify({"job_id": job_id}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@bp.route('/sample', methods=["DELETE"])
+def delete_sample_images():
+    try:
+        transcode_service.delete_sample_images()
+        return jsonify(), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

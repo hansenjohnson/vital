@@ -51,6 +51,7 @@ class TranscodeService:
     MEDIUM_JPEG_QUALITY = 50
     HIGH_JPEG_QUALITY = 90
     MAX_JPEG_QUALITY = 100
+    TEMP_SAMPLE_DIR = 'temp'
 
     def __init__(self):
         self.job_service = JobService()
@@ -92,11 +93,11 @@ class TranscodeService:
 
         return transcode_job_id    
     
-    def run_compress_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
+    def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
         job_id = self.job_service.create_job(JobType.TRANSCODE, JobStatus.INCOMPLETE, {
                 "source_dir": '',
                 "media_type": MediaType.IMAGE.value,
-                "local_export_path": '',
+                "local_export_path": ''
             })
 
         if small_image_file_path:
@@ -114,13 +115,16 @@ class TranscodeService:
         max_quality_transcode_settings = TranscodeSettings(file_path=medium_image_file_path, jpeg_quality=self.MAX_JPEG_QUALITY)
         self.task_service.create_task(job_id, max_quality_transcode_settings)
 
-        threading.Thread(target=self.compress_images, args=(job_id,)).start()
+        threading.Thread(target=self.run_sample_tasks, args=(job_id,)).start()
         return job_id
 
-    def compress_images(self, transcode_job_id):
+    def run_sample_tasks(self, transcode_job_id):
         thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
 
         tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
+
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        os.makedirs(temp_sample_dir, exist_ok=True)
 
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -135,7 +139,7 @@ class TranscodeService:
                         
                         output_file_path_jpeg = f'{file_path}_{str(jpeg_quality)}{file_extension}'
                         os.rename(output_file_path, output_file_path_jpeg)
-                        shutil.copy(output_file_path_jpeg, thumbnail_dir)
+                        shutil.copy(output_file_path_jpeg, temp_sample_dir)
 
                     except Exception as e:
                         print_err(str(e))
@@ -147,6 +151,12 @@ class TranscodeService:
             self.job_service.set_job_status(transcode_job_id)
 
 
+    def delete_sample_images(self):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+
+        shutil.rmtree(temp_sample_dir)
+        
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
