@@ -31,8 +31,6 @@ const SettingsContainer = () => {
     useShallow((state) => [state.settings, state.setOneSetting, state.loadSettings])
   )
 
-  const [errors, setErrors] = useState({})
-
   const version = window.api.getVersion()
 
   // Determine if settings are initialized, open the dialog otherwise
@@ -88,6 +86,7 @@ const SettingsContainer = () => {
   const handleChangeFor = (settingName) => (event) => setOneSetting(settingName, event.target.value)
 
   const [submitting, setSubmitting] = useState(false)
+  const [errors, setErrors] = useState({})
   const handleSubmit = async () => {
     setSubmitting(true)
     setErrors({})

@@ -29,14 +29,7 @@ def create_or_update_setting():
         setting_type = request.json['setting_type']
         print_out(f'attentpting to save setting: {key} | {value}')
 
-        if setting_type == 'folder' and not os.path.isdir(value):
-            raise Exception(f"Folder does not exist")
-
-        if setting_type == 'excel':
-            if not value.endswith('.xlsx'):
-                raise Exception(f"File is not an xlsx file")
-            if not os.path.isfile(value):
-                raise Exception(f"File does not exist")
+        settings_service.validate_setting(key, value, setting_type)
 
         settings_service.set_setting(key, value)
         refresh_table_for(key)
