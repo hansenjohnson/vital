@@ -1,10 +1,15 @@
+import json
+
 from model.ingest.task_model import TaskModel
 from data.transcode_settings import TranscodeSettings
 from data.task import TaskStatus
+from model.ingest.job_model import JobModel
+from services.metadata_service import MediaType
 
 class TaskService:
     def __init__(self):
         self.task_model = TaskModel()
+        self.job_model = JobModel()
 
 
     def create_task(self, job_id: int, transcode_settings: TranscodeSettings) -> int:
@@ -14,6 +19,8 @@ class TaskService:
         return self.task_model.get_tasks_by_job_id(job_id)
 
     def get_tasks_statuses_by_job_id(self, job_id: int):
+        job_data = json.loads(self.job_model.get_data(job_id))
+        media_type = MediaType[job_data['media_type'].upper()]
         tasks = self.get_tasks_by_job_id(job_id)
         if len(tasks) == 0:
             return {}
@@ -21,7 +28,7 @@ class TaskService:
             task.id: {
                 "status": task.status,
                 "progress": task.progress,
-                "size": self.get_task_size_for_video(task) if 'num_frames' in task.transcode_settings else 1,
+                "size": self.get_task_size_for_video(task) if media_type == MediaType.VIDEO else 1,
                 "error_message": task.error_message,
             }
             for task in tasks

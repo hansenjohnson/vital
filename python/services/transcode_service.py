@@ -62,8 +62,23 @@ class TranscodeService:
         self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff'] 
         self.raw_image_extensions = ['.orf', '.cr2', '.dng', '.nef']
 
-    def queue_transcode_job(self, source_dir: str, media_type: str, transcode_settings_list: List[TranscodeSettings]) -> int:
-        transcode_job_id = self.job_service.create_job(JobType.TRANSCODE, JobStatus.QUEUED, {"source_dir": source_dir, "media_type": media_type})
+    def queue_transcode_job(
+            self,
+            source_dir: str,
+            local_export_path: str,
+            media_type: str,
+            transcode_settings_list: List[TranscodeSettings]
+        ) -> int:
+        transcode_job_id = self.job_service.create_job(
+            JobType.TRANSCODE,
+            JobStatus.QUEUED,
+            {
+                "source_dir": source_dir,
+                "media_type": media_type,
+                "local_export_path": local_export_path,
+            }
+        )
+
         for transcode_settings_json in transcode_settings_list:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             self.task_service.create_task(transcode_job_id, transcode_settings)
@@ -71,7 +86,7 @@ class TranscodeService:
         return transcode_job_id
 
 
-    def transcode_media(self, transcode_job_id, source_dir, media_type, transcode_task_ids: List[int]):
+    def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
 
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
@@ -115,7 +130,7 @@ class TranscodeService:
                         if (media_type == MediaType.VIDEO):
                             self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
                         else:
-                            self.transcode_image(optimized_dir_path, original_dir_path, transcode_task_id, temp_dir)
+                            self.transcode_image(optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir)
 
                     except FileNotFoundError as e:
                         # We catch and retry on this error because it might signal that the user lost internet connection or
@@ -274,18 +289,17 @@ class TranscodeService:
         return line_callback
 
 
-    def transcode_image(self, optimized_dir_path, original_dir_path, transcode_task_id, temp_dir):
+    def transcode_image(self, optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
         file_path = transcode_settings.file_path
-        local_export_path = transcode_settings.local_export_path
         jpeg_quality = transcode_settings.jpeg_quality
 
         # Prepare filepath variables
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
         temp_decode_file = os.path.join(temp_dir, f'temp_{file_name}')
-        optimized_output_file = os.path.join(optimized_dir_path, f'{file_name}.jpg')
+        optimized_temp_path = os.path.join(temp_dir, f'{file_name}.jpg')
 
         if file_extension.lower() in self.standard_image_extensions:
             temp_path = f'{temp_decode_file}.png'
@@ -295,14 +309,15 @@ class TranscodeService:
             decode_command = self.generate_decode_command_raw(file_path, temp_path)
 
         TranscodeService.run_command_with_terminator(decode_command)
+        self.task_service.set_task_progress(transcode_task_id, 50)
 
-        encode_command = self.generate_encode_command(temp_path, optimized_output_file, jpeg_quality)
+        encode_command = self.generate_encode_command(temp_path, optimized_temp_path, jpeg_quality)
         TranscodeService.run_command_with_terminator(encode_command)
 
         # Official Outputs
         shutil.copy(file_path, original_dir_path)
-        shutil.copy(optimized_output_file, optimized_dir_path)
-        shutil.copy(optimized_output_file, local_export_path)
+        shutil.copy(optimized_temp_path, optimized_dir_path)
+        shutil.copy(optimized_temp_path, local_export_path)
 
         self.task_service.set_task_progress(transcode_task_id, 100)
         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
@@ -312,6 +327,8 @@ class TranscodeService:
         # temp_path should end in .png
         return [
             self.ffmpeg_path,
+            '-v', 'warning',
+            '-stats',
             '-y',
             '-i', input_path,
             '-frames:v', '1',

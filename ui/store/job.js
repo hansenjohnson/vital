@@ -64,8 +64,8 @@ const useJobStore = create((set, get) => ({
   },
 
   triggerExecute: async () => {
-    const { jobMode, sourceFolder, settingsList } = get()
-    await ingestAPI.transcode(sourceFolder, settingsList, jobMode)
+    const { jobMode, sourceFolder, settingsList, localOutputFolder } = get()
+    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder)
 
     // After submitting a new job to the queue, Navigate the user back home,
     // reload the queue data, and reset some of the stores like we do in the Navbar

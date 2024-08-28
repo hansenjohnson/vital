@@ -84,10 +84,11 @@ def task_statuses(job_id):
 def queue_transcode():
     payload = request.json
     try:
-        transcode_list = payload['transcode_list']
-        source_dir = payload['source_dir']
         media_type = payload['media_type']
-        job_id = transcode_service.queue_transcode_job(source_dir, media_type, transcode_list)
+        source_dir = payload['source_dir']
+        local_export_path = payload['local_export_path']
+        transcode_list = payload['transcode_list']
+        job_id = transcode_service.queue_transcode_job(source_dir, local_export_path, media_type, transcode_list)
         return jsonify({"job_id": job_id}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
