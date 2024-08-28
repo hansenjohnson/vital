@@ -52,10 +52,14 @@ class ValidatorService:
         folder_date = datetime.strptime(date_string, "%Y-%m-%d").date()
 
         media_creation_date = datetime.fromtimestamp(media_metadata.created_date).date()
-
         media_modification_date = datetime.fromtimestamp(media_metadata.modified_date).date()
+        media_original_date = datetime.fromtimestamp(media_metadata.original_date).date() if media_metadata.original_date else None
 
-        return (folder_date == media_creation_date) or (folder_date == media_modification_date)
+        return (
+            folder_date == media_creation_date
+            or folder_date == media_modification_date
+            or folder_date == media_original_date
+        )
 
 
     def validate_path(self, source_dir, media_path, media_type):

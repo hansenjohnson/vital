@@ -2,6 +2,7 @@ import os
 import subprocess
 import json
 import sys
+from datetime import datetime
 
 from data.media_medatadata import MediaMetadata
 
@@ -51,6 +52,9 @@ class VideoMetadataService(MetadataService):
 
         frame_rate = self.parse_frame_rate_str(metadata.get("r_frame_rate"))
         num_frames = self.calculate_num_frames(metadata, frame_rate)
+        internal_date = metadata.get('tags', {}).get('creation_time')
+        if internal_date:
+            internal_date = datetime.fromisoformat(internal_date).timestamp()
         return MediaMetadata(
             file_name=os.path.basename(video_path),
             file_path=video_path,
@@ -62,6 +66,7 @@ class VideoMetadataService(MetadataService):
             size=os.path.getsize(video_path),
             created_date=os.path.getctime(video_path),
             modified_date=os.path.getmtime(video_path),
+            original_date=internal_date,
             validation_status=None
         )
 

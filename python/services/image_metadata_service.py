@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import json
+from datetime import datetime
 
 from services.metadata_service import MetadataService
 from data.media_medatadata import MediaMetadata
@@ -30,6 +31,9 @@ class ImageMetadataService(MetadataService):
         except KeyError:
             print_err.error("No Exiftool metadata was found at path %s", file_path)
             return None
+        internal_date = metadata.get('DateTimeOriginal')
+        if internal_date:
+            internal_date = datetime.strptime(internal_date, "%Y:%m:%d %H:%M:%S").timestamp()
         return MediaMetadata(
             file_name=metadata['FileName'],
             file_path=file_path,
@@ -38,6 +42,7 @@ class ImageMetadataService(MetadataService):
             size=os.path.getsize(file_path),
             created_date=os.path.getctime(file_path),
             modified_date=os.path.getmtime(file_path),
+            original_date=internal_date,
             validation_status=None,
             duration=None,
             num_frames=None,

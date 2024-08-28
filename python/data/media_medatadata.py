@@ -14,6 +14,7 @@ class MediaMetadata:
     validation_status: ValidationStatus
     created_date: str
     modified_date: str
+    original_date: str
 
     def to_dict(self):
         return asdict(self)
