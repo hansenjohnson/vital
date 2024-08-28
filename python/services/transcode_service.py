@@ -58,8 +58,9 @@ class TranscodeService:
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
         self.dcraw_emu_path = os.path.join(base_dir, 'resources', 'dcraw_emu.exe')
         self.cjpeg_static = os.path.join(base_dir, 'resources', 'cjpeg-static.exe')
+        self.magick_path = os.path.join(base_dir, 'resources', 'magick.exe')
 
-        self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff'] 
+        self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
         self.raw_image_extensions = ['.orf', '.cr2', '.dng', '.nef']
 
     def queue_transcode_job(
@@ -298,21 +299,22 @@ class TranscodeService:
         # Prepare filepath variables
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
-        temp_decode_file = os.path.join(temp_dir, f'temp_{file_name}')
+        intermediate_temp_path = os.path.join(temp_dir, f'{file_name}.ppm')
         optimized_temp_path = os.path.join(temp_dir, f'{file_name}.jpg')
 
         if file_extension.lower() in self.standard_image_extensions:
-            temp_path = f'{temp_decode_file}.png'
-            decode_command = self.generate_decode_command_standard(file_path, temp_path)
+            command = self.generate_convert_command(file_path, optimized_temp_path, jpeg_quality)
+            TranscodeService.run_command_with_terminator(command)
+
+        elif file_extension.lower() in self.raw_image_extensions:
+            decode_command = self.generate_decode_command_raw(file_path, intermediate_temp_path)
+            encode_command = self.generate_encode_command(intermediate_temp_path, optimized_temp_path, jpeg_quality)
+            TranscodeService.run_command_with_terminator(decode_command)
+            self.task_service.set_task_progress(transcode_task_id, 50)
+            TranscodeService.run_command_with_terminator(encode_command)
+
         else:
-            temp_path = f'{temp_decode_file}.ppm'
-            decode_command = self.generate_decode_command_raw(file_path, temp_path)
-
-        TranscodeService.run_command_with_terminator(decode_command)
-        self.task_service.set_task_progress(transcode_task_id, 50)
-
-        encode_command = self.generate_encode_command(temp_path, optimized_temp_path, jpeg_quality)
-        TranscodeService.run_command_with_terminator(encode_command)
+            raise ValueError(f'Unsupported image file type: {file_extension}')
 
         # Official Outputs
         shutil.copy(file_path, original_dir_path)
@@ -322,22 +324,15 @@ class TranscodeService:
         self.task_service.set_task_progress(transcode_task_id, 100)
         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
-    def generate_decode_command_standard(self, input_path, temp_path):
-        # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
-        # temp_path should end in .png
+    def generate_convert_command(self, input_path, output_path, jpeg_quality):
         return [
-            self.ffmpeg_path,
-            '-v', 'warning',
-            '-stats',
-            '-y',
-            '-i', input_path,
-            '-frames:v', '1',
-            '-update', '1',
-            temp_path,
+            self.magick_path,
+            input_path,
+            '-quality', f'{jpeg_quality}',
+            output_path,
         ]
 
     def generate_decode_command_raw(self, input_path, temp_path):
-        # inputs are ['.orf', '.cr2', '.dng', '.nef']
         # temp_path should end in .ppm
         return [
             self.dcraw_emu_path,
