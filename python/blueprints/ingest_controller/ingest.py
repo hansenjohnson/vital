@@ -124,8 +124,8 @@ def compress_images():
         payload = request.json
         small_image_file_path = payload['small_image_file_path']
         medium_image_file_path = payload['medium_image_file_path']
-        high_quality_file_path = payload['high_quality_file_path']
+        large_image_file_path = payload['large_image_file_path']
         
-        return jsonify(transcode_service.compress_images(small_image_file_path, medium_image_file_path, high_quality_file_path)), 200
+        return jsonify(transcode_service.compress_images(small_image_file_path, medium_image_file_path, large_image_file_path)), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

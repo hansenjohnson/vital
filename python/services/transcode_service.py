@@ -73,7 +73,7 @@ class TranscodeService:
         return transcode_job_id    
 
 
-    def compress_images(self, small_image_file_path, medium_image_file_path, high_image_file_path):
+    def compress_images(self, small_image_file_path, medium_image_file_path, large_image_file_path):
         thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -88,7 +88,7 @@ class TranscodeService:
                 file_path, file_extension = os.path.splitext(output_file_path)
                 os.rename(output_file_path, f'{file_path}_{str(jpeg_quality)}{file_extension}')
 
-                output_file_path = self.create_output_file(thumbnail_dir, temp_dir, high_image_file_path, jpeg_quality)
+                output_file_path = self.create_output_file(thumbnail_dir, temp_dir, large_image_file_path, jpeg_quality)
                 file_path, file_extension = os.path.splitext(output_file_path)
                 os.rename(output_file_path, f'{file_path}_{str(jpeg_quality)}{file_extension}')
 
