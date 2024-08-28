@@ -46,6 +46,8 @@ class TranscodeService:
     }
     PROGRESS_RATIOS = [12, 4, 2, 1]
 
+    JPEG_QUALITIES = [1, 60, 90] # placeholder
+
     def __init__(self):
         self.job_service = JobService()
         self.task_service = TaskService()
@@ -68,7 +70,29 @@ class TranscodeService:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             self.task_service.create_task(transcode_job_id, transcode_settings)
 
-        return transcode_job_id
+        return transcode_job_id    
+
+
+    def compress_images(self, small_image_file_path, medium_image_file_path, high_image_file_path):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for index in range(3):
+                jpeg_quality = self.JPEG_QUALITIES[index]
+                
+                output_file_path = self.create_output_file(thumbnail_dir, temp_dir, small_image_file_path, jpeg_quality)
+                file_path, file_extension = os.path.splitext(output_file_path)
+                os.rename(output_file_path, f'{file_path}_{str(jpeg_quality)}{file_extension}')
+
+                output_file_path = self.create_output_file(thumbnail_dir, temp_dir, medium_image_file_path, jpeg_quality)
+                file_path, file_extension = os.path.splitext(output_file_path)
+                os.rename(output_file_path, f'{file_path}_{str(jpeg_quality)}{file_extension}')
+
+                output_file_path = self.create_output_file(thumbnail_dir, temp_dir, high_image_file_path, jpeg_quality)
+                file_path, file_extension = os.path.splitext(output_file_path)
+                os.rename(output_file_path, f'{file_path}_{str(jpeg_quality)}{file_extension}')
+
+                shutil.copy(small_image_file_path, thumbnail_dir)
 
 
     def transcode_media(self, transcode_job_id, source_dir, media_type, transcode_task_ids: List[int]):
@@ -280,11 +304,24 @@ class TranscodeService:
 
         jpeg_quality = transcode_settings.jpeg_quality
 
+        optimized_output_file = self.create_output_file(optimized_dir_path, temp_dir, file_path, jpeg_quality)
+
+        shutil.copy(file_path, original_dir_path)
+
+        shutil.copy(optimized_output_file, optimized_dir_path)
+
+        shutil.copy(optimized_output_file, local_export_path)
+
+        self.task_service.set_task_progress(transcode_task_id, 100)
+        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+    
+
+    def create_output_file(self, compressed_dir_path, temp_dir, file_path, jpeg_quality):
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
 
         temp_decode_file = f'{temp_dir}\\temp_{file_name}'
-        optimized_output_file = f'{optimized_dir_path}\\{file_name}.jpg'
+        optimized_output_file = f'{compressed_dir_path}\\{file_name}.jpg'
 
         if file_extension.lower() in self.standard_image_extensions:
             temp_path = f'{temp_decode_file}.png'
@@ -298,15 +335,7 @@ class TranscodeService:
         encode_command = self.generate_encode_command(temp_path, optimized_output_file, jpeg_quality)
 
         TranscodeService.run_command_with_terminator(encode_command)
-
-        shutil.copy(file_path, original_dir_path)
-
-        shutil.copy(optimized_output_file, optimized_dir_path)
-
-        shutil.copy(optimized_output_file, local_export_path)
-
-        self.task_service.set_task_progress(transcode_task_id, 100)
-        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+        return optimized_output_file
     
     def generate_decode_command_standard(self, input_path, temp_path):
         # inputs are ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
