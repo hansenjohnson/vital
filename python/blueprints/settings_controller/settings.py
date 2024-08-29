@@ -1,4 +1,3 @@
-import os
 from flask import Blueprint, jsonify, request
 
 from model.association.folder_model import FolderModel
@@ -9,6 +8,7 @@ from model.association.still_export_model import StillExportModel
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err, print_out
+from utils.endpoints import tryable_json_endpoint
 
 bp = Blueprint('settings', __name__)
 settings_service = SettingsService()
@@ -49,30 +49,18 @@ def create_or_update_setting():
 
 
 @bp.route('/open_files', methods=['GET'])
+@tryable_json_endpoint
 def check_for_open_files():
-    try:
-        linkage_model.flush_to_excel()
-        still_export_model.flush_to_excel()
-
-        return '', 200
-    except PermissionError as e:
-        return '', 409
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    linkage_model.flush_to_excel()
+    still_export_model.flush_to_excel()
+    return ''
 
 
 @bp.route('/<key>', methods=['GET'])
+@tryable_json_endpoint
 def get_settings(key=None):
-    response, status = jsonify({"message": "An unexpected error occurred"}), 500
-    try:
-        setting_value = settings_service.get_setting(key)
-        response = jsonify({key: setting_value})
-        status = 200
-    except Exception as e:
-        response = jsonify({"Setting get failed ": str(e)})
-        status = 500
-    finally:
-        return response, status
+    setting_value = settings_service.get_setting(key)
+    return {key: setting_value}
 
 
 def refresh_table_for(setting_key):

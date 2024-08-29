@@ -1,12 +1,14 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 
 from services.still_export_service import StillExportService
+from utils.endpoints import tryable_json_endpoint
 
 bp = Blueprint('still_exports', __name__)
 still_export_service = StillExportService()
 
 
 @bp.route('', methods=['POST'], strict_slashes=False)
+@tryable_json_endpoint
 def create_still_export():
     payload = request.json
     catalog_video_id = payload['CatalogVideoId']
@@ -14,10 +16,5 @@ def create_still_export():
     frame_number = payload['FrameNumber']
     sighting_id = payload['SightingId']
 
-    try:
-        still_export_service.create_still(catalog_video_id, output_image_name, frame_number, sighting_id)
-        return jsonify({"message": "Still export created successfully"}), 200
-    except PermissionError as e:
-        return jsonify({"error": str(e)}), 409
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    still_export_service.create_still(catalog_video_id, output_image_name, frame_number, sighting_id)
+    return {"message": "Still export created successfully"}
