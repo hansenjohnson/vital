@@ -132,10 +132,10 @@ def create_sample_images():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-@bp.route('/sample', methods=["DELETE"])
-def delete_sample_images():
+@bp.route('/sample/<int:job_id>', methods=["DELETE"])
+def delete_sample_images(job_id):
     try:
-        transcode_service.delete_sample_images()
+        transcode_service.delete_sample_images(job_id)
         return jsonify(), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400

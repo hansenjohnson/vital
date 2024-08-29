@@ -17,6 +17,7 @@ class JobStatus(Enum):
 class JobType(Enum):
     METADATA = "METADATA"
     TRANSCODE = "TRANSCODE"
+    SAMPLE = "SAMPLE"
 
 class JobErrors(Enum):
     NONE = None
