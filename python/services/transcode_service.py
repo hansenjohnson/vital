@@ -235,10 +235,12 @@ class TranscodeService:
         if os.path.isdir(folder_to_move_into) == False:
             # shutil.move() does not throw an error if the destination folder does not exist, so we must do it manually
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), folder_to_move_into)
+        print_out(f'Moving {temp_dash_container} into {folder_to_move_into}')
         shutil.move(temp_dash_container, folder_to_move_into)
 
         # Official Output - Copy original file to original directory
         # This should happen after the transcode as it is less likely to fail
+        print_out(f'Copying {original_file} to {expected_original_dir}')
         shutil.copy(original_file, expected_original_dir)
 
         expected_final_full_path = os.path.join(expected_final_dir, output_file_name_mpd)
@@ -323,8 +325,11 @@ class TranscodeService:
             raise ValueError(f'Unsupported image file type: {file_extension}')
 
         # Official Outputs
+        print_out(f'Copying {file_path} into {original_dir_path}')
         shutil.copy(file_path, original_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
         shutil.copy(optimized_temp_path, optimized_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {local_export_path}')
         shutil.copy(optimized_temp_path, local_export_path)
 
         self.task_service.set_task_progress(transcode_task_id, 100)

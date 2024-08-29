@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class SettingsEnum(Enum):
     LINKAGE_FILE_PATH = 'linkage_file_path'
     SIGHTING_FILE_PATH = 'sighting_file_path'
@@ -20,3 +19,12 @@ class SettingsEnum(Enum):
     @classmethod
     def has_value(cls, value):
         return value in cls._value2member_map_
+
+    @classmethod
+    def structured_folders(cls):
+        return [
+            cls.BASE_FOLDER_OF_VIDEOS.value,
+            cls.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value,
+            cls.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value,
+            cls.BASE_FOLDER_OF_ORIGINAL_IMAGES.value,
+        ]

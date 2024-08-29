@@ -1,54 +1,45 @@
-from flask import Blueprint, jsonify, request
-from services.queue_service import schedule_job_run, remove_scheduled_jobs, execute_job_now
+from flask import Blueprint, request
 
+from services.queue_service import schedule_job_run, remove_scheduled_jobs, execute_job_now
 from services.scheduler_service import SchedulerService
+from utils.endpoints import tryable_json_endpoint
 
 bp = Blueprint('queue', __name__)
-
 scheduler_service = SchedulerService()
 
+
 @bp.route('/schedule', methods=['POST'])
+@tryable_json_endpoint
 def schedule():
     payload = request.json
-    try:
-        run_date = payload['run_date']
-        return jsonify(schedule_job_run(run_date)), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    run_date = payload['run_date']
+    return schedule_job_run(run_date)
 
 
 @bp.route('/schedule', methods=["GET"])
+@tryable_json_endpoint
 def get_scheduled_queue():
-    try:
-        scheduled_job = scheduler_service.get_job()
-        scheduled_job_time = None if scheduled_job is None else str(scheduled_job.next_run_time)
-        return jsonify({"scheduled_job": scheduled_job_time}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    scheduled_job = scheduler_service.get_job()
+    scheduled_job_time = None if scheduled_job is None else str(scheduled_job.next_run_time)
+    return {"scheduled_job": scheduled_job_time}
 
 
 @bp.route('/schedule', methods=['DELETE'])
+@tryable_json_endpoint
 def remove_scheduled_queue_run():
-    try:
-        remove_scheduled_jobs()
-        return jsonify("Removed Queued Job"), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    remove_scheduled_jobs()
+    return "Removed Queued Job"
 
 
 @bp.route('/now', methods=['POST'])
+@tryable_json_endpoint
 def now():
-    try:
-        execute_job_now()
-        return jsonify({"message": "queue has been started"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    execute_job_now()
+    return {"message": "queue has been started"}
 
 
 @bp.route('/status', methods=['GET'])
+@tryable_json_endpoint
 def get_queue_status():
-    try:
-        is_running = scheduler_service.get_run_status()
-        return jsonify({"is_running": is_running}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    is_running = scheduler_service.get_run_status()
+    return {"is_running": is_running}

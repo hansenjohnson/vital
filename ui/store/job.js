@@ -114,6 +114,7 @@ const useJobStore = create((set, get) => ({
     set({ batchRenameRules: { ...batchRenameRules, applied: false } })
   },
   processBatchRenameOnString: (string) => {
+    if (!string) return string
     const { batchRenameRules } = get()
     const { trimStart, trimEnd, prefix, suffix, insertText, insertAt, findString, replaceString } =
       batchRenameRules
