@@ -1,5 +1,5 @@
 const WARNINGS = new Map()
-WARNINGS.set('VIDEO_PATH_WARNING', {
+WARNINGS.set('MEDIA_PATH_WARNING', {
   message: 'this is a nested folder',
   summary: 'Nested folder',
   groupLevel: true,

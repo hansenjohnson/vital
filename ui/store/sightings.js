@@ -41,7 +41,7 @@ const getSelectedSightingName = (state) => {
   if (!sighting) return ''
   let name = `${sighting.time} Letter ${sighting.letter}`
   if (sighting.egno) {
-    name += ` EGNo ${sighting.egno}`
+    name += ` Field EGNo ${sighting.egno}`
   }
   return name
 }

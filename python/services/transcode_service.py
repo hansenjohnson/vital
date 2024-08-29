@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import time
 import threading
+import base64
 from subprocess import PIPE
 from typing import List
 
@@ -95,6 +96,24 @@ class TranscodeService:
 
         return transcode_job_id    
     
+    def get_sample_images(self):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+
+        images = []
+
+        for filename in os.listdir(temp_sample_dir):
+            file_path = os.path.join(temp_sample_dir, filename)
+            if os.path.exists(file_path):
+                with open(file_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                    images.append({
+                        'filename': filename,
+                        'image': encoded_string
+                    })
+
+        return images
+    
     def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
         job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
                 "source_dir": '',
@@ -139,10 +158,6 @@ class TranscodeService:
 
                         _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
 
-                        print_out('helloworld', output_file_path)
-                        
-                        print_out('new', new_name)
-                        print_out('temp_ample', temp_sample_dir)
                         os.rename(output_file_path, os.path.join(temp_sample_dir, new_name))
 
                     except Exception as e:
@@ -167,7 +182,7 @@ class TranscodeService:
                 os.remove(os.path.join(temp_sample_dir, file_name))
 
         os.removedirs(temp_sample_dir)
-                
+        return job_id     
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
@@ -317,10 +332,12 @@ class TranscodeService:
         if os.path.isdir(folder_to_move_into) == False:
             # shutil.move() does not throw an error if the destination folder does not exist, so we must do it manually
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), folder_to_move_into)
+        print_out(f'Moving {temp_dash_container} into {folder_to_move_into}')
         shutil.move(temp_dash_container, folder_to_move_into)
 
         # Official Output - Copy original file to original directory
         # This should happen after the transcode as it is less likely to fail
+        print_out(f'Copying {original_file} to {expected_original_dir}')
         shutil.copy(original_file, expected_original_dir)
 
         expected_final_full_path = os.path.join(expected_final_dir, output_file_name_mpd)
@@ -384,12 +401,16 @@ class TranscodeService:
         file_path, optimized_temp_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
 
         # Official Outputs
+        print_out(f'Copying {file_path} into {original_dir_path}')
         shutil.copy(file_path, original_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
         shutil.copy(optimized_temp_path, optimized_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {local_export_path}')
         shutil.copy(optimized_temp_path, local_export_path)
 
         self.task_service.set_task_progress(transcode_task_id, 100)
         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
 
     def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):
         file_path = transcode_settings.file_path
@@ -415,8 +436,6 @@ class TranscodeService:
         else:
             raise ValueError(f'Unsupported image file type: {file_extension}')
         
-        print_out('fp', file_path)
-        print_out('optimized', optimized_temp_path)
         return file_path, optimized_temp_path
 
     def generate_convert_command(self, input_path, output_path, jpeg_quality):

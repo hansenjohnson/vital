@@ -4,7 +4,6 @@ import re
 from datetime import datetime
 
 from settings.settings_service import SettingsService
-from settings.settings_enum import SettingsEnum
 
 from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel

@@ -1,10 +1,11 @@
 import os
-from flask import Blueprint, jsonify, request, send_from_directory
+from flask import Blueprint, request, send_from_directory
 from urllib.parse import unquote_plus
 
 from services.thumbnail_service import ThumbnailService
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
+from utils.endpoints import tryable_json_endpoint
 
 bp = Blueprint('thumbnails', __name__)
 thumbnail_service = ThumbnailService()
@@ -12,14 +13,12 @@ settings_service = SettingsService()
 
 
 @bp.route('/<filepath>', methods=['POST'])
+@tryable_json_endpoint
 def save_thumbnail(filepath):
-    try:
-        blob = request.get_data()
-        filepath_decoded = unquote_plus(filepath)
-        thumbnail_service.write_thumbnail(blob, filepath_decoded)
-        return jsonify('success'), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    blob = request.get_data()
+    filepath_decoded = unquote_plus(filepath)
+    thumbnail_service.write_thumbnail(blob, filepath_decoded)
+    return 'success'
 
 @bp.route('/<filepath>', methods=['GET'])
 def serve_thumbnail(filepath):
