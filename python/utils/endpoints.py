@@ -1,8 +1,10 @@
+import functools
 from flask import jsonify
 
 from utils.prints import print_err
 
 def tryable_json_endpoint(func):
+    @functools.wraps(func)
     def endpoint_handler(*args, **kwargs):
         try:
             response = func(*args, **kwargs)
