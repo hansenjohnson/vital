@@ -157,8 +157,11 @@ class TranscodeService:
                         new_name = transcode_settings.new_name
 
                         _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+                        final_output_path = os.path.join(temp_sample_dir, new_name)
 
-                        os.rename(output_file_path, os.path.join(temp_sample_dir, new_name))
+                        if os.path.exists(final_output_path):
+                            os.remove(final_output_path)
+                        os.rename(output_file_path, final_output_path)
 
                         self.task_service.set_task_progress(transcode_task_id, 100)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
