@@ -13,6 +13,7 @@ class Task:
     progress: int
     transcode_settings: TranscodeSettings
     error_message: str
+    created_at: str
 
     def to_dict(self):  
         return asdict(self) 

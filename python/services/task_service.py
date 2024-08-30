@@ -77,3 +77,6 @@ class TaskService:
         height = task.transcode_settings.get('input_height', 1080)
         height_squared_with_smaller_normal = (height * height) / (1080 * 1080)
         return num_frames * height_squared_with_smaller_normal
+
+    def delete_old_tasks(self):
+        return self.task_model.delete_old_tasks()

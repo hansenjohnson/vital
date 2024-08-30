@@ -127,3 +127,10 @@ def create_sample_images():
 @tryable_json_endpoint
 def delete_sample_images(job_id):
     return transcode_service.delete_sample_images(job_id)
+
+
+@bp.route('/delete_old_tasks', methods=["DELETE"])
+@tryable_json_endpoint
+def delete_old_tasks():
+    deleted_ids = task_service.delete_old_tasks()
+    return {"deleted_ids": deleted_ids}
