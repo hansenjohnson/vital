@@ -97,26 +97,13 @@ class TranscodeService:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             self.task_service.create_task(transcode_job_id, transcode_settings)
 
-        return transcode_job_id    
-    
-    def get_sample_images(self):
+        return transcode_job_id
+
+    def get_sample_image_dir(self):
         thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
         temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        return temp_sample_dir
 
-        images = []
-
-        for filename in os.listdir(temp_sample_dir):
-            file_path = os.path.join(temp_sample_dir, filename)
-            if os.path.exists(file_path):
-                with open(file_path, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-                    images.append({
-                        'filename': filename,
-                        'image': encoded_string
-                    })
-
-        return images
-    
     def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
         job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
                 "source_dir": '',
@@ -126,7 +113,7 @@ class TranscodeService:
 
         if small_image_file_path:
             self.create_sample_tasks(job_id, small_image_file_path)
-        
+
         if medium_image_file_path:
             self.create_sample_tasks(job_id, medium_image_file_path)
 
@@ -135,7 +122,7 @@ class TranscodeService:
 
         threading.Thread(target=self.run_sample_tasks, args=(job_id,)).start()
         return job_id
-    
+
     def create_sample_tasks(self, job_id, file_path):
         file_name, file_extension = os.path.splitext(file_path)
         for jpeg_quality in self.JPEG_QUALITIES:
@@ -160,15 +147,21 @@ class TranscodeService:
                         new_name = transcode_settings.new_name
 
                         _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+                        final_output_path = os.path.join(temp_sample_dir, new_name)
 
-                        os.rename(output_file_path, os.path.join(temp_sample_dir, new_name))
+                        if os.path.exists(final_output_path):
+                            os.remove(final_output_path)
+                        os.rename(output_file_path, final_output_path)
+
+                        self.task_service.set_task_progress(transcode_task_id, 100)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
                     except Exception as e:
                         print_err(str(e))
                         self.task_service.set_task_progress(transcode_task_id, 0)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
-        
+
         finally:
             self.job_service.set_job_status(transcode_job_id)
 

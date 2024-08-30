@@ -35,6 +35,18 @@ class TaskService:
         }
         return status_report
 
+    def get_tasks_sample_file_data_by_job_id(self, job_id: int):
+        tasks = self.get_tasks_by_job_id(job_id)
+        data_list = [
+            {
+                "id": task.id,
+                "file_name": task.transcode_settings.get('new_name'),
+                "jpeg_quality": task.transcode_settings.get('jpeg_quality'),
+            }
+            for task in tasks
+        ]
+        return data_list
+
     def get_transcode_settings(self, task_id: int) -> TranscodeSettings:
         return self.task_model.get_transcode_settings(task_id)
 
