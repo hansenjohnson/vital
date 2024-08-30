@@ -7,6 +7,8 @@ import tempfile
 import shutil
 import subprocess
 import time
+import threading
+import base64
 from subprocess import PIPE
 from typing import List
 
@@ -45,6 +47,14 @@ class TranscodeService:
         },
     }
     PROGRESS_RATIOS = [12, 4, 2, 1]
+
+    LOW_JPEG_QUALITY = 20
+    MEDIUM_JPEG_QUALITY = 50
+    HIGH_JPEG_QUALITY = 90
+    MAX_JPEG_QUALITY = 100
+
+    JPEG_QUALITIES = [20, 50, 90, 100]
+    TEMP_SAMPLE_DIR = 'temp'
 
     def __init__(self):
         self.job_service = JobService()
@@ -86,6 +96,86 @@ class TranscodeService:
 
         return transcode_job_id
 
+    def get_sample_image_dir(self):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        return temp_sample_dir
+
+    def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
+        job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
+                "source_dir": '',
+                "media_type": MediaType.IMAGE.value,
+                "local_export_path": ''
+            })
+
+        if small_image_file_path:
+            self.create_sample_tasks(job_id, small_image_file_path)
+
+        if medium_image_file_path:
+            self.create_sample_tasks(job_id, medium_image_file_path)
+
+        if large_image_file_path:
+            self.create_sample_tasks(job_id, large_image_file_path)
+
+        threading.Thread(target=self.run_sample_tasks, args=(job_id,)).start()
+        return job_id
+
+    def create_sample_tasks(self, job_id, file_path):
+        file_name, file_extension = os.path.splitext(file_path)
+        for jpeg_quality in self.JPEG_QUALITIES:
+            file_path_jpeg = f'{os.path.basename(file_name)}_{str(jpeg_quality)}{file_extension}'
+            transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg, jpeg_quality=jpeg_quality)
+            self.task_service.create_task(job_id, transcode_settings)
+
+    def run_sample_tasks(self, transcode_job_id):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+
+        tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
+
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        os.makedirs(temp_sample_dir, exist_ok=True)
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                for task in tasks:
+                    transcode_task_id = task.id
+                    try:
+                        transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
+                        new_name = transcode_settings.new_name
+
+                        _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+                        final_output_path = os.path.join(temp_sample_dir, new_name)
+
+                        if os.path.exists(final_output_path):
+                            os.remove(final_output_path)
+                        os.rename(output_file_path, final_output_path)
+
+                        self.task_service.set_task_progress(transcode_task_id, 100)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
+                    except Exception as e:
+                        print_err(str(e))
+                        self.task_service.set_task_progress(transcode_task_id, 0)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
+                        self.task_service.set_task_error_message(transcode_task_id, str(e))
+
+        finally:
+            self.job_service.set_job_status(transcode_job_id)
+
+    def delete_sample_images(self, job_id):
+        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
+        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        file_in_temp_dir = os.listdir(temp_sample_dir)
+
+        tasks = self.task_service.get_tasks_by_job_id(job_id)
+        for task in tasks:
+            transcode_settings = self.task_service.get_transcode_settings(task.id)
+            file_name = os.path.basename(transcode_settings.new_name)
+            if file_name in file_in_temp_dir:
+                os.remove(os.path.join(temp_sample_dir, file_name))
+
+        os.removedirs(temp_sample_dir)
+        return job_id     
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
@@ -301,6 +391,21 @@ class TranscodeService:
     def transcode_image(self, optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
+        file_path, optimized_temp_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+
+        # Official Outputs
+        print_out(f'Copying {file_path} into {original_dir_path}')
+        shutil.copy(file_path, original_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
+        shutil.copy(optimized_temp_path, optimized_dir_path)
+        print_out(f'Copying {optimized_temp_path} into {local_export_path}')
+        shutil.copy(optimized_temp_path, local_export_path)
+
+        self.task_service.set_task_progress(transcode_task_id, 100)
+        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
+
+    def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):
         file_path = transcode_settings.file_path
         jpeg_quality = transcode_settings.jpeg_quality
 
@@ -323,17 +428,8 @@ class TranscodeService:
 
         else:
             raise ValueError(f'Unsupported image file type: {file_extension}')
-
-        # Official Outputs
-        print_out(f'Copying {file_path} into {original_dir_path}')
-        shutil.copy(file_path, original_dir_path)
-        print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
-        shutil.copy(optimized_temp_path, optimized_dir_path)
-        print_out(f'Copying {optimized_temp_path} into {local_export_path}')
-        shutil.copy(optimized_temp_path, local_export_path)
-
-        self.task_service.set_task_progress(transcode_task_id, 100)
-        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+        
+        return file_path, optimized_temp_path
 
     def generate_convert_command(self, input_path, output_path, jpeg_quality):
         return [

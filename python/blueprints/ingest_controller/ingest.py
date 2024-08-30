@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_from_directory
 from urllib.parse import unquote
 
 from services.ingest_service import IngestService
@@ -69,6 +69,12 @@ def task_statuses(job_id):
     return task_service.get_tasks_statuses_by_job_id(job_id)
 
 
+@bp.route('/job/<int:job_id>/sample_file_data', methods=['GET'])
+@tryable_json_endpoint
+def job_task_sample_file_data(job_id):
+    return task_service.get_tasks_sample_file_data_by_job_id(job_id)
+
+
 @bp.route('/transcode', methods=['POST'])
 @tryable_json_endpoint
 def queue_transcode():
@@ -96,3 +102,28 @@ def get_jobs():
     page_size = request.args.get('page_size', type=int)
     jobs = job_service.get_jobs(JobType.TRANSCODE, completed, page, page_size)
     return jobs
+
+
+@bp.route('/sample/<string:filename>', methods=["GET"])
+def get_sample_images(filename):
+    filename_unquoted = unquote(filename)
+    sample_image_dir = transcode_service.get_sample_image_dir()
+    return send_from_directory(sample_image_dir, filename_unquoted, as_attachment=False)
+
+
+@bp.route('/sample', methods=["POST"])
+@tryable_json_endpoint
+def create_sample_images():
+    payload = request.json
+    small_image_file_path = payload.get('small_image_file_path', None)
+    medium_image_file_path = payload.get('medium_image_file_path', None)
+    large_image_file_path = payload.get('large_image_file_path', None)
+
+    job_id = transcode_service.create_sample_images(small_image_file_path, medium_image_file_path, large_image_file_path)
+    return {"job_id": job_id}
+
+
+@bp.route('/sample/<int:job_id>', methods=["DELETE"])
+@tryable_json_endpoint
+def delete_sample_images(job_id):
+    return transcode_service.delete_sample_images(job_id)
