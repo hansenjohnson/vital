@@ -94,8 +94,8 @@ class TranscodeService:
             transcode_settings = TranscodeSettings(**transcode_settings_json)
             self.task_service.create_task(transcode_job_id, transcode_settings)
 
-        return transcode_job_id    
-    
+        return transcode_job_id
+
     def get_sample_images(self):
         thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
         temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
@@ -113,7 +113,7 @@ class TranscodeService:
                     })
 
         return images
-    
+
     def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
         job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
                 "source_dir": '',
@@ -123,7 +123,7 @@ class TranscodeService:
 
         if small_image_file_path:
             self.create_sample_tasks(job_id, small_image_file_path)
-        
+
         if medium_image_file_path:
             self.create_sample_tasks(job_id, medium_image_file_path)
 
@@ -132,7 +132,7 @@ class TranscodeService:
 
         threading.Thread(target=self.run_sample_tasks, args=(job_id,)).start()
         return job_id
-    
+
     def create_sample_tasks(self, job_id, file_path):
         file_name, file_extension = os.path.splitext(file_path)
         for jpeg_quality in self.JPEG_QUALITIES:
@@ -160,12 +160,15 @@ class TranscodeService:
 
                         os.rename(output_file_path, os.path.join(temp_sample_dir, new_name))
 
+                        self.task_service.set_task_progress(transcode_task_id, 100)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
                     except Exception as e:
                         print_err(str(e))
                         self.task_service.set_task_progress(transcode_task_id, 0)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
-        
+
         finally:
             self.job_service.set_job_status(transcode_job_id)
 
