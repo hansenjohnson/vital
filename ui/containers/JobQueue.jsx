@@ -17,7 +17,7 @@ import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
-import { scheduleTimeString } from '../utilities/strings'
+import { jobNameFromData, scheduleTimeString } from '../utilities/strings'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 
 import JobQueueItem from '../components/JobQueueItem'
@@ -177,9 +177,8 @@ const JobQueue = () => {
               key={id}
               id={id}
               status={status}
-              numTasks={job.tasks.length}
+              name={jobNameFromData(data, job.tasks.length)}
               info={{
-                data: JSON.parse(data),
                 progress: jobCompletionPercent,
               }}
               actions={{
@@ -206,9 +205,8 @@ const JobQueue = () => {
                 <JobQueueItem
                   id={id}
                   status={status}
-                  numTasks={job.tasks.length}
+                  name={jobNameFromData(data, job.tasks.length)}
                   info={{
-                    data: JSON.parse(data),
                     completedDate: completed_date,
                   }}
                   queueRunning={queueRunning}

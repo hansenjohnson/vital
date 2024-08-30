@@ -1,4 +1,5 @@
 import { timecodeFromFrameNumber } from './video'
+import { leafPath } from './paths'
 
 export const yearMonthDayString = (year, month, day) => `${year}-${monthDayString(month, day)}`
 
@@ -88,4 +89,14 @@ export const scheduleTimeString = (dateStr) => {
   })
   const resultStr = formatter.format(date)
   return resultStr
+}
+
+export const titleCase = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+
+export const jobNameFromData = (dataStr, numTasks) => {
+  const data = JSON.parse(dataStr)
+  const type = data.media_type
+  const name = leafPath(data.source_dir)
+  // Note: that is an emdash
+  return `${name} — ${numTasks} ${type}${numTasks > 1 ? 's' : ''}`
 }
