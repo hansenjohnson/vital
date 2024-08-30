@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_from_directory
 from urllib.parse import unquote
 
 from services.ingest_service import IngestService
@@ -103,15 +103,13 @@ def get_jobs():
     jobs = job_service.get_jobs(JobType.TRANSCODE, completed, page, page_size)
     return jobs
 
-def str_to_bool(value):
-    return value.lower() == 'true'
 
+@bp.route('/sample/<string:filename>', methods=["GET"])
+def get_sample_images(filename):
+    filename_unquoted = unquote(filename)
+    sample_image_dir = transcode_service.get_sample_image_dir()
+    return send_from_directory(sample_image_dir, filename_unquoted, as_attachment=False)
 
-@bp.route('/sample', methods=["GET"])
-@tryable_json_endpoint
-def get_sample_images():
-    images = transcode_service.get_sample_images()
-    return {"images": images}
 
 @bp.route('/sample', methods=["POST"])
 @tryable_json_endpoint
@@ -120,7 +118,7 @@ def create_sample_images():
     small_image_file_path = payload.get('small_image_file_path', None)
     medium_image_file_path = payload.get('medium_image_file_path', None)
     large_image_file_path = payload.get('large_image_file_path', None)
-    
+
     job_id = transcode_service.create_sample_images(small_image_file_path, medium_image_file_path, large_image_file_path)
     return {"job_id": job_id}
 

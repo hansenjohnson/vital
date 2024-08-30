@@ -96,23 +96,10 @@ class TranscodeService:
 
         return transcode_job_id
 
-    def get_sample_images(self):
+    def get_sample_image_dir(self):
         thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
         temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
-
-        images = []
-
-        for filename in os.listdir(temp_sample_dir):
-            file_path = os.path.join(temp_sample_dir, filename)
-            if os.path.exists(file_path):
-                with open(file_path, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-                    images.append({
-                        'filename': filename,
-                        'image': encoded_string
-                    })
-
-        return images
+        return temp_sample_dir
 
     def create_sample_images(self, small_image_file_path=None, medium_image_file_path=None, large_image_file_path=None):
         job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
