@@ -187,7 +187,8 @@ class JobModel:
             "type": row[1],
             "status": row[2],
             "data": row[3],
-            "completed_date": row[4],
-            # "last_executor_id": row[5], // just placing this here for tuple-index reference
-            "error_message": row[6],
+            "report_data": row[4],
+            "completed_date": row[5],
+            # "last_executor_id": row[6], // just placing this here for tuple-index reference
+            "error_message": row[7],
         }
