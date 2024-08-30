@@ -69,6 +69,12 @@ def task_statuses(job_id):
     return task_service.get_tasks_statuses_by_job_id(job_id)
 
 
+@bp.route('/job/<int:job_id>/sample_file_data', methods=['GET'])
+@tryable_json_endpoint
+def job_task_sample_file_data(job_id):
+    return task_service.get_tasks_sample_file_data_by_job_id(job_id)
+
+
 @bp.route('/transcode', methods=['POST'])
 @tryable_json_endpoint
 def queue_transcode():
