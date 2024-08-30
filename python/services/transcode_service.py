@@ -248,7 +248,7 @@ class TranscodeService:
 
                     finally:
                         self.job_service.set_job_status(transcode_job_id)
-                        self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
+        self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
 
 
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):

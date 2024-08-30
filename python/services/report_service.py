@@ -6,10 +6,12 @@ from utils.constants import video_extensions, image_extensions
 
 from services.job_service import JobService
 
+from utils.prints import print_out
+
 class ReportService:
 
     def __init__(self):
-        self.job_service = JobService
+        self.job_service = JobService()
 
     def create_final_report(self, job_id, media_type, source_dir, original_dir, optimzied_dir):
         extensions = []
@@ -28,7 +30,7 @@ class ReportService:
         report.source_folder_size = source_dir_size
         report.source_folder_media_count = source_dir_count
 
-        report.original_folder_path
+        report.original_folder_path = original_dir
         report.original_folder_size = original_dir_size
         report.original_folder_media_count = original_dir_count
 

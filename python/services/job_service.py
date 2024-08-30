@@ -58,8 +58,8 @@ class JobService:
 
         return orphaned_tasks
     
-    def update_report_data(self, job_id, incoming_report_data):
-        self.job_model.update_report_data(job_id, incoming_report_data)
+    def update_report_data(self, job_id, report_data):
+        self.job_model.update_report_data(job_id, report_data)
     
     def get_report_data(self, job_id):
         return self.job_model.get_report_data(self, job_id)
