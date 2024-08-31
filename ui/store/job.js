@@ -1,8 +1,10 @@
 import { create } from 'zustand'
+import { closest } from 'fastest-levenshtein'
 
 import { valueSetter } from './utils'
 import ROUTES, { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
+import observersAPI from '../api/observers'
 import { leafPath } from '../utilities/paths'
 import useQueueStore from './queue'
 import useRootStore from './index'
@@ -12,6 +14,7 @@ const initialState = {
   sourceFolder: '',
   sourceFolderValid: true,
   numFiles: { images: null, videos: null },
+  observerCode: null,
   jobMode: JOB_MODES.UNSET,
   localOutputFolder: '',
   metadataFilter: null,
@@ -34,12 +37,15 @@ const initialState = {
   },
   jobId: null,
   settingsList: [],
+  observers: [],
 }
 
 const validateSourceFolder = (folderPath) => {
   const folderName = leafPath(folderPath)
   // Check for YYYY-MM-DD-ObserverCode
-  return folderName.match(/^\d{4}-\d{2}-\d{2}-[a-z].*$/i)
+  const matchFound = folderName.match(/^\d{4}-\d{2}-\d{2}-(.+)$/i)
+  if (!matchFound) return [false, null]
+  return [true, matchFound[1]]
 }
 
 const useJobStore = create((set, get) => ({
@@ -74,8 +80,8 @@ const useJobStore = create((set, get) => ({
   },
 
   triggerExecute: async () => {
-    const { jobMode, sourceFolder, settingsList, localOutputFolder } = get()
-    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder)
+    const { jobMode, sourceFolder, settingsList, localOutputFolder, observerCode } = get()
+    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder, observerCode)
 
     // After submitting a new job to the queue, Navigate the user back home,
     // reload the queue data, and reset some of the stores like we do in the Navbar
@@ -87,8 +93,24 @@ const useJobStore = create((set, get) => ({
   },
 
   setSourceFolder: (sourceFolder) => {
-    const isValid = sourceFolder !== '' && validateSourceFolder(sourceFolder)
-    set({ sourceFolder, sourceFolderValid: isValid })
+    let isValid = false
+    let observerCodeRaw = null
+    if (sourceFolder !== '') {
+      const validation = validateSourceFolder(sourceFolder)
+      isValid = validation[0]
+      observerCodeRaw = validation[1]
+    }
+
+    let initialObserverCode = null
+    if (isValid) {
+      initialObserverCode = closest(observerCodeRaw, get().observers)
+    }
+
+    set({
+      sourceFolder,
+      sourceFolderValid: isValid,
+      observerCode: initialObserverCode,
+    })
   },
 
   countFiles: async () => {
@@ -166,12 +188,19 @@ const useJobStore = create((set, get) => ({
   // This list should be a list of object
   // The schema can be found in the TranscodeSettings class within the server
   setSettingsList: valueSetter(set, 'settingsList'),
+
+  setObserverCode: valueSetter(set, 'observerCode'),
+  loadObservers: async () => {
+    const observers = await observersAPI.getList()
+    set({ observers })
+  },
 }))
 
 const canParse = (state) => {
-  const { sourceFolder, sourceFolderValid, jobMode, localOutputFolder } = state
+  const { sourceFolder, sourceFolderValid, observerCode, jobMode, localOutputFolder } = state
   if (!sourceFolder) return false
   if (!sourceFolderValid) return false
+  if (!observerCode) return false
   if (jobMode === JOB_MODES.UNSET) return false
   if (jobMode === JOB_MODES.BY_IMAGE && !localOutputFolder) return false
   return true

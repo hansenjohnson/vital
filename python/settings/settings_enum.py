@@ -6,6 +6,7 @@ class SettingsEnum(Enum):
     VIDEO_FILE_PATH = 'video_file_path'
     FOLDER_FILE_PATH = 'folder_file_path'
     STILL_EXPORT_FILE_PATH = 'still_export_file_path'
+    OBSERVER_FILE_PATH = 'observer_file_path'
 
     THUMBNAIL_DIR_PATH = 'thumbnail_dir_path'
     STILLEXPORT_DIR_PATH = 'stillexport_dir_path'
