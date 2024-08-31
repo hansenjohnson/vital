@@ -24,6 +24,7 @@ class IngestService:
         self.validator_service = ValidatorService()
 
         self.image_metadata_service = ImageMetadataService()
+        self.video_metadata_service = VideoMetadataService()
 
 
     def create_parse_media_job(self, source_dir, media_type):
@@ -35,16 +36,22 @@ class IngestService:
     def parse_media(self, job_id, source_dir, media_type):
         if (media_type == MediaType.IMAGE):
             files = self.get_files(source_dir, self.image_extensions)
-            metadata = self.image_metadata_service.parse_metadata(files)
-            self.job_service.store_job_data(job_id, metadata)
+            metadata_arr = self.image_metadata_service.parse_metadata(files)
+
+            validated_metadata = []
+            for metadata in metadata_arr:
+                validation_status = self.validator_service.validate_media(source_dir, metadata, media_type)
+                metadata.validation_status = validation_status
+                validated_metadata.append(metadata.to_dict())
+
+            self.job_service.store_job_data(job_id, validated_metadata)
         else:
             files = self.get_files(source_dir, self.video_extensions)
-            media_service = VideoMetadataService()
 
             metadata = []
             for file_path in files:
                 # TODO: handle case of ffprobe_metadata failing with relation to reporting that error on UI
-                media_metadata = media_service.parse_metadata(file_path)
+                media_metadata =  self.video_metadata_service.parse_metadata(file_path)
                 media_metadata.validation_status = self.validator_service.validate_media(source_dir, media_metadata, media_type)
 
                 metadata.append(media_metadata.to_dict())

@@ -49,7 +49,7 @@ class ImageMetadataService(MetadataService):
                     duration=None,
                     num_frames=None,
                     frame_rate=None
-                ).to_dict())
+                ))
             except KeyError:
                 print_err.error("No Exiftool metadata was found")
                 return None
