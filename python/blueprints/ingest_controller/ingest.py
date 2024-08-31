@@ -7,6 +7,7 @@ from services.transcode_service import TranscodeService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
 from utils.endpoints import tryable_json_endpoint
+from utils.prints import print_out
 
 
 bp = Blueprint('ingest', __name__)
@@ -127,3 +128,11 @@ def create_sample_images():
 @tryable_json_endpoint
 def delete_sample_images(job_id):
     return transcode_service.delete_sample_images(job_id)
+
+
+@bp.route('/delete_old_tasks', methods=["DELETE"])
+@tryable_json_endpoint
+def delete_old_tasks():
+    deleted_ids = task_service.delete_old_tasks()
+    print_out(f'Deleted {len(deleted_ids)} old tasks')
+    return {"deleted_ids": deleted_ids}

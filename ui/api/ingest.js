@@ -50,6 +50,8 @@ const transcode = async (sourceFolder, settingsList, mediaType, localOutputFolde
   return data?.job_id
 }
 
+const pruneOldTasks = () => deleteThis(`${ingestURL}/delete_old_tasks`)
+
 export default {
   getJob,
   jobStatus,
@@ -63,4 +65,5 @@ export default {
   getJobSampleData,
   createSampleImages,
   transcode,
+  pruneOldTasks,
 }
