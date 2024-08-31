@@ -16,8 +16,7 @@ class TaskModel:
                    status TEXT,
                    progress INTEGER DEFAULT 0,
                    transcode_settings TEXT,
-                   error_message TEXT,
-                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                   error_message TEXT
                )
            """)
 
@@ -75,15 +74,14 @@ class TaskModel:
         )
         tasks = []
         for task_data in tasks_data:
-            task_id, job_id, status, progress, transcode_settings_json, error_message, created_at = task_data
+            task_id, job_id, status, progress, transcode_settings_json, error_message = task_data
             task = Task(
                 id=task_id,
                 job_id=job_id,
                 status=status,
                 progress=progress,
                 transcode_settings=json.loads(transcode_settings_json),
-                error_message=error_message,
-                created_at=created_at
+                error_message=error_message
             )
             tasks.append(task)
         return tasks
@@ -101,8 +99,8 @@ class TaskModel:
         self.with_cursor("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
 
     def delete_old_tasks(self):
-        ids_to_delete = self.with_cursor("SELECT id FROM task WHERE created_at < DATE('now', '-10 days') and status = ?", (TaskStatus.COMPLETED.value,), action='fetchall')
-        self.with_cursor("DELETE FROM task WHERE created_at < DATE('now', '-10 days') and status = ?", (TaskStatus.COMPLETED.value,))
+        ids_to_delete = self.with_cursor("SELECT * from task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,), action='fetchall')
+        self.with_cursor("DELETE FROM task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,))
         if ids_to_delete:
             return [row[0] for row in ids_to_delete]
         return []
