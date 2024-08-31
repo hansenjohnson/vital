@@ -27,10 +27,17 @@ const parse = async (mode, sourceFolder) => {
   })
   return data?.job_id
 }
+const getJobResultData = (jobId) => getJSON(`${ingestURL}/job_data/${jobId}`)
 
-const getParsedMetadata = (jobId) => getJSON(`${ingestURL}/job_data/${jobId}`)
-
-const getCompressionOptions = () => new Promise((resolve) => setTimeout(resolve, 500))
+const createSampleImages = async (small, medium, large) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/sample`, {
+    small_image_file_path: small || undefined,
+    medium_image_file_path: medium || undefined,
+    large_image_file_path: large || undefined,
+  })
+  return data?.job_id
+}
+const getJobSampleData = (jobId) => getJSON(`${ingestURL}/job/${jobId}/sample_file_data`)
 
 // Job Execution Methods
 const transcode = async (sourceFolder, settingsList, mediaType, localOutputFolder) => {
@@ -52,7 +59,8 @@ export default {
   getCompleteJobs,
   countFiles,
   parse,
-  getParsedMetadata,
-  getCompressionOptions,
+  getJobResultData,
+  getJobSampleData,
+  createSampleImages,
   transcode,
 }
