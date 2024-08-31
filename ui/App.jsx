@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import useStore from './store'
 import useSettingsStore from './store/settings'
 import useQueueStore from './store/queue'
+import ingestAPI from './api/ingest'
 import ROUTES from './constants/routes'
 import { TITLEBAR_HEIGHT } from './constants/dimensions'
 import useWindowSize from './hooks/useWindowSize'
@@ -31,8 +32,12 @@ const App = () => {
   // Fetch any initial data from backend, now that we have a connection
   useEffect(() => {
     if (!serverReachable) return
-    loadSettings()
-    fetchSchedule()
+    const inits = async () => {
+      await ingestAPI.pruneOldTasks()
+      loadSettings()
+      fetchSchedule()
+    }
+    inits()
   }, [serverReachable])
 
   const ActiveRouteComponent = (() => {
