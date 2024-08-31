@@ -18,33 +18,46 @@ class ImageMetadataService(MetadataService):
             print_err(f"exiftool.exe does not exist at {self.exiftool_path}")
             raise FileNotFoundError(f"exiftool.exe does not exist at {self.exiftool_path}")
 
-    def parse_metadata(self, file_path):
-        command = [self.exiftool_path, "-j", file_path]
+    def parse_metadata(self, files):
+        command = [self.exiftool_path, "-j"] + files
         print_out(" ".join(command))
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         metadata_json, error = process.communicate()
+
         if error:
             print_err("exiftool error: %s", error)
-        metadata_obj = json.loads(metadata_json)
+
+        metadata_obj_arr = []
         try:
-            metadata = metadata_obj[0]
-        except KeyError:
-            print_err.error("No Exiftool metadata was found at path %s", file_path)
+            metadata_obj_arr = json.loads(metadata_json)
+
+        except json.JSONDecodeError:
+            print_err.error("Error parsing exiftool metadata")
             return None
-        internal_date = metadata.get('DateTimeOriginal')
-        if internal_date:
-            internal_date = datetime.strptime(internal_date, "%Y:%m:%d %H:%M:%S").timestamp()
-        return MediaMetadata(
-            file_name=metadata['FileName'],
-            file_path=file_path,
-            width=metadata['ImageWidth'],
-            height=metadata['ImageHeight'],
-            size=os.path.getsize(file_path),
-            created_date=os.path.getctime(file_path),
-            modified_date=os.path.getmtime(file_path),
-            original_date=internal_date,
-            validation_status=None,
-            duration=None,
-            num_frames=None,
-            frame_rate=None
-        )
+        
+        if len(metadata_obj_arr) > 0:
+            metadata_arr = []
+            for metadata in metadata_obj_arr:
+                file_path = os.path.normpath(metadata['SourceFile'])
+                internal_date = metadata.get('DateTimeOriginal')
+                if internal_date:
+                    internal_date = datetime.strptime(internal_date, "%Y:%m:%d %H:%M:%S").timestamp()
+                metadata_arr.append(MediaMetadata(
+                    file_name=metadata['FileName'],
+                    file_path=file_path,
+                    width=metadata['ImageWidth'],
+                    height=metadata['ImageHeight'],
+                    size=os.path.getsize(file_path),
+                    created_date=os.path.getctime(file_path),
+                    modified_date=os.path.getmtime(file_path),
+                    original_date=internal_date,
+                    validation_status=None,
+                    duration=None,
+                    num_frames=None,
+                    frame_rate=None
+                ))
+            return metadata_arr
+        
+        else:
+            print_err.error("No metadata found")
+            return None
