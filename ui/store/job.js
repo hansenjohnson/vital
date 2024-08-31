@@ -28,9 +28,9 @@ const initialState = {
     applied: true,
   },
   compressionBuckets: {
-    small: {},
-    medium: {},
-    large: {},
+    small: { images: [], selection: 100, size: 0 },
+    medium: { images: [], selection: 100, size: 0 },
+    large: { images: [], selection: 100, size: 0 },
   },
   jobId: null,
   settingsList: [],
@@ -51,7 +51,7 @@ const useJobStore = create((set, get) => ({
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
-      ingestAPI.getCompressionOptions({})
+      get().triggerSampleImages()
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
       get().triggerExecute()
     }
@@ -60,6 +60,16 @@ const useJobStore = create((set, get) => ({
   triggerParse: async () => {
     const { sourceFolder, jobMode } = get()
     const jobId = await ingestAPI.parse(jobMode, sourceFolder)
+    set({ jobId })
+  },
+
+  triggerSampleImages: async () => {
+    const { compressionBuckets } = get()
+    const jobId = await ingestAPI.createSampleImages(
+      compressionBuckets.small?.images?.[0],
+      compressionBuckets.medium?.images?.[0],
+      compressionBuckets.large?.images?.[0]
+    )
     set({ jobId })
   },
 
@@ -141,6 +151,17 @@ const useJobStore = create((set, get) => ({
   },
 
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
+  setCompressionSelection: (size, quality) => {
+    const { compressionBuckets } = get()
+    const newBuckets = {
+      ...compressionBuckets,
+      [size]: {
+        ...compressionBuckets[size],
+        selection: quality,
+      },
+    }
+    set({ compressionBuckets: newBuckets })
+  },
 
   // This list should be a list of object
   // The schema can be found in the TranscodeSettings class within the server
@@ -156,5 +177,5 @@ const canParse = (state) => {
   return true
 }
 
-export { canParse }
+export { canParse, initialState }
 export default useJobStore

@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import useJobStore from '../store/job'
+import useJobStore, { initialState } from '../store/job'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
-import { ROOT_FOLDER } from '../constants/fileTypes'
+import { ROOT_FOLDER, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
 import {
   bytesToSize,
@@ -24,12 +24,15 @@ import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
 import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
+import CompressionSidebar from './CompressionSidebar'
+import CompressionBucketsList from '../components/CompressionBucketsList'
 
 const LinkageAnnotationPage = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
 
   const phase = useJobStore((state) => state.phase)
   const jobMode = useJobStore((state) => state.jobMode)
+  const jobId = useJobStore((state) => state.jobId)
 
   const metadataFilter = useJobStore((state) => state.metadataFilter)
   const issueIgnoreList = useJobStore((state) => state.issueIgnoreList)
@@ -37,7 +40,6 @@ const LinkageAnnotationPage = () => {
   const processBatchRenameOnString = useJobStore((state) => state.processBatchRenameOnString)
 
   /* Poll for Parse Data, handle statuses */
-  const jobId = useJobStore((state) => state.jobId)
   const [parseStatus, setParseStatus] = useState(STATUSES.LOADING)
   const [mediaGroups, setMediaGroups] = useState([])
   const [totalSize, setTotalSize] = useState(0)
@@ -67,7 +69,7 @@ const LinkageAnnotationPage = () => {
       }
       clearInterval(intervalId)
 
-      const data = await ingestAPI.getParsedMetadata(jobId)
+      const data = await ingestAPI.getJobResultData(jobId)
       const transformedData = data.map(transformMediaMetadata)
       const groupsAndAggregates = groupMediaMetadataBySubfolder(sourceFolder, transformedData)
       setMediaGroups(groupsAndAggregates.mediaGroups)
@@ -80,6 +82,67 @@ const LinkageAnnotationPage = () => {
     intervalId = setInterval(checkForMetadata, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobId])
+
+  /* Trigger Compression Options page - for images only */
+  const compressionBuckets = useJobStore((state) => state.compressionBuckets)
+  const setCompressionBuckets = useJobStore((state) => state.setCompressionBuckets)
+  const setCompressionSelection = useJobStore((state) => state.setCompressionSelection)
+  const moveToCompressionPage = () => {
+    const newBuckets = initialState.compressionBuckets
+    mediaGroups.forEach((group) =>
+      group.mediaList.forEach((media) => {
+        const megapixels = resolutionToTotalPixels(media.resolution)
+        if (megapixels < BUCKET_THRESHOLDS.medium) {
+          newBuckets.small.images.push(media.filePath)
+          newBuckets.small.size += media.fileSize
+        } else if (megapixels < BUCKET_THRESHOLDS.large) {
+          newBuckets.medium.images.push(media.filePath)
+          newBuckets.medium.size += media.fileSize
+        } else {
+          newBuckets.large.images.push(media.filePath)
+          newBuckets.large.size += media.fileSize
+        }
+      })
+    )
+    setCompressionBuckets(newBuckets)
+    setPhase(JOB_PHASES.CHOOSE_OPTIONS)
+  }
+
+  /* Poll for Compression Samples, handle statuses */
+  const [sampleStatus, setSampleStatus] = useState(STATUSES.LOADING)
+  const [sampleImages, setSampleImages] = useState([])
+  useEffect(() => {
+    if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+
+    setSampleStatus(STATUSES.LOADING)
+    setSampleImages([])
+    let intervalId
+
+    const checkForMetadata = async () => {
+      const status = await ingestAPI.jobStatus(jobId)
+      if (status === STATUSES.INCOMPLETE) return
+      if (status === STATUSES.ERROR) {
+        // TODO: handle error case, currently the backend doesn't return this
+        return
+      }
+      if (status !== STATUSES.COMPLETED) {
+        console.log('Unknown status:', status)
+        return
+      }
+      clearInterval(intervalId)
+
+      const sampleData = await ingestAPI.getJobSampleData(jobId)
+      setSampleImages(sampleData)
+      setSampleStatus(STATUSES.COMPLETED)
+    }
+
+    intervalId = setInterval(checkForMetadata, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobId])
+
+  const whenAllImagesHaveLoaded = async () => {
+    await ingestAPI.deleteSampleImages(jobId)
+  }
 
   /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
@@ -98,11 +161,19 @@ const LinkageAnnotationPage = () => {
       setSettingsList(settingsList)
     } else {
       const settingsList = mediaGroups.flatMap((group) =>
-        group.mediaList.map((media) => ({
-          file_path: media.filePath,
-          new_name: media.newName,
-          jpeg_quality: 69, // placeholder
-        }))
+        group.mediaList.map((media) => {
+          let bucket = 'small'
+          if (compressionBuckets.medium.images.includes(media.filePath)) {
+            bucket = 'medium'
+          } else if (compressionBuckets.large.images.includes(media.filePath)) {
+            bucket = 'large'
+          }
+          return {
+            file_path: media.filePath,
+            new_name: media.newName,
+            jpeg_quality: compressionBuckets[bucket].selection,
+          }
+        })
       )
       setSettingsList(settingsList)
     }
@@ -271,9 +342,11 @@ const LinkageAnnotationPage = () => {
           allWarnings={allWarnings}
           allErrors={allErrors}
           oneFileName={mediaGroups[0]?.mediaList[0]?.fileName}
-          actionName="Add Job to Queue"
+          actionName={
+            jobMode === JOB_MODES.BY_VIDEO ? 'Add Job to Queue' : 'Choose Compression Options'
+          }
           canTrigger={canTriggerNextAction}
-          onTriggerAction={executeJob}
+          onTriggerAction={jobMode === JOB_MODES.BY_VIDEO ? executeJob : moveToCompressionPage}
         />
         <Box
           sx={{
@@ -298,6 +371,38 @@ const LinkageAnnotationPage = () => {
               <MetadataDisplayTable columns={columns} data={group.mediaList} />
             </Box>
           ))}
+        </Box>
+      </Box>
+    )
+  }
+
+  if (phase === JOB_PHASES.CHOOSE_OPTIONS) {
+    return (
+      <Box sx={{ display: 'flex', height: '100%' }}>
+        <CompressionSidebar
+          status={sampleStatus}
+          actionName="Add Job to Queue"
+          canTrigger={true} // There are no checks on this page
+          onTriggerAction={executeJob}
+        />
+        <Box
+          sx={{
+            flexGrow: 1,
+            height: '100%',
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          {sampleStatus === STATUSES.COMPLETED && (
+            <CompressionBucketsList
+              compressionBuckets={compressionBuckets}
+              setCompressionSelection={setCompressionSelection}
+              sampleImages={sampleImages}
+              onImagesLoaded={whenAllImagesHaveLoaded}
+            />
+          )}
         </Box>
       </Box>
     )
