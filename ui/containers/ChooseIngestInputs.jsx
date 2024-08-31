@@ -1,9 +1,11 @@
 import { useEffect, useState, useRef } from 'react'
+import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import ToggleButton from '@mui/material/ToggleButton'
-import RefreshIcon from '@mui/icons-material/Refresh'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import TextField from '@mui/material/TextField'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS from '../constants/settingKeys'
@@ -56,6 +58,10 @@ const ChooseIngestInputs = () => {
   const [loadedTimes, setLoadedTimes] = useState(0)
   const numFiles = useJobStore((state) => state.numFiles)
   const countFiles = useJobStore((state) => state.countFiles)
+
+  const observers = useJobStore((state) => state.observers)
+  const observerCode = useJobStore((state) => state.observerCode)
+  const setObserverCode = useJobStore((state) => state.setObserverCode)
 
   const jobMode = useJobStore((state) => state.jobMode)
   const setJobMode = useJobStore((state) => state.setJobMode)
@@ -147,14 +153,32 @@ const ChooseIngestInputs = () => {
 
       {jobMode !== JOB_MODES.UNSET && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <BubbleListItem firstItem>Review {jobMode} metadata</BubbleListItem>
+          <BubbleListItem firstItem>
+            <Autocomplete
+              options={observers}
+              value={observerCode}
+              onChange={(event, newValue) => setObserverCode(newValue)}
+              disablePortal
+              size="small"
+              sx={{ width: 300 }}
+              renderInput={(params) => (
+                <TextField {...params} small="small" label="Choose Observer Code" />
+              )}
+            />
+          </BubbleListItem>
+
+          <BubbleListItem>Review {jobMode} metadata</BubbleListItem>
+
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem>Set compression settings</BubbleListItem>
           )}
+
           <BubbleListItem lastItem>Submit Job to Queue</BubbleListItem>
 
           <Box sx={{ fontWeight: 700 }}>During job execution</Box>
+
           <BubbleListItem>Transcode {jobMode} files</BubbleListItem>
+
           <BubbleListItem>
             Original {jobMode}s copied to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
@@ -163,6 +187,7 @@ const ChooseIngestInputs = () => {
                 : settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
             </Box>
           </BubbleListItem>
+
           <BubbleListItem lastItem={jobMode === JOB_MODES.BY_VIDEO}>
             Optimized {jobMode}s exported to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
@@ -171,6 +196,7 @@ const ChooseIngestInputs = () => {
                 : settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
             </Box>
           </BubbleListItem>
+
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem lastItem>
               Optimized {jobMode}s&nbsp;<em>locally</em>&nbsp;exported to

@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import useStore from './store'
 import useSettingsStore from './store/settings'
 import useQueueStore from './store/queue'
+import useJobStore from './store/job'
 import ingestAPI from './api/ingest'
 import ROUTES from './constants/routes'
 import { TITLEBAR_HEIGHT } from './constants/dimensions'
@@ -28,6 +29,7 @@ const App = () => {
     useShallow((state) => [state.loading, state.loadSettings])
   )
   const fetchSchedule = useQueueStore((state) => state.fetchSchedule)
+  const loadObservers = useJobStore((state) => state.loadObservers)
 
   // Fetch any initial data from backend, now that we have a connection
   useEffect(() => {
@@ -36,6 +38,7 @@ const App = () => {
       await ingestAPI.pruneOldTasks()
       loadSettings()
       fetchSchedule()
+      loadObservers()
     }
     inits()
   }, [serverReachable])

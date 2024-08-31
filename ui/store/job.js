@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { valueSetter } from './utils'
 import ROUTES, { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import ingestAPI from '../api/ingest'
+import observersAPI from '../api/observers'
 import { leafPath } from '../utilities/paths'
 import useQueueStore from './queue'
 import useRootStore from './index'
@@ -12,6 +13,7 @@ const initialState = {
   sourceFolder: '',
   sourceFolderValid: true,
   numFiles: { images: null, videos: null },
+  observerCode: null,
   jobMode: JOB_MODES.UNSET,
   localOutputFolder: '',
   metadataFilter: null,
@@ -34,6 +36,7 @@ const initialState = {
   },
   jobId: null,
   settingsList: [],
+  observers: [],
 }
 
 const validateSourceFolder = (folderPath) => {
@@ -145,12 +148,19 @@ const useJobStore = create((set, get) => ({
   // This list should be a list of object
   // The schema can be found in the TranscodeSettings class within the server
   setSettingsList: valueSetter(set, 'settingsList'),
+
+  setObserverCode: valueSetter(set, 'observerCode'),
+  loadObservers: async () => {
+    const observers = await observersAPI.getList()
+    set({ observers })
+  },
 }))
 
 const canParse = (state) => {
-  const { sourceFolder, sourceFolderValid, jobMode, localOutputFolder } = state
+  const { sourceFolder, sourceFolderValid, observerCode, jobMode, localOutputFolder } = state
   if (!sourceFolder) return false
   if (!sourceFolderValid) return false
+  if (!observerCode) return false
   if (jobMode === JOB_MODES.UNSET) return false
   if (jobMode === JOB_MODES.BY_IMAGE && !localOutputFolder) return false
   return true

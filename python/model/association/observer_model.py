@@ -30,14 +30,14 @@ class ObserverModel(SQL):
                     )"""
         self.load_table('observer', observer_create, self.file_path, 'ObserverCode')
 
-    
+
     def get_all_observers(self):
         try:
             cursor = self.conn.cursor()
             cursor.execute('SELECT * FROM observer')
             rows = cursor.fetchall()
             cursor.close()
-            return list(set([row[0] for row in rows]))
+            return sorted(list(set([row[0] for row in rows])))
         except Exception as e:
             print_err(f"Failed to execute SQL query get_all_sightings: {e}")
         return None
