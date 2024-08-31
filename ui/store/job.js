@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { closest } from 'fastest-levenshtein'
 
 import { valueSetter } from './utils'
 import ROUTES, { JOB_PHASES, JOB_MODES } from '../constants/routes'
@@ -42,7 +43,9 @@ const initialState = {
 const validateSourceFolder = (folderPath) => {
   const folderName = leafPath(folderPath)
   // Check for YYYY-MM-DD-ObserverCode
-  return folderName.match(/^\d{4}-\d{2}-\d{2}-[a-z].*$/i)
+  const matchFound = folderName.match(/^\d{4}-\d{2}-\d{2}-(.+)$/i)
+  if (!matchFound) return [false, null]
+  return [true, matchFound[1]]
 }
 
 const useJobStore = create((set, get) => ({
@@ -67,8 +70,8 @@ const useJobStore = create((set, get) => ({
   },
 
   triggerExecute: async () => {
-    const { jobMode, sourceFolder, settingsList, localOutputFolder } = get()
-    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder)
+    const { jobMode, sourceFolder, settingsList, localOutputFolder, observerCode } = get()
+    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder, observerCode)
 
     // After submitting a new job to the queue, Navigate the user back home,
     // reload the queue data, and reset some of the stores like we do in the Navbar
@@ -80,8 +83,24 @@ const useJobStore = create((set, get) => ({
   },
 
   setSourceFolder: (sourceFolder) => {
-    const isValid = sourceFolder !== '' && validateSourceFolder(sourceFolder)
-    set({ sourceFolder, sourceFolderValid: isValid })
+    let isValid = false
+    let observerCodeRaw = null
+    if (sourceFolder !== '') {
+      const validation = validateSourceFolder(sourceFolder)
+      isValid = validation[0]
+      observerCodeRaw = validation[1]
+    }
+
+    let initialObserverCode = null
+    if (isValid) {
+      initialObserverCode = closest(observerCodeRaw, get().observers)
+    }
+
+    set({
+      sourceFolder,
+      sourceFolderValid: isValid,
+      observerCode: initialObserverCode,
+    })
   },
 
   countFiles: async () => {
