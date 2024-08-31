@@ -16,6 +16,7 @@ from data.task import TaskProgessMessages
 from services.job_service import JobService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
+from services.report_service import ReportService
 from model.ingest.job_model import JobType, JobStatus, JobErrors
 
 from settings.settings_service import SettingsService, SettingsEnum
@@ -77,6 +78,7 @@ class TranscodeService:
         self.settings_service = SettingsService()
         self.folder_model = FolderModel()
         self.video_model = VideoModel()
+        self.report_service = ReportService()
 
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
@@ -277,6 +279,8 @@ class TranscodeService:
 
                     finally:
                         self.job_service.set_job_status(transcode_job_id)
+        self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
+
 
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, transcode_job_id, temp_dir, progress_4_transcode, progress_4_transfer):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)

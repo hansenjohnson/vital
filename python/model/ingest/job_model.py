@@ -1,9 +1,12 @@
 import sqlite3
 import contextlib
+import json
 from enum import Enum
 from datetime import datetime
 
 from utils.prints import print_out
+
+from data.report import Report
 
 from services.metadata_service import MediaType
 
@@ -32,6 +35,7 @@ class JobModel:
                    type TEXT,
                    status TEXT,
                    data TEXT,
+                   report_data TEXT DEFAULT '{}',
                    completed_date DATETIME,
                    last_executor_id TEXT,
                    error_message TEXT
@@ -50,6 +54,13 @@ class JobModel:
                         return cursor.__getattribute__(action)()
                     if attr:
                         return cursor.__getattribute__(attr)
+                    
+
+    def serialize_dataclass(self, instance):
+        return json.dumps(instance.__dict__)
+
+    def deserialize_dataclass(self, json_string, cls):
+        return cls(**json.loads(json_string))
 
     def create(self, job_type: JobType, jobStatus: JobStatus, json_data):
         lastrowid = self.with_cursor(
@@ -148,6 +159,24 @@ class JobModel:
     def delete(self, job_id):
         self.with_cursor("DELETE FROM job WHERE id = ?", (job_id,))
         return job_id
+    
+    def update_report_data(self, job_id, incoming_report_data):
+        stored_report_data = self.get_report_data(job_id)
+        report_data = Report.merge_dataclasses(stored_report_data, incoming_report_data)
+    
+        report_data_json = self.serialize_dataclass(report_data)
+
+        self.with_cursor("UPDATE job set report_data = ? where id = ?", (report_data_json, job_id,))
+    
+    def get_report_data(self, job_id):
+         row = self.with_cursor(
+            "SELECT report_data FROM job WHERE id = ?",
+            (job_id,),
+            action='fetchone')
+         report_data_json = row[0]
+         
+         report_data = self.deserialize_dataclass(report_data_json, Report)
+         return report_data
 
     @staticmethod
     def transform_job_row(row):
@@ -158,7 +187,8 @@ class JobModel:
             "type": row[1],
             "status": row[2],
             "data": row[3],
-            "completed_date": row[4],
-            # "last_executor_id": row[5], // just placing this here for tuple-index reference
-            "error_message": row[6],
+            "report_data": row[4],
+            "completed_date": row[5],
+            # "last_executor_id": row[6], // just placing this here for tuple-index reference
+            "error_message": row[7],
         }

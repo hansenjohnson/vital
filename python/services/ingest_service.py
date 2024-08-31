@@ -11,15 +11,12 @@ from services.metadata_service import MediaType
 from services.video_metadata_service import VideoMetadataService
 from services.image_metadata_service import ImageMetadataService
 
-from utils.prints import print_err, print_out
+from utils.constants import image_extensions, video_extensions
 
 
 class IngestService:
 
     def __init__(self):
-        self.video_extensions = ['.mp4', '.avi', '.mov', '.flv', '.wmv', '.ts', '.m4v']
-        self.image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff', '.orf', '.cr2', '.dng', '.nef']
-
         self.job_service = JobService()
         self.validator_service = ValidatorService()
 
@@ -32,10 +29,10 @@ class IngestService:
 
     def parse_media(self, job_id, source_dir, media_type):
         if (media_type == MediaType.VIDEO):
-            files = self.get_files(source_dir, self.video_extensions)
+            files = self.get_files(source_dir, video_extensions)
             media_service = VideoMetadataService()
         else:
-            files = self.get_files(source_dir, self.image_extensions)
+            files = self.get_files(source_dir, image_extensions)
             media_service = ImageMetadataService()
 
         metadata = []
@@ -63,8 +60,8 @@ class IngestService:
     
 
     def count_media(self, source_dir):
-        video_files_count = len(self.get_files(source_dir, self.video_extensions))
-        image_files_count = len(self.get_files(source_dir, self.image_extensions))
+        video_files_count = len(self.get_files(source_dir, video_extensions))
+        image_files_count = len(self.get_files(source_dir, image_extensions))
 
         return {
             'images': image_files_count,
