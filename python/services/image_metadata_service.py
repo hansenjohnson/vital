@@ -38,7 +38,7 @@ class ImageMetadataService(MetadataService):
         if len(metadata_obj_arr) > 0:
             metadata_arr = []
             for metadata in metadata_obj_arr:
-                file_path = metadata['SourceFile']
+                file_path = os.path.normpath(metadata['SourceFile'])
                 internal_date = metadata.get('DateTimeOriginal')
                 if internal_date:
                     internal_date = datetime.strptime(internal_date, "%Y:%m:%d %H:%M:%S").timestamp()
