@@ -143,6 +143,10 @@ const LinkageAnnotationPage = () => {
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
+  const whenAllImagesHaveLoaded = async () => {
+    await ingestAPI.deleteSampleImages(jobId)
+  }
+
   /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
   const setPhase = useJobStore((state) => state.setPhase)
@@ -386,10 +390,13 @@ const LinkageAnnotationPage = () => {
             gap: 2,
           }}
         >
-          <CompressionBucketsList
-            compressionBuckets={compressionBuckets}
-            sampleImages={sampleImages}
-          />
+          {sampleStatus === STATUSES.COMPLETED && (
+            <CompressionBucketsList
+              compressionBuckets={compressionBuckets}
+              sampleImages={sampleImages}
+              onImagesLoaded={whenAllImagesHaveLoaded}
+            />
+          )}
         </Box>
       </Box>
     )

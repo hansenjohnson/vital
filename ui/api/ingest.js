@@ -38,6 +38,7 @@ const createSampleImages = async (small, medium, large) => {
   return data?.job_id
 }
 const getJobSampleData = (jobId) => getJSON(`${ingestURL}/job/${jobId}/sample_file_data`)
+const deleteSampleImages = (jobId) => deleteThis(`${ingestURL}/sample/${jobId}`)
 
 // Job Execution Methods
 const transcode = async (sourceFolder, settingsList, mediaType, localOutputFolder) => {
@@ -64,6 +65,7 @@ export default {
   getJobResultData,
   getJobSampleData,
   createSampleImages,
+  deleteSampleImages,
   transcode,
   pruneOldTasks,
 }

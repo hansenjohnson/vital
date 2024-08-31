@@ -1,7 +1,15 @@
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
 
-const CompressionOption = ({ image, compression, fileSize, savings, selected, onClick }) => {
+const CompressionOption = ({
+  image,
+  compression,
+  fileSize,
+  savings,
+  selected,
+  onClick,
+  imageLoaded,
+}) => {
   return (
     <Box
       sx={{
@@ -42,7 +50,12 @@ const CompressionOption = ({ image, compression, fileSize, savings, selected, on
           },
         }}
       >
-        <Box component="img" src={image} sx={{ width: '200px', borderRadius: 0.5 }} />
+        <Box
+          component="img"
+          src={image}
+          onLoad={imageLoaded}
+          sx={{ width: '200px', borderRadius: 0.5 }}
+        />
       </Box>
       <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
         <Radio
