@@ -245,6 +245,22 @@ const SettingsContainer = () => {
           }}
         />
 
+        <FilePathSettingInput
+          label="Observer Codes - Data File"
+          value={settings[SETTING_KEYS.OBSERVER_FILE_PATH]}
+          error={SETTING_KEYS.OBSERVER_FILE_PATH in errors}
+          errorMessage={errors[SETTING_KEYS.OBSERVER_FILE_PATH]}
+          onChange={handleChangeFor(SETTING_KEYS.OBSERVER_FILE_PATH)}
+          onFolderClick={async () => {
+            const filePath = await window.api.selectFile(
+              FILE_TYPES.EXCEL,
+              settings[SETTING_KEYS.OBSERVER_FILE_PATH]
+            )
+            if (!filePath) return
+            setOneSetting(SETTING_KEYS.OBSERVER_FILE_PATH, filePath)
+          }}
+        />
+
         <Divider sx={{ marginTop: 1, marginBottom: 1 }} />
 
         <FilePathSettingInput
