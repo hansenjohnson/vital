@@ -49,15 +49,12 @@ const CompressionBucketsList = ({
     }
   }, [JSON.stringify(imagesToLoad)])
 
-  const smallSelection = small?.selection
-  const mediumSelection = medium?.selection
-  const largeSelection = large?.selection
   const setSmallSelection = (newValue) => setCompressionSelection('small', newValue)
   const setMediumSelection = (newValue) => setCompressionSelection('medium', newValue)
   const setLargeSelection = (newValue) => setCompressionSelection('large', newValue)
 
   /* Rendering Sections */
-  const createListOfOptions = (images, selection, setter) => (
+  const createListOfOptions = (images, selection, setter, size = 0) => (
     <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', padding: 1, paddingTop: 0 }}>
       {images.length === 0 && <Box sx={{ fontStyle: 'italic' }}>No images in this bucket</Box>}
       {images.map((image) => (
@@ -66,6 +63,7 @@ const CompressionBucketsList = ({
           image={`${baseURL}/ingest/sample/${encodeURIComponent(image.file_name)}`}
           compression={IMAGE_QUALITIES[image.jpeg_quality].compressionAmount}
           fileSize={IMAGE_QUALITIES[image.jpeg_quality].fileSize}
+          savings={size - size * IMAGE_QUALITIES[image.jpeg_quality].compressionRatio}
           imageLoaded={() => {
             setImagesToLoad((prev) => ({ ...prev, [image.file_name]: true }))
           }}
@@ -79,13 +77,13 @@ const CompressionBucketsList = ({
   return (
     <Box sx={{ paddingTop: 1, paddingBottom: 1 }}>
       <Box sx={{ fontSize: '20px', marginLeft: 1 }}>Small Images Bucket</Box>
-      {createListOfOptions(smallImages, smallSelection, setSmallSelection)}
+      {createListOfOptions(smallImages, small?.selection, setSmallSelection, small?.size)}
 
       <Box sx={{ fontSize: '20px', marginLeft: 1, marginTop: 1 }}>Medium Images Bucket</Box>
-      {createListOfOptions(mediumImages, mediumSelection, setMediumSelection)}
+      {createListOfOptions(mediumImages, medium?.selection, setMediumSelection, medium?.size)}
 
       <Box sx={{ fontSize: '20px', marginLeft: 1, marginTop: 1 }}>Large Images Bucket</Box>
-      {createListOfOptions(largeImages, largeSelection, setLargeSelection)}
+      {createListOfOptions(largeImages, large?.selection, setLargeSelection, large?.size)}
     </Box>
   )
 }

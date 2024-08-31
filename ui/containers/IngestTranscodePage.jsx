@@ -94,10 +94,13 @@ const LinkageAnnotationPage = () => {
         const megapixels = resolutionToTotalPixels(media.resolution)
         if (megapixels < BUCKET_THRESHOLDS.medium) {
           newBuckets.small.images.push(media.filePath)
+          newBuckets.small.size += media.fileSize
         } else if (megapixels < BUCKET_THRESHOLDS.large) {
           newBuckets.medium.images.push(media.filePath)
+          newBuckets.medium.size += media.fileSize
         } else {
           newBuckets.large.images.push(media.filePath)
+          newBuckets.large.size += media.fileSize
         }
       })
     )

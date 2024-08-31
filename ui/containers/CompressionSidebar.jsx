@@ -3,6 +3,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
+import { bytesToSize } from '../utilities/strings'
 import STATUSES from '../constants/statuses'
 import { IMAGE_QUALITIES, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 
@@ -11,6 +12,7 @@ import SidebarHeader from '../components/SidebarHeader'
 import StyledButton from '../components/StyledButton'
 
 const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAction }) => {
+  const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
 
@@ -27,6 +29,15 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
   if (largeChoice === 'No') {
     largeChoice = 'None'
   }
+
+  let totalSavings = 0
+  buckets.forEach((bucket) => {
+    const savingsForBucket =
+      compressionBuckets[bucket].size -
+      compressionBuckets[bucket].size *
+        IMAGE_QUALITIES[compressionBuckets[bucket]?.selection]?.compressionRatio
+    totalSavings += savingsForBucket || 0
+  })
 
   return (
     <Sidebar spacing={1}>
@@ -61,7 +72,10 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
             <Box component="span" sx={{ color: 'text.secondary' }}>
               Compression choice:
             </Box>{' '}
-            <Box component="span" sx={{ color: 'primary.main' }}>
+            <Box
+              component="span"
+              sx={{ color: smallChoice === 'None' ? 'text.primary' : 'primary.main' }}
+            >
               {smallChoice}
             </Box>
           </Box>
@@ -84,7 +98,10 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
             <Box component="span" sx={{ color: 'text.secondary' }}>
               Compression choice:
             </Box>{' '}
-            <Box component="span" sx={{ color: 'primary.main' }}>
+            <Box
+              component="span"
+              sx={{ color: mediumChoice === 'None' ? 'text.primary' : 'primary.main' }}
+            >
               {mediumChoice}
             </Box>
           </Box>
@@ -106,12 +123,19 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
             <Box component="span" sx={{ color: 'text.secondary' }}>
               Compression choice:
             </Box>{' '}
-            <Box component="span" sx={{ color: 'primary.main' }}>
+            <Box
+              component="span"
+              sx={{ color: largeChoice === 'None' ? 'text.primary' : 'primary.main' }}
+            >
               {largeChoice}
             </Box>
           </Box>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Total Expected Savings</Box>
+            <Box sx={{ color: totalSavings === 0 ? 'text.primary' : 'secondary.main' }}>
+              {totalSavings === 0 ? '' : '~'}
+              {bytesToSize(totalSavings)}
+            </Box>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />

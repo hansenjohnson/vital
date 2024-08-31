@@ -1,6 +1,8 @@
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
 
+import { bytesToSize } from '../utilities/strings'
+
 const CompressionOption = ({
   image,
   compression,
@@ -10,6 +12,7 @@ const CompressionOption = ({
   onClick,
   imageLoaded,
 }) => {
+  const savingsBytes = savings || 0
   return (
     <Box
       sx={{
@@ -66,7 +69,10 @@ const CompressionOption = ({
         <Box sx={{ fontSize: '14px' }}>
           <Box sx={{ lineHeight: '16px' }}>{compression} compression</Box>
           <Box sx={{ lineHeight: '16px' }}>{fileSize} file size</Box>
-          <Box sx={{ lineHeight: '16px' }}>Savings: ~{savings}</Box>
+          <Box sx={{ lineHeight: '16px' }}>
+            Savings: {savingsBytes === 0 ? '' : '~'}
+            {bytesToSize(savingsBytes)}
+          </Box>
         </Box>
       </Box>
     </Box>
