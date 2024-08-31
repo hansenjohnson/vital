@@ -2,7 +2,6 @@ import os
 import sys
 import subprocess
 import json
-import re
 from datetime import datetime
 
 from services.metadata_service import MetadataService

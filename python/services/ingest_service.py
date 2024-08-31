@@ -1,7 +1,6 @@
 import os
 import threading
 
-from enum import Enum
 
 from services.job_service import JobService
 from services.validator_service import ValidatorService

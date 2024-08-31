@@ -4,8 +4,6 @@ from datetime import datetime
 from data.validation_status import ValidationStatus
 from services.metadata_service import MediaType
 
-from utils.prints import print_out
-
 class ValidatorService:
 
 
