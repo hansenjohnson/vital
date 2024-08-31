@@ -14,6 +14,7 @@ from blueprints.thumbnails_controller.thumbnails import bp as thumbnails_bp
 from blueprints.still_exports_controller.still_exports import bp as still_exports_bp
 from blueprints.ingest_controller.ingest import bp as ingest_bp
 from blueprints.queue_controller.queue import bp as queue_bp
+from blueprints.observer_controller.observer import bp as observer_bp
 
 from services.scheduler_service import SchedulerService
 
@@ -32,6 +33,7 @@ app.register_blueprint(thumbnails_bp, url_prefix='/thumbnails')
 app.register_blueprint(still_exports_bp, url_prefix='/still_exports')
 app.register_blueprint(ingest_bp, url_prefix='/ingest')
 app.register_blueprint(queue_bp, url_prefix='/queue')
+app.register_blueprint(observer_bp, url_prefix='/observers')
 
 scheduler = SchedulerService()
 

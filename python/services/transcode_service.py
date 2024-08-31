@@ -95,7 +95,8 @@ class TranscodeService:
             source_dir: str,
             local_export_path: str,
             media_type: str,
-            transcode_settings_list: List[TranscodeSettings]
+            transcode_settings_list: List[TranscodeSettings],
+            observer_code: str
         ) -> int:
         transcode_job_id = self.job_service.create_job(
             JobType.TRANSCODE,
@@ -104,6 +105,7 @@ class TranscodeService:
                 "source_dir": source_dir,
                 "media_type": media_type,
                 "local_export_path": local_export_path,
+                "observer_code": observer_code
             }
         )
 
@@ -194,7 +196,7 @@ class TranscodeService:
         os.removedirs(temp_sample_dir)
         return job_id
 
-    def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
+    def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int], observer_code):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
 
         optimized_base_dir = None
@@ -213,7 +215,9 @@ class TranscodeService:
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
 
         catalog_folder_id = None
-        if (media_type == MediaType.VIDEO):
+        if (media_type == MediaType.VIDEO):         
+            # remove the cleaned observer code and replace it with the "real" observer code
+            catalog_folder_info = catalog_folder_info[:-1] + (observer_code,)
             catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
 
         # We expect that all folders leading up to these leafs will exist, and if not, that an Error should be thrown

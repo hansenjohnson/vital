@@ -84,7 +84,8 @@ def queue_transcode():
     source_dir = payload['source_dir']
     local_export_path = payload['local_export_path']
     transcode_list = payload['transcode_list']
-    job_id = transcode_service.queue_transcode_job(source_dir, local_export_path, media_type, transcode_list)
+    observer_code = payload['observer_code']
+    job_id = transcode_service.queue_transcode_job(source_dir, local_export_path, media_type, transcode_list, observer_code)
     return {"job_id": job_id}
 
 
