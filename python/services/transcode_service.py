@@ -8,12 +8,11 @@ import shutil
 import subprocess
 import time
 import threading
-import base64
 from subprocess import PIPE
 from typing import List
 
 from data.transcode_settings import TranscodeSettings
-from data.report import Report
+from data.task import TaskProgessMessages
 from services.job_service import JobService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
@@ -26,7 +25,7 @@ from data.task import TaskStatus
 from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel
 
-from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path, make_one_dir_ok_exists
+from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path, make_one_dir_ok_exists, get_size_of_folder_contents_recursively
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
 from utils.death import add_terminator, remove_last_terminator
@@ -49,6 +48,21 @@ class TranscodeService:
         },
     }
     PROGRESS_RATIOS = [12, 4, 2, 1]
+
+    # Define a ratio of total progress for the transcodes versus the transfers, based on transfer bandwidth speeds
+    #  Mbps: (Transcode Progress Amount, Transfer Progress Amount)
+    TRNSC_2_TRNSFR_PRGS_RATIOS = {
+          1: ( 8, 92),
+          2: (15, 85),
+          5: (30, 70),
+         10: (50, 50),
+         25: (70, 30),
+         50: (83, 17),
+        100: (90, 10),
+        200: (95,  5),
+        500: (98,  2),
+    }
+    TRNSC_2_TRNSFR_BNDWTHS = list(TRNSC_2_TRNSFR_PRGS_RATIOS.keys())
 
     LOW_JPEG_QUALITY = 20
     MEDIUM_JPEG_QUALITY = 50
@@ -178,7 +192,7 @@ class TranscodeService:
                 os.remove(os.path.join(temp_sample_dir, file_name))
 
         os.removedirs(temp_sample_dir)
-        return job_id     
+        return job_id
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int]):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
@@ -217,8 +231,15 @@ class TranscodeService:
                 self.job_service.set_job_status(transcode_job_id)
                 time.sleep(RETRY_DELAY_SEC)
 
-        self.job_service.set_error(transcode_job_id, JobErrors.NONE)
+        try:
+            disk_bandwidth = TranscodeService.get_disk_io_bandwidth(optimized_base_dir)
+            print_out(f'Estimated Disk Bandwidth: {disk_bandwidth} Mbps')
+        except Exception:
+            disk_bandwidth = 10 # this will give us a perfectly balanced 50/50 since we failed to identify the bandwidth
+        progress_4_transcode, progress_4_transfer = TranscodeService.get_subtask_progress_ratios(disk_bandwidth)
+
         for transcode_task_id in transcode_task_ids:
+            self.job_service.set_error(transcode_job_id, JobErrors.NONE)
             with tempfile.TemporaryDirectory() as temp_dir:
                 retry_task = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
                 while retry_task == True:
@@ -228,7 +249,17 @@ class TranscodeService:
                         self.task_service.set_task_error_message(transcode_task_id, '')
 
                         if (media_type == MediaType.VIDEO):
-                            self.transcode_video(source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir)
+                            self.transcode_video(
+                                source_dir,
+                                optimized_dir_path,
+                                original_dir_path,
+                                catalog_folder_id,
+                                transcode_task_id,
+                                transcode_job_id,
+                                temp_dir,
+                                progress_4_transcode,
+                                progress_4_transfer
+                            )
                         else:
                             self.transcode_image(optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir)
 
@@ -251,8 +282,9 @@ class TranscodeService:
         self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
 
 
-    def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, temp_dir):
+    def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, transcode_job_id, temp_dir, progress_4_transcode, progress_4_transfer):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
+        self.task_service.set_task_progress(transcode_task_id, 0, TaskProgessMessages.TRANSCODING.value)
 
         # Determine the Adaptive Bitrate Ladder for this video
         input_height = transcode_settings.input_height
@@ -313,7 +345,8 @@ class TranscodeService:
             line_handler = self.create_ffmpeg_line_handler(
                 transcode_task_id,
                 num_frames,
-                progress_bounds_for_sub_task
+                progress_bounds_for_sub_task,
+                progress_4_transcode / 100,
             )
             TranscodeService.run_command_with_terminator(ffmpeg_command, line_handler)
 
@@ -324,19 +357,80 @@ class TranscodeService:
         ]
         mp4box_command = self.generate_dash_command(intermediate_files, temp_mpd_file, output_file_name_mpd)
         TranscodeService.run_command_with_terminator(mp4box_command)
+        self.task_service.set_task_progress(transcode_task_id, progress_4_transcode, TaskProgessMessages.COPYING.value)
 
         # Official Output - Copy the whole DASH folder to the optimized directory
         folder_to_move_into = os.path.dirname(expected_final_dir)
-        if os.path.isdir(folder_to_move_into) == False:
-            # shutil.move() does not throw an error if the destination folder does not exist, so we must do it manually
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), folder_to_move_into)
         print_out(f'Moving {temp_dash_container} into {folder_to_move_into}')
-        shutil.move(temp_dash_container, folder_to_move_into)
+        t = threading.Thread(
+            target=self.file_size_progress_reporter,
+            args=(
+                transcode_task_id,
+                expected_final_dir,
+                get_size_of_folder_contents_recursively(temp_dash_container),
+                (progress_4_transcode + 1, progress_4_transcode + (progress_4_transfer * 0.5)),
+                True
+            )
+        )
+        t.start()
+
+        copy_success_1 = False
+        while copy_success_1 == False:
+            try:
+                # We do this because shutil.move does not throw this on its own, and also to avoid switching the JobError back to None too early
+                if not os.path.isdir(folder_to_move_into):
+                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), folder_to_move_into)
+                self.job_service.set_error(transcode_job_id, JobErrors.NONE)
+                if os.path.isdir(expected_final_dir):
+                    shutil.rmtree(expected_final_dir, ignore_errors=True)
+                shutil.move(temp_dash_container, folder_to_move_into)
+                copy_success_1 = True
+            except FileNotFoundError as e:
+                print_err(str(e))
+                self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                time.sleep(RETRY_DELAY_SEC)
+            except OSError as e:
+                if '[WinError 53]' in str(e):
+                    print_err(str(e))
+                    self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                    time.sleep(RETRY_DELAY_SEC)
+                else:
+                    raise e
+
+        t.join()
+        self.task_service.set_task_progress(transcode_task_id, progress_4_transcode + (progress_4_transfer * 0.5))
 
         # Official Output - Copy original file to original directory
         # This should happen after the transcode as it is less likely to fail
         print_out(f'Copying {original_file} to {expected_original_dir}')
-        shutil.copy(original_file, expected_original_dir)
+        t = threading.Thread(
+            target=self.file_size_progress_reporter,
+            args=(
+                transcode_task_id,
+                os.path.join(expected_original_dir, os.path.basename(original_file)),
+                get_size_of_folder_contents_recursively(original_file),
+                (progress_4_transcode + (progress_4_transfer * 0.5) + 1, 99),
+                True
+            )
+        )
+        t.start()
+
+        copy_success_2 = False
+        while copy_success_2 == False:
+            try:
+                # We do this to avoid switching the JobError back to None too early
+                if not os.path.isdir(expected_original_dir):
+                    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), expected_original_dir)
+                self.job_service.set_error(transcode_job_id, JobErrors.NONE)
+                shutil.copy(original_file, expected_original_dir)
+                copy_success_2 = True
+            except FileNotFoundError as e:
+                print_err(str(e))
+                self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
+                time.sleep(RETRY_DELAY_SEC)
+
+        t.join()
+        self.task_service.set_task_progress(transcode_task_id, 99, TaskProgessMessages.DATA_ENTRY.value)
 
         expected_final_full_path = os.path.join(expected_final_dir, output_file_name_mpd)
         dash_file_partial_leaf = expected_final_full_path.replace(f'{optimized_dir_path}{os.path.sep}', '')
@@ -379,15 +473,15 @@ class TranscodeService:
             '-mpd-title', f'"{output_file_name_mpd}"'
         ]
 
-    def create_ffmpeg_line_handler(self, transcode_task_id, total_frames, progress_bounds=(0, 100)):
+    def create_ffmpeg_line_handler(self, transcode_task_id, total_frames, progress_bounds=(0, 100), progress_ratio_within_job=1.0):
         def line_callback(line):
             frames_complete = TranscodeService.parse_ffmpeg_progress(line)
             if frames_complete:
                 percent_complete = frames_complete / total_frames
                 new_absolute_progress = int(
-                    (progress_bounds[1] - progress_bounds[0])
+                    ((progress_bounds[1] - progress_bounds[0])
                     * percent_complete
-                    + progress_bounds[0]
+                    + progress_bounds[0]) * progress_ratio_within_job
                 )
                 self.task_service.set_task_progress(transcode_task_id, new_absolute_progress)
         return line_callback
@@ -397,12 +491,15 @@ class TranscodeService:
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
         file_path, optimized_temp_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+        self.task_service.set_task_progress(transcode_task_id, 66)
 
         # Official Outputs
         print_out(f'Copying {file_path} into {original_dir_path}')
         shutil.copy(file_path, original_dir_path)
+        self.task_service.set_task_progress(transcode_task_id, 85)
         print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
         shutil.copy(optimized_temp_path, optimized_dir_path)
+        self.task_service.set_task_progress(transcode_task_id, 99)
         print_out(f'Copying {optimized_temp_path} into {local_export_path}')
         shutil.copy(optimized_temp_path, local_export_path)
 
@@ -428,12 +525,12 @@ class TranscodeService:
             decode_command = self.generate_decode_command_raw(file_path, intermediate_temp_path)
             encode_command = self.generate_encode_command(intermediate_temp_path, optimized_temp_path, jpeg_quality)
             TranscodeService.run_command_with_terminator(decode_command)
-            self.task_service.set_task_progress(transcode_task_id, 50)
+            self.task_service.set_task_progress(transcode_task_id, 33)
             TranscodeService.run_command_with_terminator(encode_command)
 
         else:
             raise ValueError(f'Unsupported image file type: {file_extension}')
-        
+
         return file_path, optimized_temp_path
 
     def generate_convert_command(self, input_path, output_path, jpeg_quality):
@@ -466,6 +563,27 @@ class TranscodeService:
             input_path,
         ]
 
+    def file_size_progress_reporter(self, transcode_task_id, file_path, expected_size, progress_bounds=(0, 100), is_folder=False):
+        current_size = 0
+        if expected_size == 1:
+            # this function is useless if the expected_size failed (which is a 1), so its better to not report progress
+            return
+        while current_size < expected_size - 1024:
+            try:
+                if is_folder:
+                    current_size = get_size_of_folder_contents_recursively(file_path)
+                else:
+                    current_size = os.path.getsize(file_path)
+            except Exception:
+                pass
+            progress = int(
+                (current_size / expected_size)
+                * (progress_bounds[1] - progress_bounds[0])
+                + progress_bounds[0]
+            )
+            self.task_service.set_task_progress(transcode_task_id, progress)
+            time.sleep(1)
+
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
         print_out(' '.join(command))
@@ -486,9 +604,7 @@ class TranscodeService:
 
     @staticmethod
     def calculate_progress_bounds(ratios):
-        # We use 96 because that evenly devides between 1, 2, 3, & 4 and it is "closeish" to 100
-        # Since we want some progress lefover for the mp4 box command
-        length_of_transcodes = 96
+        length_of_transcodes = 100
         ratio_sum = sum(ratios)
         bounds = []
         for index, ratio in enumerate(ratios):
@@ -497,3 +613,36 @@ class TranscodeService:
             upper_bound = length_of_transcodes if index == len(ratios) - 1 else lower_bound + relative_upper_bound
             bounds.append((lower_bound, upper_bound))
         return bounds
+
+    @staticmethod
+    def get_disk_io_bandwidth(network_folder_path):
+        bandwidth = 1 # 1 Mbps is our lowest threshold, so this is a good default
+        # Progressivley scale up the file size until we find a file size that takes longer than 10 seconds to write
+        # this will give us a much better bandwidth estimate than just writing a tiny little file super quickly
+        time_to_write = 0
+        file_size_mb = 1
+        while time_to_write < 10 and file_size_mb < 101:
+            before = time.time()
+            bandwidth = TranscodeService.check_disk_io_bandwidth(network_folder_path, file_size_mb)
+            after = time.time()
+            time_to_write = after - before
+            file_size_mb *= 10 # so basically, check 1, 10, then 100 mb files
+        return bandwidth
+
+    @staticmethod
+    def check_disk_io_bandwidth(network_folder_path, check_mb=1):
+        fileSizeInBytes = 1024 * 1024 * check_mb
+        temp_file = os.path.join(network_folder_path, 'vital-temp-file')
+        before = time.time()
+        with open(temp_file, 'wb') as fout:
+            fout.write(os.urandom(fileSizeInBytes))
+        after = time.time()
+        os.remove(temp_file)
+        pure_bandwidth = sys.maxsize if after - before == 0 else (fileSizeInBytes * 8) / (after - before)
+        # return Mbps
+        return pure_bandwidth / (1024 * 1024)
+
+    @staticmethod
+    def get_subtask_progress_ratios(disk_bandwidth):
+        closest_bandwidth = find_closest(TranscodeService.TRNSC_2_TRNSFR_BNDWTHS, disk_bandwidth)
+        return TranscodeService.TRNSC_2_TRNSFR_PRGS_RATIOS[closest_bandwidth]

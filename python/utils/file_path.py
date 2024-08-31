@@ -66,3 +66,15 @@ def make_one_dir_ok_exists(path):
         os.mkdir(path)
     except FileExistsError:
         pass
+
+def get_size_of_folder_contents_recursively(folder_path):
+    total_size = 0
+    try:
+        for dirpath, dirnames, filenames in os.walk(folder_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+    except Exception:
+        return 1 # prevent division by zero
+    return total_size

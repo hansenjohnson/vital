@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { TransitionGroup } from 'react-transition-group'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -17,12 +17,13 @@ import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
 import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
-import { scheduleTimeString } from '../utilities/strings'
+import { jobNameFromData, scheduleTimeString } from '../utilities/strings'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
 
 import JobQueueItem from '../components/JobQueueItem'
 import SchedulePad from '../components/SchedulePad'
 import TinyTextButton from '../components/TinyTextButton'
+import TaskDetailsPad from '../components/TaskDetailsPad'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -52,6 +53,7 @@ const JobQueue = () => {
   const queueDialogRef = useRef(null)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const toggleSchedule = () => {
+    setTaskDetailsJobId(null)
     setScheduleOpen(!scheduleOpen)
   }
 
@@ -75,6 +77,28 @@ const JobQueue = () => {
 
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
+
+  const [taskDetailsJobId, setTaskDetailsJobId] = useState(null)
+  const taskDetails = useMemo(() => {
+    const foundJob = incompleteJobs.find((job) => job.id === taskDetailsJobId)
+    if (!foundJob) return null
+    return {
+      name: jobNameFromData(foundJob.data, foundJob.tasks.length),
+      tasks: foundJob?.tasks,
+    }
+  }, [taskDetailsJobId, JSON.stringify(incompleteJobs)])
+  const taskDetailsOpen = taskDetails != null
+  const toggleTaskDetails = (jobId) => {
+    setScheduleOpen(false)
+    setTaskDetailsJobId((prev) => (prev === jobId ? null : jobId))
+  }
+
+  useEffect(() => {
+    setScheduleOpen(false)
+    setTaskDetailsJobId(null)
+  }, [jobQueueOpen])
+
+  /** Rendering Section **/
 
   let topActionSection = null
   if (queueRunning) {
@@ -139,7 +163,7 @@ const JobQueue = () => {
       PaperProps={{
         ref: queueDialogRef,
         sx: {
-          right: scheduleOpen ? '250px' : '0px',
+          right: scheduleOpen || taskDetailsOpen ? '250px' : '0px',
           transition: 'right 0.3s ease',
           position: 'relative',
         },
@@ -177,13 +201,13 @@ const JobQueue = () => {
               key={id}
               id={id}
               status={status}
-              numTasks={job.tasks.length}
+              name={jobNameFromData(data, job.tasks.length)}
               info={{
-                data: JSON.parse(data),
                 progress: jobCompletionPercent,
               }}
               actions={{
                 deleteJob,
+                toggleTaskDetails,
               }}
               queueRunning={queueRunning}
               firstItem={index === 0}
@@ -206,9 +230,8 @@ const JobQueue = () => {
                 <JobQueueItem
                   id={id}
                   status={status}
-                  numTasks={job.tasks.length}
+                  name={jobNameFromData(data, job.tasks.length)}
                   info={{
-                    data: JSON.parse(data),
                     completedDate: completed_date,
                   }}
                   queueRunning={queueRunning}
@@ -224,6 +247,14 @@ const JobQueue = () => {
         <Button onClick={loadMoreCompletedJobs} disabled={!canLoadMore}>
           Load More
         </Button>
+
+        <TaskDetailsPad
+          open={taskDetailsOpen}
+          onClose={() => setTaskDetailsJobId(null)}
+          parent={queueDialogRef.current}
+          jobName={taskDetails?.name || ''}
+          tasks={taskDetails?.tasks || []}
+        />
       </DialogContent>
     </Dialog>
   )

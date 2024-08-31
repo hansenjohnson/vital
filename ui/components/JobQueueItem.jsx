@@ -9,12 +9,11 @@ import TocIcon from '@mui/icons-material/Toc'
 
 import STATUSES, { ERRORS } from '../constants/statuses'
 import { completionTimeString } from '../utilities/strings'
-import { leafPath } from '../utilities/paths'
 
 const JobQueueItem = ({
   id,
   status,
-  numTasks,
+  name,
   info = {},
   actions = {},
   queueRunning = false,
@@ -23,11 +22,9 @@ const JobQueueItem = ({
   errorMessage = null,
 }) => {
   const theme = useTheme()
-  const { data, completedDate, progress } = info
-  const { deleteJob } = actions
+  const { completedDate, progress } = info
+  const { deleteJob, toggleTaskDetails } = actions
 
-  const type = data.media_type
-  const name = leafPath(data.source_dir)
   const hasVisibleJobError = queueRunning && firstItem && ERRORS.has(errorMessage)
 
   let itemOutline = 'none'
@@ -101,7 +98,7 @@ const JobQueueItem = ({
     actionNodes = (
       <>
         <ToolTip title="See Tasks" placement="top" arrow>
-          <IconButton size="small">
+          <IconButton size="small" onClick={() => toggleTaskDetails(id)}>
             <TocIcon />
           </IconButton>
         </ToolTip>
@@ -144,8 +141,7 @@ const JobQueueItem = ({
       }}
     >
       <Box sx={{ fontFamily: theme.typography.monoFamily }}>
-        {name} &mdash; {numTasks} {type}
-        {numTasks > 1 ? 's' : ''}
+        {name}
         {secondarySection}
         {hasVisibleJobError && (
           <Box sx={{ fontSize: '12px', lineHeight: '14px', color: 'error.main' }}>

@@ -28,6 +28,7 @@ class TaskService:
             task.id: {
                 "status": task.status,
                 "progress": task.progress,
+                "progress_message": task.progress_message,
                 "size": self.get_task_size_for_video(task) if media_type == MediaType.VIDEO else 1,
                 "error_message": task.error_message,
             }
@@ -56,8 +57,8 @@ class TaskService:
     def set_task_status(self, task_id: int, status: TaskStatus):
         self.task_model.update_task_status(task_id, status)
 
-    def set_task_progress(self, task_id: int, progress: int):
-        self.task_model.update_task_progress(task_id, progress)
+    def set_task_progress(self, task_id: int, progress: int, message: str = ''):
+        self.task_model.update_task_progress(task_id, progress, message)
 
     def set_task_error_message(self, task_id: int, error_message: str):
         self.task_model.set_task_error_message(task_id, error_message)

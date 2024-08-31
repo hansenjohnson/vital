@@ -23,7 +23,13 @@ ERRORS.set('FILE_NOT_FOUND', {
   summary: 'Folder access denied due to lack of Internet, VPN, Permissions, or it was Deleted',
 })
 
-export { WARNINGS, ERRORS }
+const PROGRESS_MESSAGES = {
+  TRANSCODING: 'TRANSCODING',
+  COPYING: 'COPYING',
+  DATA_ENTRY: 'DATA_ENTRY',
+}
+
+export { WARNINGS, ERRORS, PROGRESS_MESSAGES }
 export default {
   LOADING: 'LOADING',
   QUEUED: 'QUEUED',

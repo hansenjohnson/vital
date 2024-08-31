@@ -18,6 +18,8 @@ const SchedulePad = ({ open, onClose, parent, onCommit }) => {
       const parentDialogBox = parent.getBoundingClientRect()
       setTop(parentDialogBox.top)
       setTimeout(() => setDelayedSlide(true), 0)
+    } else {
+      setDelayedSlide(false)
     }
   }, [open])
 
