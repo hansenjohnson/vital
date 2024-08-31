@@ -5,7 +5,7 @@ import useStore from '../store'
 import useJobStore, { initialState } from '../store/job'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
-import { ROOT_FOLDER } from '../constants/fileTypes'
+import { ROOT_FOLDER, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 import ingestAPI from '../api/ingest'
 import {
   bytesToSize,
@@ -26,9 +26,6 @@ import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
 import CompressionSidebar from './CompressionSidebar'
 import CompressionBucketsList from '../components/CompressionBucketsList'
-
-const MEDIUM_IMAGE_THRESHOLD = 9_000_000
-const LARGE_IMAGE_THRESHOLD = 36_000_000
 
 const LinkageAnnotationPage = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
@@ -95,9 +92,9 @@ const LinkageAnnotationPage = () => {
     mediaGroups.forEach((group) =>
       group.mediaList.forEach((media) => {
         const megapixels = resolutionToTotalPixels(media.resolution)
-        if (megapixels < MEDIUM_IMAGE_THRESHOLD) {
+        if (megapixels < BUCKET_THRESHOLDS.medium) {
           newBuckets.small.images.push(media.filePath)
-        } else if (megapixels < LARGE_IMAGE_THRESHOLD) {
+        } else if (megapixels < BUCKET_THRESHOLDS.large) {
           newBuckets.medium.images.push(media.filePath)
         } else {
           newBuckets.large.images.push(media.filePath)

@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
 import STATUSES from '../constants/statuses'
-import { IMAGE_QUALITIES } from '../constants/fileTypes'
+import { IMAGE_QUALITIES, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
@@ -45,15 +45,70 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
         <>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Small Images Bucket</Box>
-            Compression choice: {smallChoice}
+            <Box
+              sx={{
+                fontSize: '14px',
+                lineHeight: '14px',
+                fontWeight: 300,
+                color: 'text.secondary',
+              }}
+            >
+              <Box component="span" sx={{ color: 'text.primary' }}>
+                {compressionBuckets.small?.images?.length} images
+              </Box>{' '}
+              each smaller than {BUCKET_THRESHOLDS.medium / 1_000_000} megapixels
+            </Box>
+            <Box component="span" sx={{ color: 'text.secondary' }}>
+              Compression choice:
+            </Box>{' '}
+            <Box component="span" sx={{ color: 'primary.main' }}>
+              {smallChoice}
+            </Box>
           </Box>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Medium Images Bucket</Box>
-            Compression choice: {mediumChoice}
+            <Box
+              sx={{
+                fontSize: '14px',
+                lineHeight: '14px',
+                fontWeight: 300,
+                color: 'text.secondary',
+              }}
+            >
+              <Box component="span" sx={{ color: 'text.primary' }}>
+                {compressionBuckets.medium?.images?.length} images
+              </Box>{' '}
+              each between {BUCKET_THRESHOLDS.medium / 1_000_000} and{' '}
+              {BUCKET_THRESHOLDS.large / 1_000_000} megapixels
+            </Box>
+            <Box component="span" sx={{ color: 'text.secondary' }}>
+              Compression choice:
+            </Box>{' '}
+            <Box component="span" sx={{ color: 'primary.main' }}>
+              {mediumChoice}
+            </Box>
           </Box>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Large Images Bucket</Box>
-            Compression choice: {largeChoice}
+            <Box
+              sx={{
+                fontSize: '14px',
+                lineHeight: '14px',
+                fontWeight: 300,
+                color: 'text.secondary',
+              }}
+            >
+              <Box component="span" sx={{ color: 'text.primary' }}>
+                {compressionBuckets.large?.images?.length} images
+              </Box>{' '}
+              each larger than {BUCKET_THRESHOLDS.large / 1_000_000} megapixels
+            </Box>
+            <Box component="span" sx={{ color: 'text.secondary' }}>
+              Compression choice:
+            </Box>{' '}
+            <Box component="span" sx={{ color: 'primary.main' }}>
+              {largeChoice}
+            </Box>
           </Box>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Total Expected Savings</Box>
