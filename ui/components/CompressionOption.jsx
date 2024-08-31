@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
+import Skeleton from '@mui/material/Skeleton'
 
 import { bytesToSize } from '../utilities/strings'
+
+const IMAGE_WIDTH = 200
 
 const CompressionOption = ({
   image,
@@ -13,6 +17,13 @@ const CompressionOption = ({
   imageLoaded,
 }) => {
   const savingsBytes = savings || 0
+
+  const [loaded, setLoaded] = useState(false)
+  const onLoad = () => {
+    setLoaded(true)
+    imageLoaded()
+  }
+
   return (
     <Box
       sx={{
@@ -24,7 +35,7 @@ const CompressionOption = ({
       <Box
         sx={{
           position: 'relative',
-          width: '200px',
+          width: `${IMAGE_WIDTH}px`,
           overflow: 'hidden',
           '&::after': {
             position: 'absolute',
@@ -53,11 +64,19 @@ const CompressionOption = ({
           },
         }}
       >
+        {loaded === true ? null : (
+          <Skeleton
+            variant="rectangular"
+            width={IMAGE_WIDTH}
+            height={IMAGE_WIDTH * 0.5625}
+            sx={{ position: 'absolute', borderRadius: 0.5, marginBottom: '6px' }}
+          />
+        )}
         <Box
           component="img"
           src={image}
-          onLoad={imageLoaded}
-          sx={{ width: '200px', borderRadius: 0.5 }}
+          onLoad={onLoad}
+          sx={{ width: `${IMAGE_WIDTH}px`, borderRadius: 0.5 }}
         />
       </Box>
       <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
