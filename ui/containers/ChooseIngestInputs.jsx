@@ -151,7 +151,7 @@ const ChooseIngestInputs = () => {
           {jobMode === JOB_MODES.BY_IMAGE && (
             <BubbleListItem>Set compression settings</BubbleListItem>
           )}
-          <BubbleListItem lastItem>Submit Job to Work Queue</BubbleListItem>
+          <BubbleListItem lastItem>Submit Job to Queue</BubbleListItem>
 
           <Box sx={{ fontWeight: 700 }}>During job execution</Box>
           <BubbleListItem>Transcode {jobMode} files</BubbleListItem>
