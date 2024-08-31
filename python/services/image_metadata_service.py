@@ -29,7 +29,7 @@ class ImageMetadataService(MetadataService):
 
         metadata_obj_arr = []
         try:
-         metadata_obj_arr = json.loads(metadata_json)
+            metadata_obj_arr = json.loads(metadata_json)
 
         except json.JSONDecodeError:
             print_err.error("Error parsing exiftool metadata")
@@ -38,7 +38,7 @@ class ImageMetadataService(MetadataService):
         if len(metadata_obj_arr) > 0:
             metadata_arr = []
             for metadata in metadata_obj_arr:
-                file_path = os.path.normpath(metadata['SourceFile'])
+                file_path = os.path.normpath(metadata['SourceFile']
                 internal_date = metadata.get('DateTimeOriginal')
                 if internal_date:
                     internal_date = datetime.strptime(internal_date, "%Y:%m:%d %H:%M:%S").timestamp()
