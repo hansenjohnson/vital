@@ -26,11 +26,18 @@ class ImageMetadataService(MetadataService):
 
         if error:
             print_err("exiftool error: %s", error)
-        metadata_obj = json.loads(metadata_json)
 
-        metadata_arr = []
-        for metadata in metadata_obj:
-            try:
+        metadata_obj_arr = []
+        try:
+         metadata_obj_arr = json.loads(metadata_json)
+
+        except json.JSONDecodeError:
+            print_err.error("Error parsing exiftool metadata")
+            return None
+        
+        if len(metadata_obj_arr) > 0:
+            metadata_arr = []
+            for metadata in metadata_obj_arr:
                 file_path = metadata['SourceFile']
                 internal_date = metadata.get('DateTimeOriginal')
                 if internal_date:
@@ -49,8 +56,8 @@ class ImageMetadataService(MetadataService):
                     num_frames=None,
                     frame_rate=None
                 ))
-            except KeyError:
-                print_err.error("No Exiftool metadata was found")
-                return None
-            
-        return metadata_arr
+            return metadata_arr
+        
+        else:
+            print_err.error("No metadata found")
+            return None
