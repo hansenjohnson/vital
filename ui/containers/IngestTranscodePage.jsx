@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
-import useJobStore from '../store/job'
+import useJobStore, { initialState } from '../store/job'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import { JOB_PHASES, JOB_MODES } from '../constants/routes'
 import { ROOT_FOLDER } from '../constants/fileTypes'
@@ -89,12 +89,9 @@ const LinkageAnnotationPage = () => {
   /* Trigger Compression Options page - for images only */
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
   const setCompressionBuckets = useJobStore((state) => state.setCompressionBuckets)
+  const setCompressionSelection = useJobStore((state) => state.setCompressionSelection)
   const moveToCompressionPage = () => {
-    const newBuckets = {
-      small: { images: [] },
-      medium: { images: [] },
-      large: { images: [] },
-    }
+    const newBuckets = initialState.compressionBuckets
     mediaGroups.forEach((group) =>
       group.mediaList.forEach((media) => {
         const megapixels = resolutionToTotalPixels(media.resolution)
@@ -164,11 +161,19 @@ const LinkageAnnotationPage = () => {
       setSettingsList(settingsList)
     } else {
       const settingsList = mediaGroups.flatMap((group) =>
-        group.mediaList.map((media) => ({
-          file_path: media.filePath,
-          new_name: media.newName,
-          jpeg_quality: 69, // placeholder
-        }))
+        group.mediaList.map((media) => {
+          let bucket = 'small'
+          if (compressionBuckets.medium.images.includes(media.filePath)) {
+            bucket = 'medium'
+          } else if (compressionBuckets.large.images.includes(media.filePath)) {
+            bucket = 'large'
+          }
+          return {
+            file_path: media.filePath,
+            new_name: media.newName,
+            jpeg_quality: compressionBuckets[bucket].selection,
+          }
+        })
       )
       setSettingsList(settingsList)
     }
@@ -377,7 +382,7 @@ const LinkageAnnotationPage = () => {
         <CompressionSidebar
           status={sampleStatus}
           actionName="Add Job to Queue"
-          canTrigger={false}
+          canTrigger={true} // There are no checks on this page
           onTriggerAction={executeJob}
         />
         <Box
@@ -393,6 +398,7 @@ const LinkageAnnotationPage = () => {
           {sampleStatus === STATUSES.COMPLETED && (
             <CompressionBucketsList
               compressionBuckets={compressionBuckets}
+              setCompressionSelection={setCompressionSelection}
               sampleImages={sampleImages}
               onImagesLoaded={whenAllImagesHaveLoaded}
             />

@@ -28,9 +28,9 @@ const initialState = {
     applied: true,
   },
   compressionBuckets: {
-    small: {},
-    medium: {},
-    large: {},
+    small: { images: [], selection: 100 },
+    medium: { images: [], selection: 100 },
+    large: { images: [], selection: 100 },
   },
   jobId: null,
   settingsList: [],
@@ -151,6 +151,17 @@ const useJobStore = create((set, get) => ({
   },
 
   setCompressionBuckets: valueSetter(set, 'compressionBuckets'),
+  setCompressionSelection: (size, quality) => {
+    const { compressionBuckets } = get()
+    const newBuckets = {
+      ...compressionBuckets,
+      [size]: {
+        ...compressionBuckets[size],
+        selection: quality,
+      },
+    }
+    set({ compressionBuckets: newBuckets })
+  },
 
   // This list should be a list of object
   // The schema can be found in the TranscodeSettings class within the server
@@ -166,5 +177,5 @@ const canParse = (state) => {
   return true
 }
 
-export { canParse }
+export { canParse, initialState }
 export default useJobStore
