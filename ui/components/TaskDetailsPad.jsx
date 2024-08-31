@@ -5,7 +5,7 @@ import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 
 import { titleCase } from '../utilities/strings'
-import STATUSES from '../constants/statuses'
+import STATUSES, { PROGRESS_MESSAGES } from '../constants/statuses'
 
 const textColorForStatus = (status) => {
   if (status === STATUSES.COMPLETED) {
@@ -16,6 +16,27 @@ const textColorForStatus = (status) => {
   }
   if (status === STATUSES.ERROR) {
     return 'error.main'
+  }
+  return 'text.primary'
+}
+
+const textColorForProgressMessage = (tier, currentMessage) => {
+  if (tier === 0) {
+    if (currentMessage !== PROGRESS_MESSAGES.TRANSCODING) {
+      return 'success.main'
+    }
+  }
+  if (tier === 1) {
+    if (currentMessage === PROGRESS_MESSAGES.TRANSCODING) {
+      return 'text.disabled'
+    } else if (currentMessage === PROGRESS_MESSAGES.DATA_ENTRY) {
+      return 'success.main'
+    }
+  }
+  if (tier === 2) {
+    if (currentMessage !== PROGRESS_MESSAGES.DATA_ENTRY) {
+      return 'text.disabled'
+    }
   }
   return 'text.primary'
 }
@@ -90,11 +111,24 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
           sx={(theme) => ({ fontSize: '12px', fontFamily: theme.typography.monoFamily })}
         >
           <Box sx={{ display: 'flex' }}>
-            <Box sx={{ width: '80px' }}>Task #{index}</Box>
+            <Box sx={{ width: '80px' }}>Task #{index + 1}</Box>
             <Box sx={{ color: textColorForStatus(task.status) }}>{titleCase(task.status)}</Box>
             <Box sx={{ flexGrow: 1 }} />
             <Box>{task.progress}%</Box>
           </Box>
+          {[STATUSES.INCOMPLETE, STATUSES.ERROR].includes(task.status) && (
+            <Box sx={{ marginLeft: 1 }}>
+              <Box sx={{ color: textColorForProgressMessage(0, task.progress_message) }}>
+                Transcoding
+              </Box>
+              <Box sx={{ color: textColorForProgressMessage(1, task.progress_message) }}>
+                Copying
+              </Box>
+              <Box sx={{ color: textColorForProgressMessage(2, task.progress_message) }}>
+                Data Entry
+              </Box>
+            </Box>
+          )}
           <Box sx={{ color: 'error.main' }}>{task.error_message}</Box>
         </Box>
       ))}

@@ -11,11 +11,12 @@ class Task:
     job_id: int
     status: str
     progress: int
+    progress_message: str
     transcode_settings: TranscodeSettings
     error_message: str
 
-    def to_dict(self):  
-        return asdict(self) 
+    def to_dict(self):
+        return asdict(self)
 
 
 
@@ -25,3 +26,7 @@ class TaskStatus(Enum):
     ERROR = "ERROR"
     INCOMPLETE = "INCOMPLETE"
 
+class TaskProgessMessages(Enum):
+    TRANSCODING = "TRANSCODING"
+    COPYING = "COPYING"
+    DATA_ENTRY = "DATA_ENTRY"

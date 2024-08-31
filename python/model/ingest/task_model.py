@@ -15,6 +15,7 @@ class TaskModel:
                    job_id INTEGER,
                    status TEXT,
                    progress INTEGER DEFAULT 0,
+                   progress_message TEXT,
                    transcode_settings TEXT,
                    error_message TEXT
                )
@@ -74,12 +75,13 @@ class TaskModel:
         )
         tasks = []
         for task_data in tasks_data:
-            task_id, job_id, status, progress, transcode_settings_json, error_message = task_data
+            task_id, job_id, status, progress, progress_message, transcode_settings_json, error_message = task_data
             task = Task(
                 id=task_id,
                 job_id=job_id,
                 status=status,
                 progress=progress,
+                progress_message=progress_message,
                 transcode_settings=json.loads(transcode_settings_json),
                 error_message=error_message
             )
@@ -89,8 +91,15 @@ class TaskModel:
     def update_task_status(self, task_id: int, status: TaskStatus):
         self.with_cursor("UPDATE task SET status = ? WHERE id = ?", (status.value, task_id))
 
-    def update_task_progress(self, task_id: int, progress: int):
-        self.with_cursor("UPDATE task SET progress = ? WHERE id = ?", (progress, task_id))
+    def update_task_progress(self, task_id: int, progress: int, message: str = ''):
+        query = "UPDATE task SET progress = ?"
+        params = (progress,)
+        if message:
+            query += ", progress_message = ?"
+            params += (message,)
+        query += " WHERE id = ?"
+        params += (task_id,)
+        self.with_cursor(query, params)
 
     def set_task_error_message(self, task_id: int, error_message: str):
         self.with_cursor("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
