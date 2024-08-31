@@ -106,3 +106,10 @@ class TaskModel:
 
     def delete_by_job_id(self, job_id):
         self.with_cursor("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
+
+    def delete_old_tasks(self):
+        ids_to_delete = self.with_cursor("SELECT * from task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,), action='fetchall')
+        self.with_cursor("DELETE FROM task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,))
+        if ids_to_delete:
+            return [row[0] for row in ids_to_delete]
+        return []
