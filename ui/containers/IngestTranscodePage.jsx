@@ -24,6 +24,8 @@ import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
 import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
+import CompressionSidebar from './CompressionSidebar'
+import CompressionBucketsList from '../components/CompressionBucketsList'
 
 const LinkageAnnotationPage = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
@@ -271,9 +273,13 @@ const LinkageAnnotationPage = () => {
           allWarnings={allWarnings}
           allErrors={allErrors}
           oneFileName={mediaGroups[0]?.mediaList[0]?.fileName}
-          actionName="Add Job to Queue"
+          actionName={
+            jobMode === JOB_MODES.BY_VIDEO ? 'Add Job to Queue' : 'Choose Compression Options'
+          }
           canTrigger={canTriggerNextAction}
-          onTriggerAction={executeJob}
+          onTriggerAction={
+            jobMode === JOB_MODES.BY_VIDEO ? executeJob : () => setPhase(JOB_PHASES.CHOOSE_OPTIONS)
+          }
         />
         <Box
           sx={{
@@ -298,6 +304,31 @@ const LinkageAnnotationPage = () => {
               <MetadataDisplayTable columns={columns} data={group.mediaList} />
             </Box>
           ))}
+        </Box>
+      </Box>
+    )
+  }
+
+  if (phase === JOB_PHASES.CHOOSE_OPTIONS) {
+    return (
+      <Box sx={{ display: 'flex', height: '100%' }}>
+        <CompressionSidebar
+          status={false}
+          actionName="Add Job to Queue"
+          canTrigger={false}
+          onTriggerAction={executeJob}
+        />
+        <Box
+          sx={{
+            flexGrow: 1,
+            height: '100%',
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <CompressionBucketsList />
         </Box>
       </Box>
     )
