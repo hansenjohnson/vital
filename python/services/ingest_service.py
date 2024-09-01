@@ -1,6 +1,7 @@
 import os
 import threading
 import pandas as pd
+from datetime import datetime
 
 
 from services.job_service import JobService
@@ -94,18 +95,25 @@ class IngestService:
         }
 
     def generate_batch_rename_report(self, job_id, output_folder):
+        job_data = self.job_service.get_job_data(job_id)
         tasks = self.task_service.get_tasks_by_job_id(job_id)
+
+        source_dir = job_data['source_dir']
 
         task_tuple_arr = []
 
         for task in tasks:
             transcode_settings = task.transcode_settings
-            old_name = os.path.basename(transcode_settings['file_path'])
-            new_name = transcode_settings['new_name']
+            old_name_no_ext = os.path.splitext(os.path.basename(transcode_settings['file_path']))[0]
+            old_name = transcode_settings['file_path'].replace(source_dir, '').lstrip(os.path.sep)
+            new_name = os.path.join(os.path.dirname(old_name), transcode_settings['new_name'])
             task_tuple_arr.append((old_name, new_name))
 
         csv_df = pd.DataFrame(task_tuple_arr, columns=["Original File Name", "Renamed File Name"])
 
-        csv_df.to_csv(output_folder, index=False)
+        datestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = os.path.join(output_folder, f'VITAL_Renames_{datestamp}.csv')
+        csv_df.to_csv(output_file, index=False)
+        return os.path.exists(output_file)
 
 
