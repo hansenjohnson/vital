@@ -2,6 +2,7 @@ from flask import Blueprint, request, send_from_directory
 from urllib.parse import unquote
 
 from services.ingest_service import IngestService
+from services.validator_service import ValidatorService
 from services.job_service import JobService, JobType
 from services.transcode_service import TranscodeService
 from services.task_service import TaskService
@@ -15,6 +16,7 @@ ingest_service = IngestService()
 job_service = JobService()
 transcode_service = TranscodeService()
 task_service = TaskService()
+validator_service = ValidatorService()
 
 def str_to_bool(value):
     return value.lower() == 'true'
@@ -42,7 +44,6 @@ def parse_images():
     return {"job_id": job_id}
 
 
-
 @bp.route('/parse_videos', methods=['POST'])
 @tryable_json_endpoint
 def parse_videos():
@@ -50,6 +51,28 @@ def parse_videos():
     source_dir = payload['source_dir']
     job_id = ingest_service.create_parse_media_job(source_dir, MediaType.VIDEO)
     return {"job_id": job_id}
+
+
+@bp.route('/validate_non_existence/<string:media_str>', methods=['POST'])
+@tryable_json_endpoint
+def parse_overwrite_check(media_str):
+    payload = request.json
+    source_dir = payload['source_dir']
+    media_type = MediaType(media_str)
+    file_path_list = payload['file_path_list']
+
+    invalid_files = []
+    for file_path_obj in file_path_list:
+        is_valid = validator_service.validate_non_existence(
+            source_dir,
+            file_path_obj['file_path'],
+            media_type,
+            file_path_obj.get('new_name')
+        )
+        if not is_valid:
+            invalid_files.append(file_path_obj['file_path'])
+
+    return invalid_files
 
 
 @bp.route('/job/<int:job_id>', methods=['GET'])

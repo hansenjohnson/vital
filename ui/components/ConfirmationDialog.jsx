@@ -58,7 +58,7 @@ const ConfirmationDialog = ({ open, title, body, onClose, onConfirm }) => {
       </IconButton>
 
       <DialogContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <Box sx={{ flexGrow: 1, fontSize: '20px' }}>{body}</Box>
+        <Box sx={{ flexGrow: 1, fontSize: '20px', whiteSpace: 'pre-line' }}>{body}</Box>
         <Box
           sx={{
             flexGrow: 1,

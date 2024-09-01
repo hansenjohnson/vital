@@ -29,6 +29,15 @@ const parse = async (mode, sourceFolder) => {
 }
 const getJobResultData = (jobId) => getJSON(`${ingestURL}/job_data/${jobId}`)
 
+const validateNonExistence = async (mode, sourceFolder, filePaths) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/validate_non_existence/${mode}`, {
+    source_dir: sourceFolder,
+    file_path_list: filePaths,
+  })
+  return data
+}
+
+// Sample Image Methods
 const createSampleImages = async (small, medium, large) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/sample`, {
     small_image_file_path: small || undefined,
@@ -70,6 +79,7 @@ export default {
   countFiles,
   parse,
   getJobResultData,
+  validateNonExistence,
   getJobSampleData,
   createSampleImages,
   deleteSampleImages,

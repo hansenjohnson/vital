@@ -89,20 +89,21 @@ class ValidatorService:
         grandparent_dir = os.path.dirname(parent_dir)
         return grandparent_dir == source_dir
 
-    def validate_non_existence(self, source_dir, original_file_path, media_type):
+    def validate_non_existence(self, source_dir, original_file_path, media_type, new_name=None):
         source_dir_name = os.path.basename(source_dir)
         catalog_folder_info = extract_catalog_folder_info(source_dir_name)
         original_file_name = os.path.splitext(os.path.basename(original_file_path))[0]
+        output_file_name = new_name or original_file_name
 
         if media_type == MediaType.VIDEO:
             optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
             optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
             original_subdirs = original_file_path.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
-            expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
+            expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, output_file_name)
             return not os.path.exists(expected_final_dir)
 
         # MediaType.IMAGE
         optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value)
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
-        expected_final_file_path = os.path.join(optimized_dir_path, f'{original_file_name}.jpg')
+        expected_final_file_path = os.path.join(optimized_dir_path, f'{output_file_name}.jpg')
         return not os.path.exists(expected_final_file_path)

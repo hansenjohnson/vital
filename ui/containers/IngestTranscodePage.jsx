@@ -278,6 +278,42 @@ const LinkageAnnotationPage = () => {
     setMediaGroups(newMediaGroups)
   }, [batchRenameRules.applied, JSON.stringify(mediaGroups)])
 
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+  const triggerActionAfterParse = async () => {
+    const filePathsWithPossibleNewNames = mediaGroups.flatMap((group) =>
+      group.mediaList.map((media) => ({
+        file_path: media.filePath,
+        new_name: media.newName,
+      }))
+    )
+
+    let invalidPaths = []
+    if (JSON.stringify(batchRenameRules) !== JSON.stringify(initialState.batchRenameRules)) {
+      invalidPaths = await ingestAPI.validateNonExistence(
+        jobMode,
+        sourceFolder,
+        filePathsWithPossibleNewNames
+      )
+    }
+
+    if (Array.isArray(invalidPaths) && invalidPaths.length > 0) {
+      const action = jobMode === JOB_MODES.BY_VIDEO ? executeJob : moveToCompressionPage
+      setConfirmationDialogProps({
+        title: 'Renames will overwrite',
+        body: 'Some of the batch renames you applied have created filenames that will now overwrite existing files.\n\nAre you okay with this?',
+        onConfirm: action,
+      })
+      setConfirmationDialogOpen(true)
+    } else {
+      if (jobMode === JOB_MODES.BY_VIDEO) {
+        executeJob()
+      } else {
+        moveToCompressionPage()
+      }
+    }
+  }
+
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
@@ -346,7 +382,7 @@ const LinkageAnnotationPage = () => {
             jobMode === JOB_MODES.BY_VIDEO ? 'Add Job to Queue' : 'Choose Compression Options'
           }
           canTrigger={canTriggerNextAction}
-          onTriggerAction={jobMode === JOB_MODES.BY_VIDEO ? executeJob : moveToCompressionPage}
+          onTriggerAction={triggerActionAfterParse}
         />
         <Box
           sx={{
