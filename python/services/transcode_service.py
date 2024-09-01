@@ -142,7 +142,7 @@ class TranscodeService:
     def create_sample_tasks(self, job_id, file_path):
         file_name, file_extension = os.path.splitext(file_path)
         for jpeg_quality in self.JPEG_QUALITIES:
-            file_path_jpeg = f'{os.path.basename(file_name)}_{str(jpeg_quality)}{file_extension}'
+            file_path_jpeg = f'{os.path.basename(file_name)}_{str(jpeg_quality)}.jpg'
             transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg, jpeg_quality=jpeg_quality)
             self.task_service.create_task(job_id, transcode_settings)
 
