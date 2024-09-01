@@ -32,7 +32,7 @@ class ImageMetadataService(MetadataService):
             metadata_obj_arr = json.loads(metadata_json)
 
         except json.JSONDecodeError:
-            print_err.error("Error parsing exiftool metadata")
+            print_err("Error parsing exiftool metadata")
             return None
 
         if len(metadata_obj_arr) > 0:

@@ -14,6 +14,7 @@ import IconButton from '@mui/material/IconButton'
 
 import useStore from '../store'
 import useSettingsStore from '../store/settings'
+import useJobStore from '../store/job'
 import FILE_TYPES from '../constants/fileTypes'
 import SETTING_KEYS, { SETTING_TYPE_FOR_KEY } from '../constants/settingKeys'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
@@ -30,6 +31,7 @@ const SettingsContainer = () => {
   const [settings, setOneSetting, loadSettings] = useSettingsStore(
     useShallow((state) => [state.settings, state.setOneSetting, state.loadSettings])
   )
+  const loadObservers = useJobStore((state) => state.loadObservers)
 
   const version = window.api.getVersion()
 
@@ -102,7 +104,10 @@ const SettingsContainer = () => {
     if (successful && initialized) {
       return window.api.reloadWindow()
     } else if (successful) {
+      // Reperform some of the inits from App.jsx, that were dependant on the file paths in settings
       await loadSettings()
+      await loadObservers()
+
       closeDialog()
       setSubmitting(false)
     } else {

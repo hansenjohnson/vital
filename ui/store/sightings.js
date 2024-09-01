@@ -59,6 +59,7 @@ const selectedSightingHasOverlap = (state) => {
 
 const activeLinkageWithNewSightingHasOverlap = (state, newSightingId) => {
   const activeLinkage = getActiveLinkage(state)
+  if (!activeLinkage) return false
   return linkagesForActiveVideo(state)
     .filter((linkage) => linkage.id !== activeLinkage?.id)
     .filter((linkage) => linkage.sighting.id === newSightingId)
