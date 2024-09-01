@@ -50,7 +50,7 @@ const validateSourceFolder = (folderPath) => {
 
 const useJobStore = create((set, get) => ({
   ...initialState,
-  reset: () => set(initialState),
+  reset: () => set({ ...initialState, observers: get().observers }),
 
   setPhase: async (nextPhase) => {
     set({ phase: nextPhase, jobId: null })
