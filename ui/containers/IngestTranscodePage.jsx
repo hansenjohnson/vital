@@ -288,6 +288,19 @@ const LinkageAnnotationPage = () => {
       }))
     )
 
+    const someWindowsPathsTooLong = await ingestAPI.validatePathLengths(
+      jobMode,
+      sourceFolder,
+      filePathsWithPossibleNewNames
+    )
+    if (someWindowsPathsTooLong) {
+      makeAlert(
+        'Some output file paths will be longer than the Windows maximum. Please correct this before proceeding.',
+        'error'
+      )
+      return
+    }
+
     let invalidPaths = []
     if (JSON.stringify(batchRenameRules) !== JSON.stringify(initialState.batchRenameRules)) {
       invalidPaths = await ingestAPI.validateNonExistence(
@@ -305,12 +318,13 @@ const LinkageAnnotationPage = () => {
         onConfirm: action,
       })
       setConfirmationDialogOpen(true)
+      return
+    }
+
+    if (jobMode === JOB_MODES.BY_VIDEO) {
+      executeJob()
     } else {
-      if (jobMode === JOB_MODES.BY_VIDEO) {
-        executeJob()
-      } else {
-        moveToCompressionPage()
-      }
+      moveToCompressionPage()
     }
   }
 

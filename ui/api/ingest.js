@@ -29,6 +29,14 @@ const parse = async (mode, sourceFolder) => {
 }
 const getJobResultData = (jobId) => getJSON(`${ingestURL}/job_data/${jobId}`)
 
+const validatePathLengths = async (mode, sourceFolder, filePaths) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/validate_path_lengths/${mode}`, {
+    source_dir: sourceFolder,
+    file_path_list: filePaths,
+  })
+  return data
+}
+
 const validateNonExistence = async (mode, sourceFolder, filePaths) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/validate_non_existence/${mode}`, {
     source_dir: sourceFolder,
@@ -79,6 +87,7 @@ export default {
   countFiles,
   parse,
   getJobResultData,
+  validatePathLengths,
   validateNonExistence,
   getJobSampleData,
   createSampleImages,

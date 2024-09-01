@@ -53,9 +53,31 @@ def parse_videos():
     return {"job_id": job_id}
 
 
+@bp.route('/validate_path_lengths/<string:media_str>', methods=['POST'])
+@tryable_json_endpoint
+def validate_path_lengths(media_str):
+    payload = request.json
+    source_dir = payload['source_dir']
+    media_type = MediaType(media_str)
+    file_path_list = payload['file_path_list']
+
+    invalid_files = []
+    for file_path_obj in file_path_list:
+        is_valid = validator_service.validate_path_lengths(
+            source_dir,
+            file_path_obj['file_path'],
+            media_type,
+            file_path_obj.get('new_name')
+        )
+        if not is_valid:
+            invalid_files.append(file_path_obj['file_path'])
+
+    return len(invalid_files) > 0
+
+
 @bp.route('/validate_non_existence/<string:media_str>', methods=['POST'])
 @tryable_json_endpoint
-def parse_overwrite_check(media_str):
+def validate_non_existence(media_str):
     payload = request.json
     source_dir = payload['source_dir']
     media_type = MediaType(media_str)
