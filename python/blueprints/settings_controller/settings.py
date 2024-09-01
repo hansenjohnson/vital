@@ -5,6 +5,7 @@ from model.association.video_model import VideoModel
 from model.association.linkage_model import LinkageModel
 from model.association.sighting_model import SightingModel
 from model.association.still_export_model import StillExportModel
+from model.association.observer_model import ObserverModel
 from settings.settings_service import SettingsService
 from settings.settings_enum import SettingsEnum
 from utils.prints import print_err, print_out
@@ -18,6 +19,7 @@ video_model = VideoModel()
 linkage_model = LinkageModel()
 sighting_model = SightingModel()
 still_export_model = StillExportModel()
+observer_model = ObserverModel()
 
 
 @bp.route('/create_one', methods=['POST'], strict_slashes=False)
@@ -27,7 +29,7 @@ def create_or_update_setting():
         key = request.json['key']
         value = request.json['value']
         setting_type = request.json['setting_type']
-        print_out(f'attentpting to save setting: {key} | {value}')
+        print_out(f'attemtpting to save setting: {key} | {value}')
 
         settings_service.validate_setting(key, value, setting_type)
 
@@ -74,3 +76,5 @@ def refresh_table_for(setting_key):
         sighting_model.refresh_table()
     if setting_key == SettingsEnum.STILL_EXPORT_FILE_PATH.value:
         still_export_model.refresh_table()
+    if setting_key == SettingsEnum.OBSERVER_FILE_PATH.value:
+        observer_model.refresh_table()
