@@ -65,7 +65,6 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
   return (
     <Dialog
       open={open}
-      onClose={(e, reason) => console.log(reason)}
       disablePortal
       hideBackdrop
       PaperProps={{

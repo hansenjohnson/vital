@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
+import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 
 import { bytesToSize, completionTimeString } from '../utilities/strings'
+
+const TEN_DAYS = 10 * 24 * 60 * 60 * 1000
 
 const monoStyle = (theme) => ({
   fontFamily: theme.typography.monoFamily,
   fontSize: '14px',
 })
 
-const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data }) => {
+const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExport }) => {
   const [top, setTop] = useState(0)
   const [maxHeight, setMaxHeight] = useState(0)
   const [delayedSlide, setDelayedSlide] = useState(false)
@@ -32,10 +35,32 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data }) => 
     setTimeout(onClose, 0)
   }
 
+  const olderThan10Days = new Date() - new Date(completedAt) > TEN_DAYS
+
+  const [exporting, setExporting] = useState(false)
+  const [exportSucccess, setExportSuccess] = useState(false)
+  const triggerExport = async () => {
+    setExporting(true)
+    const result = await onExport()
+    setExporting(false)
+    setExportSuccess(result)
+  }
+  useEffect(() => {
+    setExportSuccess(false)
+  }, [JSON.stringify(data)])
+
+  let exportText = 'Export CSV of Re-names'
+  if (olderThan10Days) {
+    exportText = 'Export Not Available'
+  } else if (exporting) {
+    exportText = 'Exporting...'
+  } else if (exportSucccess) {
+    exportText = 'Exported Successfully!'
+  }
+
   return (
     <Dialog
       open={open}
-      onClose={(e, reason) => console.log(reason)}
       disablePortal
       hideBackdrop
       PaperProps={{
@@ -51,6 +76,7 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data }) => 
 
           display: 'flex',
           flexDirection: 'column',
+          alignItems: 'flex-start',
           gap: 1,
         },
       }}
@@ -106,6 +132,21 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data }) => 
         <Box sx={monoStyle}>{data.optimized_folder_path}</Box>
         <Box sx={monoStyle}>Total Size: {bytesToSize(data.optimized_folder_size)}</Box>
         <Box sx={monoStyle}>{data.optimized_folder_media_count} files</Box>
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={triggerExport}
+          sx={{ textTransform: 'none' }}
+          disabled={exporting || exportSucccess || olderThan10Days}
+        >
+          {exportText}
+        </Button>
+        <Box sx={{ color: 'text.secondary', fontSize: '14px', lineHeight: '14px' }}>
+          Only available for 10 days
+        </Box>
       </Box>
     </Dialog>
   )

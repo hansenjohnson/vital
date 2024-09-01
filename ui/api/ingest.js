@@ -16,6 +16,10 @@ const taskStatusesForJob = async (jobId) => {
 // Job Information - Many
 const getIncompleteJobs = () => getJSON(`${ingestURL}/job?completed=false`)
 const getCompleteJobs = (page) => getJSON(`${ingestURL}/job?page=${page}&page_size=10`)
+const exportBatchRenameCSV = (jobId, folderPath) =>
+  getJSON(
+    `${ingestURL}/batch_rename_export?job_id=${jobId}&output_folder=${encodeURIComponent(folderPath)}`
+  )
 
 // Metadata Methods
 const countFiles = (sourceFolder) =>
@@ -84,6 +88,7 @@ export default {
   deleteJob,
   getIncompleteJobs,
   getCompleteJobs,
+  exportBatchRenameCSV,
   countFiles,
   parse,
   getJobResultData,

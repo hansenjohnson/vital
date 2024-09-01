@@ -19,6 +19,7 @@ import ingestAPI from '../api/ingest'
 import queueAPI from '../api/queue'
 import { jobNameFromData, scheduleTimeString } from '../utilities/strings'
 import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+import FILE_TYPES from '../constants/fileTypes'
 
 import JobQueueItem from '../components/JobQueueItem'
 import SchedulePad from '../components/SchedulePad'
@@ -113,6 +114,12 @@ const JobQueue = () => {
     setScheduleOpen(false)
     setTaskDetailsJobId(null)
     setJobReportId((prev) => (prev === jobId ? null : jobId))
+  }
+  const triggerReportExport = async () => {
+    const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
+    if (!filePath) return
+    const result = await ingestAPI.exportBatchRenameCSV(jobReportId, filePath)
+    return result
   }
 
   /* General effect, keep last */
@@ -292,6 +299,7 @@ const JobQueue = () => {
           jobName={jobReport?.name || ''}
           completedAt={jobReport?.completedAt || null}
           data={jobReport?.data || {}}
+          onExport={triggerReportExport}
         />
       </DialogContent>
     </Dialog>

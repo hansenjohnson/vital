@@ -47,7 +47,6 @@ const SchedulePad = ({ open, onClose, parent, onCommit }) => {
   return (
     <Dialog
       open={open}
-      onClose={(e, reason) => console.log(reason)}
       disablePortal
       hideBackdrop
       PaperProps={{
