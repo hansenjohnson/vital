@@ -29,3 +29,4 @@ class SettingsEnum(Enum):
             cls.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value,
             cls.BASE_FOLDER_OF_ORIGINAL_IMAGES.value,
         ]
+    

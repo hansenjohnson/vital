@@ -137,3 +137,12 @@ def delete_old_tasks():
     deleted_ids = task_service.delete_old_tasks()
     print_out(f'Deleted {len(deleted_ids)} old tasks')
     return {"deleted_ids": deleted_ids}
+
+
+@bp.route('/batch_rename_export', methods=["GET"])
+@tryable_json_endpoint
+def batch_rename_export():
+    job_id = request.args.get('job_id')
+    output_folder = unquote(request.args.get('output_folder'))
+    
+    ingest_service.generate_batch_rename_report(job_id, output_folder)
