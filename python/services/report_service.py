@@ -2,11 +2,9 @@ import os
 
 from data.report import Report
 from services.metadata_service import MediaType
-from utils.constants import video_extensions, image_extensions
+from utils.constants import video_extensions, image_extensions, video_extensions_optimized, image_extensions_optimized, video_extensions_countable
 
 from services.job_service import JobService
-
-from utils.prints import print_out
 
 class ReportService:
 
@@ -15,16 +13,21 @@ class ReportService:
 
     def create_final_report(self, job_id, media_type, source_dir, original_dir, optimzied_dir):
         extensions = []
+        optimized_extensions = []
+        count_only = None
         if media_type == MediaType.VIDEO:
             extensions = video_extensions
+            optimized_extensions = video_extensions_optimized
+            count_only = video_extensions_countable
         else:
             extensions = image_extensions
+            optimized_extensions = image_extensions_optimized
 
         report = Report(job_id)
 
         source_dir_count, source_dir_size = self.get_dir_report(source_dir, extensions)
         original_dir_count, original_dir_size = self.get_dir_report(original_dir, extensions)
-        optimzied_dir_count, optimzied_dir_size = self.get_dir_report(optimzied_dir, extensions)
+        optimzied_dir_count, optimzied_dir_size = self.get_dir_report(optimzied_dir, optimized_extensions, count_only)
 
         report.source_folder_path = source_dir
         report.source_folder_size = source_dir_size
@@ -40,7 +43,7 @@ class ReportService:
 
         self.job_service.update_report_data(job_id, report)
 
-    def get_dir_report(self, dir, extensions):
+    def get_dir_report(self, dir, extensions, count_only_extensions=None):
         count = 0
         total_size = 0
         for root, dirs, filenames in os.walk(dir):
@@ -49,8 +52,11 @@ class ReportService:
                 if file_extension:
                     file_extension = file_extension.lower()
                 if file_extension in extensions:
+                    total_size += os.path.getsize(os.path.join(root, filename))
+                    if count_only_extensions:
+                        if file_extension in count_only_extensions:
+                            count += 1
+                    else:
                         count += 1
-                        total_size += os.path.getsize(os.path.join(root, filename))
 
         return count, total_size
-                        
