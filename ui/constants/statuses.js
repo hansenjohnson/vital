@@ -8,6 +8,10 @@ WARNINGS.set('INCORRECT_CREATED_TIME', {
   message: 'file date does not match source folder',
   summary: 'File/Folder date mismatch',
 })
+WARNINGS.set('FILE_EXISTS_WARNING', {
+  message: 'will overwrite existing file',
+  summary: 'Overwriting Files',
+})
 
 const ERRORS = new Map()
 ERRORS.set('MEDIA_PATH_ERROR', {

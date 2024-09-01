@@ -10,6 +10,7 @@ class ValidatorService:
     LENGTH_ERROR = 'LENGTH_ERROR'
     MEDIA_PATH_WARNING = 'MEDIA_PATH_WARNING'
     MEDIA_PATH_ERROR = 'MEDIA_PATH_ERROR'
+    FILE_EXISTS_WARNING = 'FILE_EXISTS_WARNING'
 
     INCORRECT_CREATED_TIME = 'INCORRECT_CREATED_TIME'
 
@@ -33,6 +34,9 @@ class ValidatorService:
 
         if validate_path == self.MEDIA_PATH_ERROR:
             validation_status.errors.append(self.MEDIA_PATH_ERROR)
+
+        if not self.validate_non_existence(media_metadata.file_path, media_type):
+            validation_status.warnings.append(self.FILE_EXISTS_WARNING)
 
         return validation_status
 
@@ -80,3 +84,8 @@ class ValidatorService:
         parent_dir = os.path.dirname(file_path)
         grandparent_dir = os.path.dirname(parent_dir)
         return grandparent_dir == source_dir
+
+    def validate_non_existence(self, source_file_path, media_type):
+        # if media_type == MediaType.VIDEO:
+            # pass
+        return False
