@@ -24,6 +24,7 @@ import JobQueueItem from '../components/JobQueueItem'
 import SchedulePad from '../components/SchedulePad'
 import TinyTextButton from '../components/TinyTextButton'
 import TaskDetailsPad from '../components/TaskDetailsPad'
+import JobReportPad from '../components/JobReportPad'
 
 const JobQueue = () => {
   const jobQueueOpen = useStore((state) => state.jobQueueOpen)
@@ -54,6 +55,7 @@ const JobQueue = () => {
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const toggleSchedule = () => {
     setTaskDetailsJobId(null)
+    setJobReportId(null)
     setScheduleOpen(!scheduleOpen)
   }
 
@@ -78,6 +80,7 @@ const JobQueue = () => {
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
 
+  /* Task Details Data Logic */
   const [taskDetailsJobId, setTaskDetailsJobId] = useState(null)
   const taskDetails = useMemo(() => {
     const foundJob = incompleteJobs.find((job) => job.id === taskDetailsJobId)
@@ -90,13 +93,36 @@ const JobQueue = () => {
   const taskDetailsOpen = taskDetails != null
   const toggleTaskDetails = (jobId) => {
     setScheduleOpen(false)
+    setJobReportId(null)
     setTaskDetailsJobId((prev) => (prev === jobId ? null : jobId))
   }
 
+  /* Job Report Data Logic */
+  const [jobReportId, setJobReportId] = useState(null)
+  const jobReport = useMemo(() => {
+    const foundJob = completeJobs.find((job) => job.id === jobReportId)
+    if (!foundJob) return null
+    return {
+      name: jobNameFromData(foundJob.data, foundJob.tasks.length),
+      data: JSON.parse(foundJob?.report_data || '{}'),
+      completedAt: foundJob?.completed_date,
+    }
+  }, [jobReportId, JSON.stringify(completeJobs)])
+  const jobReportOpen = jobReport != null
+  const toggleJobReport = (jobId) => {
+    setScheduleOpen(false)
+    setTaskDetailsJobId(null)
+    setJobReportId((prev) => (prev === jobId ? null : jobId))
+  }
+
+  /* General effect, keep last */
   useEffect(() => {
     setScheduleOpen(false)
     setTaskDetailsJobId(null)
+    setJobReportId(null)
   }, [jobQueueOpen])
+
+  const slideQueueOver = scheduleOpen || taskDetailsOpen || jobReportOpen
 
   /** Rendering Section **/
 
@@ -163,7 +189,7 @@ const JobQueue = () => {
       PaperProps={{
         ref: queueDialogRef,
         sx: {
-          right: scheduleOpen || taskDetailsOpen ? '250px' : '0px',
+          right: slideQueueOver ? '250px' : '0px',
           transition: 'right 0.3s ease',
           position: 'relative',
         },
@@ -234,6 +260,9 @@ const JobQueue = () => {
                   info={{
                     completedDate: completed_date,
                   }}
+                  actions={{
+                    toggleJobReport,
+                  }}
                   queueRunning={queueRunning}
                   firstItem={index === 0}
                   lastItem={index === completeJobs.length - 1}
@@ -254,6 +283,15 @@ const JobQueue = () => {
           parent={queueDialogRef.current}
           jobName={taskDetails?.name || ''}
           tasks={taskDetails?.tasks || []}
+        />
+
+        <JobReportPad
+          open={jobReportOpen}
+          onClose={() => setJobReportId(null)}
+          parent={queueDialogRef.current}
+          jobName={jobReport?.name || ''}
+          completedAt={jobReport?.completedAt || null}
+          data={jobReport?.data || {}}
         />
       </DialogContent>
     </Dialog>

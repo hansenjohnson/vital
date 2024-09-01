@@ -97,6 +97,11 @@ export const jobNameFromData = (dataStr, numTasks) => {
   const data = JSON.parse(dataStr)
   const type = data.media_type
   const name = leafPath(data.source_dir)
+  let numTasksStr = `${numTasks} ${type}${numTasks > 1 ? 's' : ''}`
+  if (numTasks === 0) {
+    // this means that a job is old enough that we've deleted it's task data
+    numTasksStr = `${type}s`
+  }
   // Note: that is an emdash
-  return `${name} — ${numTasks} ${type}${numTasks > 1 ? 's' : ''}`
+  return `${name} — ${numTasksStr}`
 }
