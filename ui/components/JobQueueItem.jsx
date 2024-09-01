@@ -23,7 +23,7 @@ const JobQueueItem = ({
 }) => {
   const theme = useTheme()
   const { completedDate, progress } = info
-  const { deleteJob, toggleTaskDetails } = actions
+  const { deleteJob, toggleTaskDetails, toggleJobReport } = actions
 
   const hasVisibleJobError = queueRunning && firstItem && ERRORS.has(errorMessage)
 
@@ -91,7 +91,7 @@ const JobQueueItem = ({
   if (status === STATUSES.COMPLETED) {
     actionNodes = (
       <>
-        <Button disabled>View Report</Button>
+        <Button onClick={() => toggleJobReport(id)}>View Report</Button>
       </>
     )
   } else {

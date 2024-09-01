@@ -43,12 +43,14 @@ const textColorForProgressMessage = (tier, currentMessage) => {
 
 const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
   const [top, setTop] = useState(0)
+  const [maxHeight, setMaxHeight] = useState(0)
   const [delayedSlide, setDelayedSlide] = useState(false)
 
   useEffect(() => {
     if (open) {
       const parentDialogBox = parent.getBoundingClientRect()
       setTop(parentDialogBox.top)
+      setMaxHeight(parentDialogBox.height)
       setTimeout(() => setDelayedSlide(true), 0)
     } else {
       setDelayedSlide(false)
@@ -71,6 +73,7 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
           position: 'fixed',
           padding: 2,
           width: '300px',
+          maxHeight: maxHeight ? `${maxHeight}px` : undefined,
           marginTop: 0,
           top: `${top}px`,
           left: delayedSlide ? 'calc(50% + 48px)' : 'calc(50% + 48px + 300px)',

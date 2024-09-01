@@ -282,9 +282,10 @@ class TranscodeService:
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
 
                     finally:
+                        will_complete = self.job_service.will_job_complete(transcode_job_id)
+                        if will_complete:
+                            self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
                         self.job_service.set_job_status(transcode_job_id)
-        self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
-
 
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, transcode_job_id, temp_dir, progress_4_transcode, progress_4_transfer):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
