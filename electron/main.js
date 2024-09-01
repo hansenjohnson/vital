@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import path from 'path'
-import { app, shell, BrowserWindow, powerSaveBlocker } from 'electron'
+import { app, shell, BrowserWindow, powerSaveBlocker, dialog } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import log from 'electron-log/main'
 import ElectronStore from 'electron-store'
@@ -55,7 +55,39 @@ function createWindow() {
     }
   })
 
-  mainWindow.on('close', () => {
+  let completlyReadyToQuit = false
+
+  mainWindow.on('close', async (event) => {
+    if (!completlyReadyToQuit) {
+      event.preventDefault()
+
+      let queueStatus = false
+      try {
+        const response = await fetch('http://127.0.0.1:5000/queue/status')
+        queueStatus = await response.json()
+      } catch (error) {
+        log.error('Error fetching queue status:', error)
+      }
+
+      if (queueStatus.is_running) {
+        const response = dialog.showMessageBoxSync(mainWindow, {
+          type: 'warning',
+          buttons: ['Cancel', 'Yes'],
+          defaultId: 1,
+          title: 'Confirm Quit',
+          message: 'The Job Queue is currently running. Are you sure you want to quit?',
+          noLink: true,
+        })
+        if (response === 0) {
+          return
+        }
+      }
+
+      completlyReadyToQuit = true
+      app.quit()
+      return
+    }
+
     const bounds = mainWindow.getBounds()
     const newIsMaximized = mainWindow.isMaximized()
     if (newIsMaximized) {
