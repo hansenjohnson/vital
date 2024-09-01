@@ -3,10 +3,11 @@ import os
 from datetime import datetime
 from data.validation_status import ValidationStatus
 from services.metadata_service import MediaType
+from settings.settings_service import SettingsService, SettingsEnum
+
+from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 
 class ValidatorService:
-
-
     LENGTH_ERROR = 'LENGTH_ERROR'
     MEDIA_PATH_WARNING = 'MEDIA_PATH_WARNING'
     MEDIA_PATH_ERROR = 'MEDIA_PATH_ERROR'
@@ -17,6 +18,9 @@ class ValidatorService:
     VALID = 'VALID'
 
     MAX_LENGTH = 20
+
+    def __init__(self):
+        self.settings_service = SettingsService()
 
     def validate_media(self, source_dir, media_metadata, media_type):
         validation_status = ValidationStatus()
@@ -35,7 +39,7 @@ class ValidatorService:
         if validate_path == self.MEDIA_PATH_ERROR:
             validation_status.errors.append(self.MEDIA_PATH_ERROR)
 
-        if not self.validate_non_existence(media_metadata.file_path, media_type):
+        if not self.validate_non_existence(source_dir, media_metadata.file_path, media_type):
             validation_status.warnings.append(self.FILE_EXISTS_WARNING)
 
         return validation_status
@@ -85,7 +89,20 @@ class ValidatorService:
         grandparent_dir = os.path.dirname(parent_dir)
         return grandparent_dir == source_dir
 
-    def validate_non_existence(self, source_file_path, media_type):
-        # if media_type == MediaType.VIDEO:
-            # pass
-        return False
+    def validate_non_existence(self, source_dir, original_file_path, media_type):
+        source_dir_name = os.path.basename(source_dir)
+        catalog_folder_info = extract_catalog_folder_info(source_dir_name)
+        original_file_name = os.path.splitext(os.path.basename(original_file_path))[0]
+
+        if media_type == MediaType.VIDEO:
+            optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
+            optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
+            original_subdirs = original_file_path.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+            expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, original_file_name)
+            return not os.path.exists(expected_final_dir)
+
+        # MediaType.IMAGE
+        optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value)
+        optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
+        expected_final_file_path = os.path.join(optimized_dir_path, f'{original_file_name}.jpg')
+        return not os.path.exists(expected_final_file_path)
