@@ -26,7 +26,6 @@ class StillExportModel(SQL):
 
     def refresh_table(self):
         self.file_path = self.settings.get_setting(SettingsEnum.STILL_EXPORT_FILE_PATH.value)
-        print_err('refresh,.....', self.file_path)
         still_export_create = f"""
                     CREATE TABLE still_export  (
                        StillExportId INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -13,7 +13,6 @@ from services.video_metadata_service import VideoMetadataService
 from services.image_metadata_service import ImageMetadataService
 
 from utils.constants import image_extensions, video_extensions
-from utils.prints import print_out
 
 class IngestService:
 

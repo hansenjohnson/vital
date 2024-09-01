@@ -145,5 +145,4 @@ def batch_rename_export():
     job_id = request.args.get('job_id')
     output_folder = unquote(request.args.get('output_folder'))
     
-
     ingest_service.generate_batch_rename_report(job_id, output_folder)
