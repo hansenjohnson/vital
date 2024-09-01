@@ -63,9 +63,13 @@ const launchPythonServer = () => {
 }
 
 const killPythonServer = async (pythonServer) => {
+  // This fetch is expected to fail, since the server will close before it can respond,
+  // but the logic within the terminate endpoint will still run
   await fetch('http://127.0.0.1:5000/terminate').catch(() => null)
+
   if (is.dev) {
-    pythonServer.kill('SIGKILL')
+    const result = pythonServer.kill('SIGKILL')
+    log.info(`Result of killing python: ${result}`)
   } else {
     child_process.execSync('taskkill /f /t /im server.exe')
   }

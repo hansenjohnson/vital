@@ -10,7 +10,7 @@ import { launchPythonServer, killPythonServer } from './childProcesses'
 const logFilePath = log?.transports?.file?.getFile()?.path
 writeFileSync(logFilePath, '')
 log.initialize()
-log.info(`App Launched at  ${new Date()}`)
+log.info(`App Launched at ${new Date()}`)
 
 const settings = new ElectronStore()
 
@@ -83,8 +83,9 @@ function createWindow() {
         }
       }
 
+      // Re-trigger this event but bypass this status check, now that we've confirmed it
       completlyReadyToQuit = true
-      app.quit()
+      mainWindow.close()
       return
     }
 
@@ -145,6 +146,7 @@ app.whenReady().then(() => {
 
 // Quit when all windows are closed
 app.on('window-all-closed', async () => {
+  log.info('App Quitting at', new Date())
   await killPythonServer(pythonServer)
   app.quit()
 })
