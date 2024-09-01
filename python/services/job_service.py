@@ -36,15 +36,19 @@ class JobService:
     def check_job_status(self, job_id):
         return self.job_model.get_status(job_id)
 
-    def set_job_status(self, job_id):
+    def will_job_complete(self, job_id):
         tasks = self.task_service.get_tasks_by_job_id(job_id)
-
         for task in tasks:
             if task.status != TaskStatus.COMPLETED.value:
-                self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
-                return
+                return False
+        return True
 
-        self.job_model.set_status(job_id, JobStatus.COMPLETED)
+    def set_job_status(self, job_id):
+        is_complete = self.will_job_complete(job_id)
+        if is_complete:
+            self.job_model.set_status(job_id, JobStatus.COMPLETED)
+            return
+        self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
 
     def set_error(self, job_id, job_error: JobErrors):
         return self.job_model.set_error(job_id, job_error)
