@@ -34,7 +34,7 @@ class ImageMetadataService(MetadataService):
         except json.JSONDecodeError:
             print_err.error("Error parsing exiftool metadata")
             return None
-        
+
         if len(metadata_obj_arr) > 0:
             metadata_arr = []
             for metadata in metadata_obj_arr:
@@ -57,7 +57,7 @@ class ImageMetadataService(MetadataService):
                     frame_rate=None
                 ))
             return metadata_arr
-        
+
         else:
             print_err.error("No metadata found")
             return None

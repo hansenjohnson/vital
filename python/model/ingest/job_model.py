@@ -4,12 +4,7 @@ import json
 from enum import Enum
 from datetime import datetime
 
-from utils.prints import print_out
-
 from data.report import Report
-
-from services.metadata_service import MediaType
-
 from model.config import DB_PATH
 
 class JobStatus(Enum):
