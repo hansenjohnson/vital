@@ -1,11 +1,47 @@
 import { useState } from 'react'
+import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch'
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
 import Skeleton from '@mui/material/Skeleton'
+import Button from '@mui/material/Button'
 
 import { bytesToSize } from '../utilities/strings'
 
 const IMAGE_WIDTH = 200
+
+const Controls = () => {
+  const { zoomIn, zoomOut } = useControls()
+
+  return (
+    <Box sx={(theme) => ({ position: 'fixed', bottom: theme.spacing(1), left: '140px' })}>
+      <Button
+        onClick={() => zoomIn()}
+        size="small"
+        variant="contained"
+        color="inherit"
+        sx={(theme) => ({
+          fontSize: '12px',
+          minWidth: theme.spacing(2.5),
+          marginRight: 0.5,
+        })}
+      >
+        +
+      </Button>
+      <Button
+        onClick={() => zoomOut()}
+        size="small"
+        variant="contained"
+        color="inherit"
+        sx={(theme) => ({
+          fontSize: '12px',
+          minWidth: theme.spacing(2.5),
+        })}
+      >
+        -
+      </Button>
+    </Box>
+  )
+}
 
 const CompressionOption = ({
   image,
@@ -23,6 +59,8 @@ const CompressionOption = ({
     setLoaded(true)
     imageLoaded()
   }
+
+  const [fullscreen, setFullscreen] = useState(false)
 
   return (
     <Box
@@ -63,6 +101,7 @@ const CompressionOption = ({
             },
           },
         }}
+        onClick={() => setFullscreen(true)}
       >
         {loaded === true ? null : (
           <Skeleton
@@ -94,6 +133,48 @@ const CompressionOption = ({
           </Box>
         </Box>
       </Box>
+
+      {fullscreen === true && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 100,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          }}
+        >
+          <TransformWrapper maxScale={16}>
+            <TransformComponent
+              wrapperStyle={{
+                width: '100%',
+                height: '100%',
+              }}
+              contentStyle={{ width: '100%', height: '100%' }}
+            >
+              <img src={image} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </TransformComponent>
+            <Controls />
+          </TransformWrapper>
+
+          <Button
+            onClick={() => setFullscreen(false)}
+            size="small"
+            variant="contained"
+            color="inherit"
+            sx={(theme) => ({
+              fontSize: '12px',
+              position: 'absolute',
+              left: theme.spacing(1),
+              bottom: theme.spacing(1),
+            })}
+          >
+            Exit Fullscreen
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }
