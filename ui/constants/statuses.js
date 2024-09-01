@@ -26,6 +26,11 @@ ERRORS.set('LENGTH_ERROR', {
 ERRORS.set('FILE_NOT_FOUND', {
   summary: 'Folder access denied due to lack of Internet, VPN, Permissions, or it was Deleted',
 })
+ERRORS.set('WINDOWS_MAX_PATH_LENGTH_ERROR', {
+  summary: 'Paths too long for Windows',
+  message:
+    'Some files within this folder have paths that are too long for Windows (256 characters). Please shorten them before proceeding.',
+})
 
 const PROGRESS_MESSAGES = {
   TRANSCODING: 'TRANSCODING',

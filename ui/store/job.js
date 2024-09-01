@@ -13,7 +13,7 @@ const initialState = {
   phase: JOB_PHASES.INPUTS,
   sourceFolder: '',
   sourceFolderValid: true,
-  numFiles: { images: null, videos: null },
+  numFiles: { images: null, videos: null, error: null },
   observerCode: null,
   jobMode: JOB_MODES.UNSET,
   localOutputFolder: '',

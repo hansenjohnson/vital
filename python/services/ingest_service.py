@@ -69,15 +69,28 @@ class IngestService:
                     found_files.append(os.path.join(root, filename))
 
         return found_files
-    
+
 
     def count_media(self, source_dir):
-        video_files_count = len(self.get_files(source_dir, video_extensions))
-        image_files_count = len(self.get_files(source_dir, image_extensions))
+        video_file_paths = self.get_files(source_dir, video_extensions)
+        video_files_count = len(video_file_paths)
+        image_file_paths = self.get_files(source_dir, image_extensions)
+        image_files_count = len(image_file_paths)
+
+        all_paths = []
+        all_paths.extend(video_file_paths)
+        all_paths.extend(image_file_paths)
+
+        error = None
+        for file_path in all_paths:
+            if not os.path.exists(file_path):
+                error = ValidatorService.WINDOWS_MAX_PATH_LENGTH_ERROR
+                break
 
         return {
             'images': image_files_count,
             'videos': video_files_count,
+            'error': error,
         }
 
     def generate_batch_rename_report(self, job_id, output_folder):

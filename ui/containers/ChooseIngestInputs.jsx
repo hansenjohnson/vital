@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
@@ -18,6 +20,7 @@ import StyledButton from '../components/StyledButton'
 import IngestInputsLineDrawing, {
   VerticalLineBetweenDots,
 } from '../components/IngestInputsLineDrawing'
+import { ERRORS } from '../constants/statuses'
 
 const JobModeButton = ({ value, children, disabled }) => (
   <ToggleButton
@@ -140,7 +143,11 @@ const ChooseIngestInputs = () => {
             if (newValue === null) return
             setJobMode(newValue)
           }}
-          disabled={!sourceFolderValid || (numFiles.images === null && numFiles.videos === null)}
+          disabled={
+            !sourceFolderValid ||
+            (numFiles.images === null && numFiles.videos === null) ||
+            numFiles.error
+          }
         >
           <JobModeButton value={JOB_MODES.BY_IMAGE} disabled={numFiles.images === 0}>
             {numFiles.images ?? '#'} images
@@ -150,6 +157,13 @@ const ChooseIngestInputs = () => {
           </JobModeButton>
         </ToggleButtonGroup>
       </Box>
+
+      {numFiles.error && (
+        <Alert severity="error">
+          <AlertTitle>{ERRORS.get(numFiles.error)?.summary}</AlertTitle>
+          {ERRORS.get(numFiles.error)?.message}
+        </Alert>
+      )}
 
       {jobMode !== JOB_MODES.UNSET && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
