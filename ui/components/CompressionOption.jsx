@@ -9,11 +9,19 @@ import { bytesToSize } from '../utilities/strings'
 
 const IMAGE_WIDTH = 200
 
-const Controls = () => {
+const Controls = ({ onExit }) => {
   const { zoomIn, zoomOut } = useControls()
 
   return (
-    <Box sx={(theme) => ({ position: 'fixed', bottom: theme.spacing(1), left: '140px' })}>
+    <Box
+      sx={(theme) => ({
+        position: 'fixed',
+        top: theme.spacing(4),
+        right: theme.spacing(1),
+        display: 'flex',
+        gap: 0.5,
+      })}
+    >
       <Button
         onClick={() => zoomIn()}
         size="small"
@@ -22,7 +30,6 @@ const Controls = () => {
         sx={(theme) => ({
           fontSize: '12px',
           minWidth: theme.spacing(2.5),
-          marginRight: 0.5,
         })}
       >
         +
@@ -38,6 +45,17 @@ const Controls = () => {
         })}
       >
         -
+      </Button>
+      <Button
+        onClick={onExit}
+        size="small"
+        variant="contained"
+        color="inherit"
+        sx={{
+          fontSize: '12px',
+        }}
+      >
+        Exit Fullscreen
       </Button>
     </Box>
   )
@@ -156,23 +174,8 @@ const CompressionOption = ({
             >
               <img src={image} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </TransformComponent>
-            <Controls />
+            <Controls onExit={() => setFullscreen(false)} />
           </TransformWrapper>
-
-          <Button
-            onClick={() => setFullscreen(false)}
-            size="small"
-            variant="contained"
-            color="inherit"
-            sx={(theme) => ({
-              fontSize: '12px',
-              position: 'absolute',
-              left: theme.spacing(1),
-              bottom: theme.spacing(1),
-            })}
-          >
-            Exit Fullscreen
-          </Button>
         </Box>
       )}
     </Box>
