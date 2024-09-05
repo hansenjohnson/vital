@@ -17,6 +17,7 @@ import {
   transformMediaMetadata,
   groupMediaMetadataBySubfolder,
   calculateStatus,
+  dumbClone,
 } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
 
@@ -88,7 +89,7 @@ const LinkageAnnotationPage = () => {
   const setCompressionBuckets = useJobStore((state) => state.setCompressionBuckets)
   const setCompressionSelection = useJobStore((state) => state.setCompressionSelection)
   const moveToCompressionPage = () => {
-    const newBuckets = initialState.compressionBuckets
+    const newBuckets = dumbClone(initialState.compressionBuckets)
     mediaGroups.forEach((group) =>
       group.mediaList.forEach((media) => {
         const megapixels = resolutionToTotalPixels(media.resolution)

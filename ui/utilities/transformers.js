@@ -215,3 +215,5 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
 
   return { mediaGroups: statefulGrouping, totalSize, allWarnings, allErrors }
 }
+
+export const dumbClone = (obj) => JSON.parse(JSON.stringify(obj))
