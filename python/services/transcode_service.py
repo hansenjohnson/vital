@@ -531,7 +531,8 @@ class TranscodeService:
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
         intermediate_temp_path = os.path.join(temp_dir, f'{file_name}.ppm')
-        optimized_temp_path = os.path.join(temp_dir, f'{file_name}.jpg')
+        output_name = transcode_settings.new_name or file_name
+        optimized_temp_path = os.path.join(temp_dir, f'{output_name}.jpg')
 
         if file_extension.lower() in self.standard_image_extensions:
             command = self.generate_convert_command(file_path, optimized_temp_path, jpeg_quality)
