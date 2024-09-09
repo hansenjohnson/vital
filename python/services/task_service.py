@@ -68,6 +68,9 @@ class TaskService:
         self.task_model.delete_by_job_id(job_id)
         return orphaned_tasks
 
+    def force_delete(self, task_id):
+        self.task_model.force_delete(task_id)
+
     """This method helps us compare tasks relativley to one another, so that
     we don't have some parts of the progress bar that fly by and others that
     that take forever. The size is an estimate based on the core tenets of bitrate

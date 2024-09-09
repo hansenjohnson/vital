@@ -24,7 +24,8 @@ ERRORS.set('LENGTH_ERROR', {
   summary: 'Filename too long',
 })
 ERRORS.set('FILE_NOT_FOUND', {
-  summary: 'Folder access denied due to lack of Internet, VPN, Permissions, or it was Deleted',
+  summary:
+    'Folder not accessible. Potential reasons: the sub folder necessary to receive files not found; permission restrictions on existing folders; or lack of Internet or VPN',
 })
 ERRORS.set('WINDOWS_MAX_PATH_LENGTH_ERROR', {
   summary: 'Paths too long for Windows',
