@@ -105,7 +105,12 @@ class TaskModel:
         self.with_cursor("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
 
     def delete_by_job_id(self, job_id):
-        self.with_cursor("DELETE FROM task WHERE job_id = ? AND status != 'COMPLETED'", (job_id, ))
+        # Since a Job's Status is derived from it's tasks, start by cleaning up all non-running tasks.
+        # Then we will break-and-delete any running tasks within their run loop
+        self.with_cursor("DELETE FROM task WHERE job_id = ? AND status != 'INCOMPLETE'", (job_id, ))
+
+    def force_delete(self, task_id):
+        self.with_cursor("DELETE FROM task WHERE id = ?", (task_id, ))
 
     def delete_old_tasks(self):
         ids_to_delete = self.with_cursor("SELECT * from task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,), action='fetchall')

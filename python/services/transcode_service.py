@@ -242,7 +242,10 @@ class TranscodeService:
             disk_bandwidth = 10 # this will give us a perfectly balanced 50/50 since we failed to identify the bandwidth
         progress_4_transcode, progress_4_transfer = TranscodeService.get_subtask_progress_ratios(disk_bandwidth)
 
+        break_task_loop = False
         for transcode_task_id in transcode_task_ids:
+            if break_task_loop:
+                break
             self.job_service.set_error(transcode_job_id, JobErrors.NONE)
             with tempfile.TemporaryDirectory() as temp_dir:
                 retry_task = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
@@ -267,6 +270,9 @@ class TranscodeService:
                         else:
                             self.transcode_image(optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir)
 
+                        self.task_service.set_task_progress(transcode_task_id, 100)
+                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
                     except FileNotFoundError as e:
                         # We catch and retry on this error because it might signal that the user lost internet connection or
                         # VPN access to one of the output folders. We set an error string on the Job-level for communication to the UI
@@ -282,9 +288,20 @@ class TranscodeService:
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
 
                     finally:
+                        # If the Job no longer exists, the user must have deleted it while we were working on this task
+                        # If the task was within a subprocess when this happened, the subprocess should have been terminated
+                        parent_job = self.job_service.get_job(transcode_job_id)
+                        if not parent_job:
+                            print_out(f'parent job {transcode_job_id} was deleted while task {transcode_task_id} was in progress, cleaning up')
+                            self.task_service.force_delete(transcode_task_id)
+                            break_task_loop = True
+                            break
+
+                        # It might feel wrong to run this before breaking/killing the task, but will_complete will be false
                         will_complete = self.job_service.will_job_complete(transcode_job_id)
                         if will_complete:
                             self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
+
                         self.job_service.set_job_status(transcode_job_id)
 
     def transcode_video(self, source_dir, optimized_dir_path, original_dir_path, catalog_folder_id, transcode_task_id, transcode_job_id, temp_dir, progress_4_transcode, progress_4_transfer):
@@ -442,9 +459,6 @@ class TranscodeService:
 
         self.video_model.create_video(catalog_folder_id, os.path.basename(original_file), dash_file_partial_leaf, output_framerate)
 
-        self.task_service.set_task_progress(transcode_task_id, 100)
-        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
-
     def generate_transcode_command(self, original_file, keyframe_rate, output_framerate, output_height, bandwidth, temp_file):
         return [
             self.ffmpeg_path,
@@ -507,9 +521,6 @@ class TranscodeService:
         self.task_service.set_task_progress(transcode_task_id, 99)
         print_out(f'Copying {optimized_temp_path} into {local_export_path}')
         shutil.copy(optimized_temp_path, local_export_path)
-
-        self.task_service.set_task_progress(transcode_task_id, 100)
-        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
 
     def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):
