@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch'
 import Box from '@mui/material/Box'
 import Radio from '@mui/material/Radio'
-import Skeleton from '@mui/material/Skeleton'
 import Button from '@mui/material/Button'
 
 import { bytesToSize } from '../utilities/strings'
@@ -92,6 +91,7 @@ const CompressionOption = ({
         sx={{
           position: 'relative',
           width: `${IMAGE_WIDTH}px`,
+          minHeight: `${IMAGE_WIDTH * 0.5625}px`,
           overflow: 'hidden',
           '&::after': {
             position: 'absolute',
@@ -122,11 +122,15 @@ const CompressionOption = ({
         onClick={() => setFullscreen(true)}
       >
         {loaded === true ? null : (
-          <Skeleton
-            variant="rectangular"
-            width={IMAGE_WIDTH}
-            height={IMAGE_WIDTH * 0.5625}
-            sx={{ position: 'absolute', borderRadius: 0.5, marginBottom: '6px' }}
+          <Box
+            sx={{
+              position: 'absolute',
+              width: `${IMAGE_WIDTH}px`,
+              height: `${IMAGE_WIDTH * 0.5625}px`,
+              backgroundColor: 'action.hover',
+              borderRadius: 0.5,
+              marginBottom: '6px',
+            }}
           />
         )}
         <Box
