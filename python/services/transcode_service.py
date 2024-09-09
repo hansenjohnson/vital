@@ -222,6 +222,7 @@ class TranscodeService:
 
         # We expect that all folders leading up to these leafs will exist, and if not, that an Error should be thrown
         retry_job = True # Start as True just to enter the loop, but then we will only set it back to True when we want to retry
+        break_to_kill_job = False
         while retry_job == True:
             retry_job = False
             try:
@@ -234,6 +235,14 @@ class TranscodeService:
                 self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
                 self.job_service.set_job_status(transcode_job_id)
                 time.sleep(RETRY_DELAY_SEC)
+            finally:
+                # If the Job no longer exists, the user must have deleted it while we were inside this retry loop
+                parent_job = self.job_service.get_job(transcode_job_id)
+                if not parent_job:
+                    break_to_kill_job = True
+                    break
+        if break_to_kill_job:
+            return
 
         try:
             disk_bandwidth = TranscodeService.get_disk_io_bandwidth(optimized_base_dir)
@@ -418,6 +427,11 @@ class TranscodeService:
                     time.sleep(RETRY_DELAY_SEC)
                 else:
                     raise e
+            finally:
+                # If the Job no longer exists, the user must have deleted it while we were inside this retry loop
+                parent_job = self.job_service.get_job(transcode_job_id)
+                if not parent_job:
+                    break
 
         t.join()
         self.task_service.set_task_progress(transcode_task_id, progress_4_transcode + (progress_4_transfer * 0.5))
@@ -450,6 +464,11 @@ class TranscodeService:
                 print_err(str(e))
                 self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
                 time.sleep(RETRY_DELAY_SEC)
+            finally:
+                # If the Job no longer exists, the user must have deleted it while we were inside this retry loop
+                parent_job = self.job_service.get_job(transcode_job_id)
+                if not parent_job:
+                    break
 
         t.join()
         self.task_service.set_task_progress(transcode_task_id, 99, TaskProgessMessages.DATA_ENTRY.value)
