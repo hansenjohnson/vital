@@ -196,7 +196,7 @@ const ChooseIngestInputs = () => {
           <BubbleListItem>
             Original {jobMode}s copied to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
-              {JOB_MODES.BY_IMAGE
+              {jobMode === JOB_MODES.BY_IMAGE
                 ? settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_IMAGES]
                 : settings[SETTING_KEYS.BASE_FOLDER_OF_ORIGINAL_VIDEOS]}
             </Box>
@@ -205,7 +205,7 @@ const ChooseIngestInputs = () => {
           <BubbleListItem lastItem={jobMode === JOB_MODES.BY_VIDEO}>
             Optimized {jobMode}s exported to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
-              {JOB_MODES.BY_IMAGE
+              {jobMode === JOB_MODES.BY_IMAGE
                 ? settings[SETTING_KEYS.BASE_FOLDER_OF_OPTIMIZED_IMAGES]
                 : settings[SETTING_KEYS.BASE_FOLDER_OF_VIDEOS]}
             </Box>
