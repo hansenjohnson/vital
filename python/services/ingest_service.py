@@ -88,6 +88,10 @@ class IngestService:
                 error = ValidatorService.WINDOWS_MAX_PATH_LENGTH_ERROR
                 break
 
+        invalid_path = self.validator_service.validate_year_for_source(source_dir)
+        if invalid_path:
+            error = f'A required year folder does not exist:\n{invalid_path}'
+
         return {
             'images': image_files_count,
             'videos': video_files_count,

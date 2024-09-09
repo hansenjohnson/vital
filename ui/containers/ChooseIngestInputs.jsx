@@ -159,9 +159,9 @@ const ChooseIngestInputs = () => {
       </Box>
 
       {numFiles.error && (
-        <Alert severity="error">
-          <AlertTitle>{ERRORS.get(numFiles.error)?.summary}</AlertTitle>
-          {ERRORS.get(numFiles.error)?.message}
+        <Alert severity="error" sx={{ whiteSpace: 'pre-line' }}>
+          <AlertTitle>{ERRORS.get(numFiles.error)?.summary || 'Error'}</AlertTitle>
+          {ERRORS.get(numFiles.error)?.message || `${numFiles.error}`}
         </Alert>
       )}
 

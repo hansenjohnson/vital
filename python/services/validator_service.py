@@ -118,3 +118,20 @@ class ValidatorService:
         return not os.path.exists(
             self.make_path_for_validators(source_dir, original_file_path, media_type, new_name)
         )
+
+    def validate_year_for_source(self, source_dir):
+        source_dir_name = os.path.basename(source_dir)
+        catalog_folder_info = extract_catalog_folder_info(source_dir_name)
+
+        for base_dir in [
+            self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_IMAGES.value),
+            self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value),
+            self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_ORIGINAL_VIDEOS.value),
+            self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value),
+        ]:
+            expected_dir_path = construct_catalog_folder_path(base_dir, *catalog_folder_info)
+            expected_year_dir = os.path.split(expected_dir_path)[0]
+            if not os.path.exists(expected_year_dir):
+                return expected_year_dir
+
+        return None
