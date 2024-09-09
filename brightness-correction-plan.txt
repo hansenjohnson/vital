@@ -1,0 +1,32 @@
+If Dark Images Only:
+
+- kickoff an inital "gather dark images" job [maybe this gets kicked off autoatically once the sample images load]
+  - UI sends all file paths
+  - backend gets each of their median values
+  - backend filters based on threshold of 0.3
+  - UI polls for job completion & downloads the list of "dark images"
+
+- kickoff secondary "preview color correction" job
+  - UI sends dark file paths
+  - backend runs the Correction Algorithm & saves files temp
+    - use something like jpg quality 50 to save space
+    - force size to width 300 since, again to save space, and since we don't plan to give zoom-in capability here
+  - backend job should be able to do one image at a time, and make that image avaialable to the UI, also one at a time
+  - UI polls for job completion & downloads the image data similar to sample-job
+  - UI again triggers a deletion of those temp images
+
+- UI will start by communicating the # of dark images, but not run the previews yet
+- UI will gather preview for one example image
+- UI shows preview for one example image: before & after, representing "No Correction" and "Auto Exposure",
+  as a 4th section to the Compression Options page
+  - When chosen, this option will say like "56 of 56 images selected"
+  - Underneath that should be another button like "Edit Selection"
+
+- "Edit Selection" button
+  - clicking this opens a model containing a list
+  - this list is made up rows, where one row has both a before & after preview
+  - each row will have a checkbox to either include or exclude that file
+    - by default, each will be included (aka selectede)
+  - Opening this modal is what triggers the job to create the Auto Corrected previews
+  - We can show a determinate loading bar here, # of images
+  - The job to perform this work should be able to report on one image at a time
