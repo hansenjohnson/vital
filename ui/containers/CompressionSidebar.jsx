@@ -11,7 +11,15 @@ import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import StyledButton from '../components/StyledButton'
 
-const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAction }) => {
+const CompressionOptionsSidebar = ({
+  status,
+  darkNumStatus,
+  darkNum,
+  darkNumProgress,
+  actionName,
+  canTrigger,
+  onTriggerAction,
+}) => {
   const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
@@ -38,6 +46,11 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
         IMAGE_QUALITIES[compressionBuckets[bucket]?.selection]?.compressionRatio
     totalSavings += savingsForBucket || 0
   })
+
+  let totalImages = 0
+  totalImages += compressionBuckets.small?.images?.length || 0
+  totalImages += compressionBuckets.medium?.images?.length || 0
+  totalImages += compressionBuckets.large?.images?.length || 0
 
   return (
     <Sidebar spacing={1}>
@@ -135,6 +148,36 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
             <Box sx={{ color: totalSavings === 0 ? 'text.primary' : 'secondary.main' }}>
               {totalSavings === 0 ? '' : '~'}
               {bytesToSize(totalSavings)}
+            </Box>
+          </Box>
+
+          <Box>
+            <Box sx={{ fontSize: '20px' }}>Dark Image Correction</Box>
+            <Box
+              sx={{
+                fontSize: '14px',
+                lineHeight: '14px',
+                fontWeight: 300,
+                color: 'text.secondary',
+              }}
+            >
+              {darkNumStatus === STATUSES.COMPLETED ? (
+                <>
+                  Found{' '}
+                  <Box component="span" sx={{ color: 'text.primary' }}>
+                    {darkNum} dark images
+                  </Box>
+                </>
+              ) : (
+                <Box component="span" sx={{ fontStyle: 'italic' }}>
+                  Identifying dark images...
+                </Box>
+              )}
+              {darkNumStatus !== STATUSES.COMPLETED && (
+                <Box sx={{ marginTop: '2px' }}>
+                  checked {darkNumProgress} of {totalImages} images
+                </Box>
+              )}
             </Box>
           </Box>
 

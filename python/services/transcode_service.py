@@ -623,13 +623,17 @@ class TranscodeService:
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
         print_out(' '.join(command))
+        all_stdout = []
         with subprocess.Popen(command, stdout=PIPE, stderr=PIPE) as proc:
             add_terminator(proc.terminate)
             for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
                 line_callback(line)
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+                all_stdout.append(line)
         remove_last_terminator()
         if (proc.returncode != 0):
             raise subprocess.CalledProcessError(proc.returncode, command, proc.stdout, proc.stderr)
+        return '\n'.join(all_stdout)
 
     @staticmethod
     def parse_ffmpeg_progress(line):

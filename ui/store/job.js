@@ -36,6 +36,7 @@ const initialState = {
     large: { images: [], selection: 100, size: 0 },
   },
   jobId: null,
+  jobIdDark: null,
   settingsList: [],
   observers: [],
 }
@@ -53,11 +54,12 @@ const useJobStore = create((set, get) => ({
   reset: () => set({ ...initialState, observers: get().observers }),
 
   setPhase: async (nextPhase) => {
-    set({ phase: nextPhase, jobId: null })
+    set({ phase: nextPhase, jobId: null, jobIdDark: null })
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       get().triggerSampleImages()
+      get().triggerDarkImagesIdentify()
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
       get().triggerExecute()
     }
@@ -77,6 +79,16 @@ const useJobStore = create((set, get) => ({
       compressionBuckets.large?.images?.[0]
     )
     set({ jobId })
+  },
+
+  triggerDarkImagesIdentify: async () => {
+    const { compressionBuckets } = get()
+    const jobId = await ingestAPI.identifyDarkImages([
+      ...(compressionBuckets.small?.images || []),
+      ...(compressionBuckets.medium?.images || []),
+      ...(compressionBuckets.large?.images || []),
+    ])
+    set({ jobIdDark: jobId })
   },
 
   triggerExecute: async () => {

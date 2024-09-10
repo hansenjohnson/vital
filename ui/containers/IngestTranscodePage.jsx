@@ -119,7 +119,7 @@ const LinkageAnnotationPage = () => {
     setSampleImages([])
     let intervalId
 
-    const checkForMetadata = async () => {
+    const checkForImages = async () => {
       const status = await ingestAPI.jobStatus(jobId)
       if (status === STATUSES.INCOMPLETE) return
       if (status === STATUSES.ERROR) {
@@ -137,13 +137,53 @@ const LinkageAnnotationPage = () => {
       setSampleStatus(STATUSES.COMPLETED)
     }
 
-    intervalId = setInterval(checkForMetadata, 1000)
+    intervalId = setInterval(checkForImages, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
   const whenAllImagesHaveLoaded = async () => {
     await ingestAPI.deleteSampleImages(jobId)
   }
+
+  /* Poll for Dark Image Numbers, handle statuses */
+  const jobIdDark = useJobStore((state) => state.jobIdDark)
+  const [darkNumStatus, setDarkNumStatus] = useState(STATUSES.LOADING)
+  const [darkNumProgress, setDarkNumProgress] = useState(0)
+  const [numDarkImages, setNumDarkImages] = useState(null)
+  useEffect(() => {
+    if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+
+    setDarkNumStatus(STATUSES.LOADING)
+    setDarkNumProgress(0)
+    setNumDarkImages(null)
+    let intervalId
+
+    const checkForImages = async () => {
+      const status = await ingestAPI.jobStatus(jobIdDark)
+      if (status === STATUSES.INCOMPLETE) {
+        const tasks = await ingestAPI.taskStatusesForJob(jobIdDark)
+        const numCompleted = tasks.filter((task) => task.status === STATUSES.COMPLETED).length
+        setDarkNumProgress(numCompleted)
+        return
+      }
+      if (status === STATUSES.ERROR) {
+        // TODO: handle error case, currently the backend doesn't return this
+        return
+      }
+      if (status !== STATUSES.COMPLETED) {
+        console.log('Unknown status:', status)
+        return
+      }
+      clearInterval(intervalId)
+
+      const numDarkImages = await ingestAPI.getDarkData(jobIdDark)
+      setNumDarkImages(numDarkImages)
+      setDarkNumStatus(STATUSES.COMPLETED)
+    }
+
+    intervalId = setInterval(checkForImages, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobIdDark])
 
   /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
@@ -432,6 +472,9 @@ const LinkageAnnotationPage = () => {
       <Box sx={{ display: 'flex', height: '100%' }}>
         <CompressionSidebar
           status={sampleStatus}
+          darkNumStatus={darkNumStatus}
+          darkNumProgress={darkNumProgress}
+          darkNum={numDarkImages}
           actionName="Add Job to Queue"
           canTrigger={true} // There are no checks on this page
           onTriggerAction={executeJob}

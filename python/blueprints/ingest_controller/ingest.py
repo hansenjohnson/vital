@@ -7,6 +7,7 @@ from services.job_service import JobService, JobType
 from services.transcode_service import TranscodeService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
+from services.color_correct_service import ColorCorrectService
 from utils.endpoints import tryable_json_endpoint
 from utils.prints import print_out
 
@@ -17,6 +18,7 @@ job_service = JobService()
 transcode_service = TranscodeService()
 task_service = TaskService()
 validator_service = ValidatorService()
+color_correct_service = ColorCorrectService()
 
 def str_to_bool(value):
     return value.lower() == 'true'
@@ -191,3 +193,18 @@ def batch_rename_export():
     output_folder = unquote(request.args.get('output_folder'))
 
     return ingest_service.generate_batch_rename_report(job_id, output_folder)
+
+
+@bp.route('/dark', methods=['POST'])
+@tryable_json_endpoint
+def identify_dark_images():
+    payload = request.json
+    image_paths = payload['image_paths']
+    job_id = color_correct_service.identify_dark_images_from_collection(image_paths)
+    return {"job_id": job_id}
+
+
+@bp.route('/job/<int:job_id>/dark', methods=['GET'])
+@tryable_json_endpoint
+def job_task_dark_data(job_id):
+    return task_service.get_tasks_dark_data_by_job_id(job_id)

@@ -1,7 +1,6 @@
 import os
 import sys
 import tempfile
-import shutil
 import threading
 from typing import List
 
@@ -36,55 +35,89 @@ class ColorCorrectService:
         temp_color_corrected_dir = os.path.join(thumbnail_dir, self.TEMP_DIRNAME)
         return temp_color_corrected_dir
 
-    def create_color_corrected_images(self, image_paths: List[str]):
+    # Not Used Yet
+    # def create_color_corrected_images(self, image_paths: List[str]):
+    #     job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
+    #             "source_dir": '',
+    #             "media_type": MediaType.IMAGE.value,
+    #             "local_export_path": ''
+    #         })
+
+    #     self.create_color_corrected_tasks(job_id, image_paths)
+
+    #     threading.Thread(target=self.run_color_corrected_tasks, args=(job_id,)).start()
+    #     return job_id
+
+    # Not Used Yet
+    # def create_color_corrected_tasks(self, job_id, file_paths):
+    #     for file_path in file_paths:
+    #         file_name, file_extension = os.path.splitext(file_path)
+    #         file_path_jpeg = f'{os.path.basename(file_name)}_color_corrected.jpg'
+    #         transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg)
+    #         self.task_service.create_task(job_id, transcode_settings)
+
+    # Not Used Yet
+    # def run_color_corrected_tasks(self, transcode_job_id):
+    #     tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
+
+    #     try:
+    #         with tempfile.TemporaryDirectory() as temp_dir:
+    #             for task in tasks:
+    #                 transcode_task_id = task.id
+    #                 try:
+    #                     _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+    #                     self.task_service.set_task_progress(transcode_task_id, 100)
+    #                     self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+
+    #                 except Exception as e:
+    #                     print_err(str(e))
+    #                     self.task_service.set_task_progress(transcode_task_id, 0)
+    #                     self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
+    #                     self.task_service.set_task_error_message(transcode_task_id, str(e))
+
+    #     finally:
+    #         self.job_service.set_job_status(transcode_job_id)
+
+    def identify_dark_images_from_collection(self, image_paths: List[str]):
         job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
-                "source_dir": '',
-                "media_type": MediaType.IMAGE.value,
-                "local_export_path": ''
-            })
+            "source_dir": '',
+            "media_type": MediaType.IMAGE.value,
+            "local_export_path": ''
+        })
+        for file_path in image_paths:
+            self.task_service.create_task(job_id, TranscodeSettings(file_path=file_path))
 
-        self.create_color_corrected_tasks(job_id, image_paths)
-
-        threading.Thread(target=self.run_color_corrected_tasks, args=(job_id,)).start()
+        threading.Thread(target=self.run_dark_identify_tasks, args=(job_id,)).start()
         return job_id
 
-    def create_color_corrected_tasks(self, job_id, file_paths):
-        for file_path in file_paths:
-            file_name, file_extension = os.path.splitext(file_path)
-            file_path_jpeg = f'{os.path.basename(file_name)}_color_corrected.jpg'
-            transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg)
-            self.task_service.create_task(job_id, transcode_settings)
-
-    def run_color_corrected_tasks(self, transcode_job_id):
-        tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
-
+    def run_dark_identify_tasks(self, job_id):
+        tasks = self.task_service.get_tasks_by_job_id(job_id)
         try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                for task in tasks:
-                    transcode_task_id = task.id
-                    try:
-                        _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
-                        self.task_service.set_task_progress(transcode_task_id, 100)
-                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
-
-                    except Exception as e:
-                        print_err(str(e))
-                        self.task_service.set_task_progress(transcode_task_id, 0)
-                        self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
-                        self.task_service.set_task_error_message(transcode_task_id, str(e))
-
+            for task in tasks:
+                try:
+                    self.dark_identify_image(task.id)
+                    self.task_service.set_task_progress(task.id, 100)
+                    self.task_service.set_task_status(task.id, TaskStatus.COMPLETED)
+                except Exception as e:
+                    print_err(str(e))
+                    self.task_service.set_task_progress(task.id, 0)
+                    self.task_service.set_task_status(task.id, TaskStatus.ERROR)
+                    self.task_service.set_task_error_message(task.id, str(e))
         finally:
-            self.job_service.set_job_status(transcode_job_id)
+            self.job_service.set_job_status(job_id)
 
     def dark_identify_image(self, task_id):
         transcode_settings = self.task_service.get_transcode_settings(task_id)
         file_path = transcode_settings.file_path
 
         command = self.generate_dark_identify_command(file_path)
-        TranscodeService.run_command_with_terminator(command)
-
-        self.task_service.set_task_progress(transcode_task_id, 100)
-        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+        output = TranscodeService.run_command_with_terminator(command)
+        # parse the output from imagemagick
+        clean_output = output.strip().strip('"')
+        image_median = float(clean_output)
+        if image_median <= self.DARK_IMAGE_THRESHOLD:
+            transcode_settings.is_dark = True
+            self.task_service.set_task_settings(task_id, transcode_settings)
 
     def generate_dark_identify_command(self, input_path):
         return [
