@@ -37,6 +37,7 @@ const initialState = {
   },
   jobId: null,
   jobIdDark: null,
+  colorCorrectApplied: false,
   settingsList: [],
   observers: [],
 }
@@ -206,6 +207,8 @@ const useJobStore = create((set, get) => ({
     const observers = await observersAPI.getList()
     set({ observers })
   },
+
+  setColorCorrectApplied: valueSetter(set, 'colorCorrectApplied'),
 }))
 
 const canParse = (state) => {

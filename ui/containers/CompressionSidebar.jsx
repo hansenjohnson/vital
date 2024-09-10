@@ -1,5 +1,8 @@
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -11,7 +14,7 @@ import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import StyledButton from '../components/StyledButton'
 
-const CompressionOptionsSidebar = ({
+const CompressionSidebar = ({
   status,
   darkNumStatus,
   darkNum,
@@ -51,6 +54,9 @@ const CompressionOptionsSidebar = ({
   totalImages += compressionBuckets.small?.images?.length || 0
   totalImages += compressionBuckets.medium?.images?.length || 0
   totalImages += compressionBuckets.large?.images?.length || 0
+
+  const colorCorrectApplied = useJobStore((state) => state.colorCorrectApplied)
+  const setColorCorrectApplied = useJobStore((state) => state.setColorCorrectApplied)
 
   return (
     <Sidebar spacing={1}>
@@ -179,6 +185,41 @@ const CompressionOptionsSidebar = ({
                 </Box>
               )}
             </Box>
+
+            {darkNum > 0 && (
+              <RadioGroup
+                value={`${colorCorrectApplied}`}
+                onChange={(event) => setColorCorrectApplied(event.target.value === 'true')}
+                sx={{ marginTop: 0.5, marginLeft: 0.5 }}
+              >
+                <FormControlLabel
+                  label="No Correction"
+                  value="false"
+                  control={
+                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
+                  }
+                  sx={{
+                    color: `${colorCorrectApplied}` === 'false' ? 'text.primary' : 'text.secondary',
+                    '&:hover': {
+                      color: 'text.primary',
+                    },
+                  }}
+                />
+                <FormControlLabel
+                  label="Auto Exposure"
+                  value="true"
+                  control={
+                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
+                  }
+                  sx={{
+                    color: `${colorCorrectApplied}` === 'true' ? 'text.primary' : 'text.secondary',
+                    '&:hover': {
+                      color: 'text.primary',
+                    },
+                  }}
+                />
+              </RadioGroup>
+            )}
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
@@ -196,4 +237,4 @@ const CompressionOptionsSidebar = ({
   )
 }
 
-export default CompressionOptionsSidebar
+export default CompressionSidebar

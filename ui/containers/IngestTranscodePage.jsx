@@ -476,7 +476,7 @@ const LinkageAnnotationPage = () => {
           darkNumProgress={darkNumProgress}
           darkNum={numDarkImages}
           actionName="Add Job to Queue"
-          canTrigger={true} // There are no checks on this page
+          canTrigger={darkNumStatus === STATUSES.COMPLETED}
           onTriggerAction={executeJob}
         />
         <Box
