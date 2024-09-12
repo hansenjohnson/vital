@@ -197,7 +197,7 @@ class TranscodeService:
             if file_name in file_in_temp_dir:
                 os.remove(os.path.join(temp_sample_dir, file_name))
 
-        os.removedirs(temp_sample_dir)
+        os.rmdir(temp_sample_dir)
         return job_id
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int], observer_code):
