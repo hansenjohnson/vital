@@ -18,6 +18,8 @@ from utils.prints import print_err
 
 class IngestService:
 
+    IMAGE_PARSE_BATCH_SIZE = 100
+
     def __init__(self):
         self.job_service = JobService()
         self.validator_service = ValidatorService()
@@ -41,7 +43,11 @@ class IngestService:
 
             metadata_arr = []
             if (media_type == MediaType.IMAGE):
-                metadata_arr = self.image_metadata_service.parse_metadata(files)
+                for i in range(0, len(files), self.IMAGE_PARSE_BATCH_SIZE):
+                    metadata_for_batch = self.image_metadata_service.parse_metadata(
+                        files[i:i+self.IMAGE_PARSE_BATCH_SIZE]
+                    )
+                    metadata_arr.extend(metadata_for_batch)
             else:
                 for file_path in files:
                     media_metadata = self.video_metadata_service.parse_metadata(file_path)
