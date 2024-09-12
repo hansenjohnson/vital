@@ -49,7 +49,7 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
     setExportSuccess(false)
   }, [JSON.stringify(data)])
 
-  let exportText = 'Export CSV of Re-names'
+  let exportText = 'Export Report CSV'
   if (olderThan10Days) {
     exportText = 'Export Not Available'
   } else if (exporting) {
@@ -145,7 +145,7 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
           {exportText}
         </Button>
         <Box sx={{ color: 'text.secondary', fontSize: '14px', lineHeight: '14px' }}>
-          Only available for 10 days
+          CSV available for 10 days
         </Box>
       </Box>
     </Dialog>

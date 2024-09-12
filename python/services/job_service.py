@@ -66,4 +66,4 @@ class JobService:
         self.job_model.update_report_data(job_id, report_data)
     
     def get_report_data(self, job_id):
-        return self.job_model.get_report_data(self, job_id)
+        return self.job_model.get_report_data(job_id)
