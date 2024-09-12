@@ -57,10 +57,10 @@ class JobModel:
     def deserialize_dataclass(self, json_string, cls):
         return cls(**json.loads(json_string))
 
-    def create(self, job_type: JobType, jobStatus: JobStatus, json_data):
+    def create(self, job_type: JobType, job_status: JobStatus, json_data):
         lastrowid = self.with_cursor(
             "INSERT INTO job (type, status, data) VALUES (?, ?, ?)",
-            (job_type.value, jobStatus.value, json_data,),
+            (job_type.value, job_status.value, json_data,),
             attr='lastrowid'
         )
         return lastrowid
@@ -131,11 +131,11 @@ class JobModel:
 
     def get_status(self, job_id):
         row = self.with_cursor(
-            "SELECT status FROM job WHERE id = ?",
+            "SELECT status, error_message FROM job WHERE id = ?",
             (job_id,),
             action='fetchone'
         )
-        return row[0]
+        return row[0], row[1]
 
     def set_status(self, job_id, job_status):
         base_query = "UPDATE job SET status = ? "
@@ -147,9 +147,10 @@ class JobModel:
         params.append(job_id)
         self.with_cursor(base_query, params)
 
-    def set_error(self, job_id, job_error: JobErrors):
+    def set_error(self, job_id, job_error):
+        job_error_str = job_error.value if type(job_error) == JobErrors else str(job_error)
         query = "UPDATE job SET error_message = ? WHERE id = ?"
-        self.with_cursor(query, (job_error.value, job_id))
+        self.with_cursor(query, (job_error_str, job_id))
 
     def delete(self, job_id):
         self.with_cursor("DELETE FROM job WHERE id = ?", (job_id,))

@@ -50,11 +50,11 @@ class JobService:
             return
         self.job_model.set_status(job_id, JobStatus.INCOMPLETE)
 
-    def set_error(self, job_id, job_error: JobErrors):
+    def set_error(self, job_id, job_error):
         return self.job_model.set_error(job_id, job_error)
 
     def delete_job(self, job_id):
-        if self.check_job_status(job_id) == JobStatus.INCOMPLETE.value:
+        if self.check_job_status(job_id)[0] == JobStatus.INCOMPLETE.value:
             terminate_all()
 
         orphaned_tasks = self.task_service.delete_by_job_id(job_id)

@@ -14,6 +14,7 @@ from services.video_metadata_service import VideoMetadataService
 from services.image_metadata_service import ImageMetadataService
 
 from utils.constants import image_extensions, video_extensions
+from utils.prints import print_err
 
 class IngestService:
 
@@ -34,9 +35,17 @@ class IngestService:
 
 
     def parse_media(self, job_id, source_dir, media_type):
-        if (media_type == MediaType.IMAGE):
-            files = self.get_files(source_dir, image_extensions)
-            metadata_arr = self.image_metadata_service.parse_metadata(files)
+        try:
+            target_extensions = image_extensions if media_type == MediaType.IMAGE else video_extensions
+            files = self.get_files(source_dir, target_extensions)
+
+            metadata_arr = []
+            if (media_type == MediaType.IMAGE):
+                metadata_arr = self.image_metadata_service.parse_metadata(files)
+            else:
+                for file_path in files:
+                    media_metadata = self.video_metadata_service.parse_metadata(file_path)
+                    metadata_arr.append(media_metadata)
 
             validated_metadata = []
             for metadata in metadata_arr:
@@ -45,18 +54,9 @@ class IngestService:
                 validated_metadata.append(metadata.to_dict())
 
             self.job_service.store_job_data(job_id, validated_metadata)
-        else:
-            files = self.get_files(source_dir, video_extensions)
-
-            metadata = []
-            for file_path in files:
-                # TODO: handle case of ffprobe_metadata failing with relation to reporting that error on UI
-                media_metadata =  self.video_metadata_service.parse_metadata(file_path)
-                media_metadata.validation_status = self.validator_service.validate_media(source_dir, media_metadata, media_type)
-
-                metadata.append(media_metadata.to_dict())
-
-            self.job_service.store_job_data(job_id, metadata)
+        except Exception as err:
+            print_err(f"Error parsing media: {err}")
+            self.job_service.set_error(job_id, str(err))
 
 
     def get_files(self, source_dir, extensions):
