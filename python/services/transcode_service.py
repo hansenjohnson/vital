@@ -178,6 +178,10 @@ class TranscodeService:
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
 
+        except Exception as err:
+            print_err(f"Error creating sample images: {err}")
+            self.job_service.set_error(transcode_job_id, str(err))
+
         finally:
             self.job_service.set_job_status(transcode_job_id)
 

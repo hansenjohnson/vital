@@ -68,7 +68,7 @@ const LinkageAnnotationPage = () => {
         return
       }
 
-      // Status must be Completed, at this point
+      // Status must be Completed at this point
       clearInterval(intervalId)
 
       const data = await ingestAPI.getJobResultData(jobId)
@@ -122,15 +122,16 @@ const LinkageAnnotationPage = () => {
 
     const checkForMetadata = async () => {
       const { status, error } = await ingestAPI.jobStatus(jobId)
-      if (status === STATUSES.INCOMPLETE) return
-      if (status === STATUSES.ERROR) {
-        // TODO: handle error case, currently the backend doesn't return this
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        if (error) {
+          setSampleStatus(error)
+          clearInterval(intervalId)
+        }
         return
       }
-      if (status !== STATUSES.COMPLETED) {
-        console.log('Unknown status:', status)
-        return
-      }
+
+      // Status must be Completed at this point
       clearInterval(intervalId)
 
       const sampleData = await ingestAPI.getJobSampleData(jobId)
