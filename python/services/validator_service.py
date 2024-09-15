@@ -9,6 +9,7 @@ from utils.file_path import extract_catalog_folder_info, construct_catalog_folde
 
 class ValidatorService:
     LENGTH_ERROR = 'LENGTH_ERROR'
+    WHITESPACE_ERROR = 'WHITESPACE_ERROR'
     MEDIA_PATH_WARNING = 'MEDIA_PATH_WARNING'
     MEDIA_PATH_ERROR = 'MEDIA_PATH_ERROR'
     FILE_EXISTS_WARNING = 'FILE_EXISTS_WARNING'
@@ -28,6 +29,9 @@ class ValidatorService:
 
         if not self.validate_length(media_metadata.file_path):
             validation_status.errors.append(self.LENGTH_ERROR)
+
+        if not self.validate_whitespace(media_metadata.file_path):
+            validation_status.errors.append(self.WHITESPACE_ERROR)
 
         if not self.validate_media_date(source_dir, media_metadata):
             validation_status.warnings.append(self.INCORRECT_CREATED_TIME)
@@ -50,6 +54,14 @@ class ValidatorService:
         basename = os.path.basename(media_path)
         name_no_ext = os.path.splitext(basename)[0]
         return len(name_no_ext) <= self.MAX_LENGTH
+
+
+    def validate_whitespace(self, media_path):
+        basename = os.path.basename(media_path)
+        name_no_ext = os.path.splitext(basename)[0]
+        starts_with_space = name_no_ext.startswith(' ')
+        ends_with_space = name_no_ext.endswith(' ')
+        return (starts_with_space or ends_with_space) == False
 
 
     def validate_media_date(self, source_dir, media_metadata):

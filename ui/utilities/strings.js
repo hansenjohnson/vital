@@ -62,6 +62,11 @@ export const twoPrecisionStrNum = (str) => parseFloat(str).toFixed(2)
 // NOTE: Make sure this number matches the one used on the backend
 export const fileNameGoodLength = (fileName) => fileName.length <= 20
 
+// NOTE: Make sure this method matches the one used on the backend
+//       Although, here we will have `name_no_ext` already
+export const fileNameGoodWhitespace = (fileName) =>
+  (fileName.startsWith(' ') || fileName.endsWith(' ')) === false
+
 export const completionTimeString = (dateStr) => {
   if (dateStr == null) return ''
   const date = new Date(dateStr)

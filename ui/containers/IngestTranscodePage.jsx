@@ -12,6 +12,7 @@ import {
   twoPrecisionStrNum,
   secondsToDuration,
   fileNameGoodLength,
+  fileNameGoodWhitespace,
 } from '../utilities/strings'
 import {
   transformMediaMetadata,
@@ -211,10 +212,13 @@ const LinkageAnnotationPage = () => {
         newGroupStatus = STATUSES.SUCCESS
       }
       const mediaList = group.mediaList.map((media) => {
-        const hasNewNameOfGoodLength = media.newName && fileNameGoodLength(media.newName)
+        const hasNewName = media.newName && media.newName !== media.fileName
+        const hasNewNameOfGoodLength = hasNewName && fileNameGoodLength(media.newName)
+        const hasNewNameOfGoodWhitespace = hasNewName && fileNameGoodWhitespace(media.newName)
         const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
         const newErrors = media.errors.filter((e) => {
           if (e === 'LENGTH_ERROR' && hasNewNameOfGoodLength) return false
+          if (e === 'WHITESPACE_ERROR' && hasNewNameOfGoodWhitespace) return false
           return true
         })
         const newMediaStatus = calculateStatus(newErrors, newWarnings)
