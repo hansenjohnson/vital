@@ -156,8 +156,12 @@ class IngestService:
             columns=["Source Folder", "Originals Destination", "Optimized Destination"]
         )
 
-        datestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = os.path.join(output_folder, f'VITAL_Ingest_Report_{datestamp}.csv')
+        basename = os.path.basename(source_dir)
+        output_file = os.path.join(output_folder, f'{basename}_Ingest_Report.csv')
+        incrementor = 0
+        while os.path.exists(output_file):
+            incrementor += 1
+            output_file = os.path.join(output_folder, f'{basename}_Ingest_Report_{incrementor}.csv')
         csv_df.to_csv(output_file, index=False)
         return os.path.exists(output_file)
 
