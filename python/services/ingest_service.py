@@ -18,6 +18,19 @@ from utils.prints import print_err
 
 class IngestService:
 
+    IGNORE_LIST = [
+        '._',
+        '.apdisk',
+        '.ds_store',
+        '.fseventsd',
+        '.spotlight',
+        '.temporaryitems',
+        '.trash',
+        '.trashes',
+        '.volumeicon.icns',
+        'desktop.ini',
+        'thumbs.db',
+    ]
     IMAGE_PARSE_BATCH_SIZE = 100
 
     def __init__(self):
@@ -69,6 +82,9 @@ class IngestService:
         found_files = []
         for root, dirs, filenames in os.walk(source_dir):
             for filename in filenames:
+                # Ignore special/hidden files
+                if any([filename.lower().startswith(ignore) for ignore in self.IGNORE_LIST]):
+                    continue
                 file_extension = os.path.splitext(filename)[1]
                 if file_extension:
                     file_extension = file_extension.lower()
