@@ -216,7 +216,17 @@ const LinkageAnnotationPage = () => {
         const hasNewNameOfGoodLength = hasNewName && fileNameGoodLength(media.newName)
         const hasNewNameOfGoodWhitespace = hasNewName && fileNameGoodWhitespace(media.newName)
         const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
-        const newErrors = media.errors.filter((e) => {
+        const newErrors = [
+          ...media.errors,
+          ...(hasNewName && !hasNewNameOfGoodLength && !media.errors.includes('LENGTH_ERROR')
+            ? ['LENGTH_ERROR']
+            : []),
+          ...(hasNewName &&
+          !hasNewNameOfGoodWhitespace &&
+          !media.errors.includes('WHITESPACE_ERROR')
+            ? ['WHITESPACE_ERROR']
+            : []),
+        ].filter((e) => {
           if (e === 'LENGTH_ERROR' && hasNewNameOfGoodLength) return false
           if (e === 'WHITESPACE_ERROR' && hasNewNameOfGoodWhitespace) return false
           return true
