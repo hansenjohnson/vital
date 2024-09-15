@@ -220,6 +220,7 @@ class TranscodeService:
         local_dir_path = ''
         if local_export_path:
             local_dir_path = construct_catalog_folder_path(local_export_path, *catalog_folder_info)
+            os.makedirs(local_dir_path, exist_ok=True)
 
         catalog_folder_id = None
         if (media_type == MediaType.VIDEO):
@@ -235,7 +236,6 @@ class TranscodeService:
             try:
                 make_one_dir_ok_exists(optimized_dir_path)
                 make_one_dir_ok_exists(original_dir_path)
-                os.makedirs(local_dir_path, exist_ok=True)
             except FileNotFoundError as e:
                 # See the task loop for more details on this retry logic
                 retry_job = True
