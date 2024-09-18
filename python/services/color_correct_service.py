@@ -92,19 +92,18 @@ class ColorCorrectService:
 
     def run_dark_identify_tasks(self, job_id):
         tasks = self.task_service.get_tasks_by_job_id(job_id)
-        try:
-            for task in tasks:
-                try:
-                    self.dark_identify_image(task.id)
-                    self.task_service.set_task_progress(task.id, 100)
-                    self.task_service.set_task_status(task.id, TaskStatus.COMPLETED)
-                except Exception as e:
-                    print_err(str(e))
-                    self.task_service.set_task_progress(task.id, 0)
-                    self.task_service.set_task_status(task.id, TaskStatus.ERROR)
-                    self.task_service.set_task_error_message(task.id, str(e))
-        finally:
-            self.job_service.set_job_status(job_id)
+        for task in tasks:
+            try:
+                self.dark_identify_image(task.id)
+                self.task_service.set_task_progress(task.id, 100)
+                self.task_service.set_task_status(task.id, TaskStatus.COMPLETED)
+            except Exception as err:
+                # Even a single task error renders the whole job corrupt, so we catch
+                # this one error, push it to the job level, can cancel the job
+                print_err(f"Error identifying dark images: task {task.id} -- {err}")
+                self.job_service.set_error(job_id, str(err))
+                break
+        self.job_service.set_job_status(job_id)
 
     def dark_identify_image(self, task_id):
         transcode_settings = self.task_service.get_transcode_settings(task_id)

@@ -161,22 +161,21 @@ const LinkageAnnotationPage = () => {
     setNumDarkImages(null)
     let intervalId
 
-    const checkForImages = async () => {
-      const status = await ingestAPI.jobStatus(jobIdDark)
+    const checkForDarkNums = async () => {
+      const { status, error } = await ingestAPI.jobStatus(jobIdDark)
+      if (status === STATUSES.QUEUED) return
       if (status === STATUSES.INCOMPLETE) {
         const tasks = await ingestAPI.taskStatusesForJob(jobIdDark)
         const numCompleted = tasks.filter((task) => task.status === STATUSES.COMPLETED).length
         setDarkNumProgress(numCompleted)
+        if (error) {
+          setDarkNumStatus(error)
+          clearInterval(intervalId)
+        }
         return
       }
-      if (status === STATUSES.ERROR) {
-        // TODO: handle error case, currently the backend doesn't return this
-        return
-      }
-      if (status !== STATUSES.COMPLETED) {
-        console.log('Unknown status:', status)
-        return
-      }
+
+      // Status must be Completed at this point
       clearInterval(intervalId)
 
       const numDarkImages = await ingestAPI.getDarkData(jobIdDark)
@@ -184,7 +183,7 @@ const LinkageAnnotationPage = () => {
       setDarkNumStatus(STATUSES.COMPLETED)
     }
 
-    intervalId = setInterval(checkForImages, 1000)
+    intervalId = setInterval(checkForDarkNums, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobIdDark])
 

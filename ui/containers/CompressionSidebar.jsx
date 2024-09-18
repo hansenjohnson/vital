@@ -223,7 +223,29 @@ const CompressionSidebar = ({
               </RadioGroup>
             )}
           </Box>
+        </>
+      )}
 
+      {/* This represents an error status, but we overload the value with the message */}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error Creating Sample Images</AlertTitle>
+            {status}
+          </Alert>
+        </Box>
+      )}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(darkNumStatus) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error Identifying Dark Images</AlertTitle>
+            {darkNumStatus}
+          </Alert>
+        </Box>
+      )}
+
+      {status === STATUSES.COMPLETED && (
+        <>
           <Box sx={{ flexGrow: 1 }} />
           <StyledButton
             variant="outlined"
@@ -234,16 +256,6 @@ const CompressionSidebar = ({
             {actionName}
           </StyledButton>
         </>
-      )}
-
-      {/* This represents an error status, but we overload the value with the message */}
-      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
-        <Box>
-          <Alert severity="error">
-            <AlertTitle>Error</AlertTitle>
-            {status}
-          </Alert>
-        </Box>
       )}
     </Sidebar>
   )
