@@ -147,11 +147,8 @@ class TranscodeService:
             self.task_service.create_task(job_id, transcode_settings)
 
     def run_sample_tasks(self, transcode_job_id):
-        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
-
         tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
-
-        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        temp_sample_dir = self.get_sample_image_dir()
         os.makedirs(temp_sample_dir, exist_ok=True)
 
         try:

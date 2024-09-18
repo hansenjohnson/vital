@@ -150,15 +150,16 @@ const LinkageAnnotationPage = () => {
 
   /* Poll for Dark Image Numbers, handle statuses */
   const jobIdDark = useJobStore((state) => state.jobIdDark)
+  const triggerDarkSampleImages = useJobStore((state) => state.triggerDarkSampleImages)
   const [darkNumStatus, setDarkNumStatus] = useState(STATUSES.LOADING)
   const [darkNumProgress, setDarkNumProgress] = useState(0)
-  const [numDarkImages, setNumDarkImages] = useState(null)
+  const [darkImagePaths, setDarkImagePaths] = useState([])
   useEffect(() => {
     if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
 
     setDarkNumStatus(STATUSES.LOADING)
     setDarkNumProgress(0)
-    setNumDarkImages(null)
+    setDarkImagePaths([])
     let intervalId
 
     const checkForDarkNums = async () => {
@@ -178,14 +179,55 @@ const LinkageAnnotationPage = () => {
       // Status must be Completed at this point
       clearInterval(intervalId)
 
-      const numDarkImages = await ingestAPI.getDarkData(jobIdDark)
-      setNumDarkImages(numDarkImages)
+      const darkImagePaths = await ingestAPI.getDarkData(jobIdDark)
+      setDarkImagePaths(darkImagePaths)
       setDarkNumStatus(STATUSES.COMPLETED)
+      triggerDarkSampleImages(darkImagePaths)
     }
 
     intervalId = setInterval(checkForDarkNums, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobIdDark])
+
+  /* Poll for Dark Sample Image, handle statuses */
+  const jobIdDarkSample = useJobStore((state) => state.jobIdDarkSample)
+  const [darkSampleStatus, setDarkSampleStatus] = useState(STATUSES.LOADING)
+  const [darkSampleProgress, setDarkSampleProgress] = useState(0)
+  const [darkSampleImages, setDarkSampleImages] = useState(null)
+  useEffect(() => {
+    if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+    if (!jobIdDarkSample) return
+
+    setDarkSampleStatus(STATUSES.LOADING)
+    setDarkSampleProgress(0)
+    setDarkSampleImages(null)
+    let intervalId
+
+    const checkForDarkSamples = async () => {
+      const { status, error } = await ingestAPI.jobStatus(jobIdDarkSample)
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        const tasks = await ingestAPI.taskStatusesForJob(jobIdDarkSample)
+        const numCompleted = tasks.filter((task) => task.status === STATUSES.COMPLETED).length
+        setDarkSampleProgress(numCompleted)
+        if (error) {
+          setDarkSampleStatus(error)
+          clearInterval(intervalId)
+        }
+        return
+      }
+
+      // Status must be Completed at this point
+      clearInterval(intervalId)
+
+      const darkImages = await ingestAPI.getJobSampleData(jobIdDarkSample)
+      setDarkSampleImages(darkImages)
+      setDarkSampleStatus(STATUSES.COMPLETED)
+    }
+
+    intervalId = setInterval(checkForDarkSamples, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobIdDarkSample])
 
   /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
@@ -489,7 +531,7 @@ const LinkageAnnotationPage = () => {
           status={sampleStatus}
           darkNumStatus={darkNumStatus}
           darkNumProgress={darkNumProgress}
-          darkNum={numDarkImages}
+          darkNum={darkImagePaths.length}
           actionName="Add Job to Queue"
           canTrigger={darkNumStatus === STATUSES.COMPLETED}
           onTriggerAction={executeJob}

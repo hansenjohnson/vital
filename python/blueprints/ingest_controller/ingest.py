@@ -209,3 +209,12 @@ def identify_dark_images():
 @tryable_json_endpoint
 def job_task_dark_data(job_id):
     return task_service.get_tasks_dark_data_by_job_id(job_id)
+
+
+@bp.route('/dark_sample', methods=['POST'])
+@tryable_json_endpoint
+def create_dark_samples():
+    payload = request.json
+    image_paths = payload['image_paths']
+    job_id = color_correct_service.create_dark_sample_images(image_paths)
+    return {"job_id": job_id}

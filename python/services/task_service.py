@@ -50,11 +50,11 @@ class TaskService:
 
     def get_tasks_dark_data_by_job_id(self, job_id: int):
         tasks = self.get_tasks_by_job_id(job_id)
-        total = 0
+        dark_files = []
         for task in tasks:
             if task.transcode_settings.get('is_dark'):
-                total += 1
-        return total
+                dark_files.append(task.transcode_settings.get('file_path'))
+        return dark_files
 
     def get_transcode_settings(self, task_id: int) -> TranscodeSettings:
         return self.task_model.get_transcode_settings(task_id)

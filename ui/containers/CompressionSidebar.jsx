@@ -246,7 +246,10 @@ const CompressionSidebar = ({
                   {darkSampleStatus === STATUSES.COMPLETED ? (
                     <>
                       <Box>Dark image proofs created</Box>
-                      <TinyTextButton onClick={onDarkSampleOpen}>
+                      <TinyTextButton
+                        onClick={onDarkSampleOpen}
+                        disabled={`${colorCorrectApplied}` !== 'true'}
+                      >
                         {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images selected
                       </TinyTextButton>
                     </>
