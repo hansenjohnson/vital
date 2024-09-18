@@ -15,6 +15,7 @@ import { IMAGE_QUALITIES, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import StyledButton from '../components/StyledButton'
+import TinyTextButton from '../components/TinyTextButton'
 
 const CompressionSidebar = ({
   status,
@@ -25,6 +26,14 @@ const CompressionSidebar = ({
   canTrigger,
   onTriggerAction,
 }) => {
+  // Move these into Props
+  const darkSampleStatus = STATUSES.COMPLETED
+  const darkSampleProgress = 0
+  const darkNumSelected = 4
+  const onDarkSampleOpen = () => {
+    console.log('hi')
+  }
+
   const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
@@ -74,7 +83,7 @@ const CompressionSidebar = ({
         </Box>
       )}
       {status === STATUSES.COMPLETED && (
-        <>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
           <Box>
             <Box sx={{ fontSize: '20px' }}>Small Images Bucket</Box>
             <Box
@@ -192,7 +201,7 @@ const CompressionSidebar = ({
               <RadioGroup
                 value={`${colorCorrectApplied}`}
                 onChange={(event) => setColorCorrectApplied(event.target.value === 'true')}
-                sx={{ marginTop: 0.5, marginLeft: 0.5 }}
+                sx={{ marginTop: 0.5, marginLeft: 0.5, marginBottom: 0.5 }}
               >
                 <FormControlLabel
                   label="No Correction"
@@ -220,10 +229,40 @@ const CompressionSidebar = ({
                     },
                   }}
                 />
+
+                <Box
+                  sx={(theme) => ({
+                    marginLeft: `calc(${theme.spacing(2)} + 4px)`,
+                    fontSize: '14px',
+                    lineHeight: '14px',
+                    fontWeight: 300,
+                    color: 'text.secondary',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '2px',
+                  })}
+                >
+                  {darkSampleStatus === STATUSES.COMPLETED ? (
+                    <>
+                      <Box>Dark image proofs created</Box>
+                      <TinyTextButton onClick={onDarkSampleOpen}>
+                        {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images selected
+                      </TinyTextButton>
+                    </>
+                  ) : (
+                    <Box sx={{ fontStyle: 'italic' }}>Creating proofs of dark images...</Box>
+                  )}
+                  {darkSampleStatus !== STATUSES.COMPLETED && (
+                    <Box>
+                      created {darkSampleProgress} of {darkNum} images
+                    </Box>
+                  )}
+                </Box>
               </RadioGroup>
             )}
           </Box>
-        </>
+        </Box>
       )}
 
       {/* This represents an error status, but we overload the value with the message */}
