@@ -22,13 +22,13 @@ const CompressionSidebar = ({
   darkNumStatus,
   darkNum,
   darkNumProgress,
+  darkSampleStatus,
+  darkSampleProgress,
   actionName,
   canTrigger,
   onTriggerAction,
 }) => {
   // Move these into Props
-  const darkSampleStatus = STATUSES.COMPLETED
-  const darkSampleProgress = 0
   const darkNumSelected = 4
   const onDarkSampleOpen = () => {
     console.log('hi')
@@ -250,7 +250,14 @@ const CompressionSidebar = ({
                         onClick={onDarkSampleOpen}
                         disabled={`${colorCorrectApplied}` !== 'true'}
                       >
-                        {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images selected
+                        {`${colorCorrectApplied}` === 'true' ? (
+                          <>
+                            {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images
+                            selected
+                          </>
+                        ) : (
+                          <>Choose this option to manually select images</>
+                        )}
                       </TinyTextButton>
                     </>
                   ) : (
