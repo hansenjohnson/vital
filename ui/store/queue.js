@@ -112,6 +112,17 @@ const useQueueStore = create((set, get) => ({
 
   fetchSchedule: async () => {
     const schedule = await queueAPI.getSchedule()
+
+    // If the schedule is in the past, we should clear it
+    // Even though the schedule is stored on the backend, we perform this operation on the UI
+    // so that we have control over updating the display of that schedule
+    const now = new Date()
+    const sixty_seconds_ago = now.setSeconds(now.getSeconds() - 60)
+    if (new Date(schedule) < sixty_seconds_ago) {
+      queueAPI.deleteSchedule()
+      set({ schedule: null })
+    }
+
     set({ schedule })
     if (schedule != null) {
       get().startRunningChecker(true)

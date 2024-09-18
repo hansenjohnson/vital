@@ -12,6 +12,7 @@ import {
   twoPrecisionStrNum,
   secondsToDuration,
   fileNameGoodLength,
+  fileNameGoodWhitespace,
 } from '../utilities/strings'
 import {
   transformMediaMetadata,
@@ -58,16 +59,17 @@ const LinkageAnnotationPage = () => {
     let intervalId
 
     const checkForMetadata = async () => {
-      const status = await ingestAPI.jobStatus(jobId)
-      if (status === STATUSES.INCOMPLETE) return
-      if (status === STATUSES.ERROR) {
-        // TODO: handle error case, currently the backend doesn't return this
+      const { status, error } = await ingestAPI.jobStatus(jobId)
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        if (error) {
+          setParseStatus(error)
+          clearInterval(intervalId)
+        }
         return
       }
-      if (status !== STATUSES.COMPLETED) {
-        console.log('Unknown status:', status)
-        return
-      }
+
+      // Status must be Completed at this point
       clearInterval(intervalId)
 
       const data = await ingestAPI.getJobResultData(jobId)
@@ -120,16 +122,17 @@ const LinkageAnnotationPage = () => {
     let intervalId
 
     const checkForImages = async () => {
-      const status = await ingestAPI.jobStatus(jobId)
-      if (status === STATUSES.INCOMPLETE) return
-      if (status === STATUSES.ERROR) {
-        // TODO: handle error case, currently the backend doesn't return this
+      const { status, error } = await ingestAPI.jobStatus(jobId)
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        if (error) {
+          setSampleStatus(error)
+          clearInterval(intervalId)
+        }
         return
       }
-      if (status !== STATUSES.COMPLETED) {
-        console.log('Unknown status:', status)
-        return
-      }
+
+      // Status must be Completed at this point
       clearInterval(intervalId)
 
       const sampleData = await ingestAPI.getJobSampleData(jobId)
@@ -249,10 +252,23 @@ const LinkageAnnotationPage = () => {
         newGroupStatus = STATUSES.SUCCESS
       }
       const mediaList = group.mediaList.map((media) => {
-        const hasNewNameOfGoodLength = media.newName && fileNameGoodLength(media.newName)
+        const hasNewName = media.newName && media.newName !== media.fileName
+        const hasNewNameOfGoodLength = hasNewName && fileNameGoodLength(media.newName)
+        const hasNewNameOfGoodWhitespace = hasNewName && fileNameGoodWhitespace(media.newName)
         const newWarnings = media.warnings.filter((w) => !issueIgnoreList.includes(w))
-        const newErrors = media.errors.filter((e) => {
+        const newErrors = [
+          ...media.errors,
+          ...(hasNewName && !hasNewNameOfGoodLength && !media.errors.includes('LENGTH_ERROR')
+            ? ['LENGTH_ERROR']
+            : []),
+          ...(hasNewName &&
+          !hasNewNameOfGoodWhitespace &&
+          !media.errors.includes('WHITESPACE_ERROR')
+            ? ['WHITESPACE_ERROR']
+            : []),
+        ].filter((e) => {
           if (e === 'LENGTH_ERROR' && hasNewNameOfGoodLength) return false
+          if (e === 'WHITESPACE_ERROR' && hasNewNameOfGoodWhitespace) return false
           return true
         })
         const newMediaStatus = calculateStatus(newErrors, newWarnings)

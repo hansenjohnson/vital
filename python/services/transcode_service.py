@@ -178,6 +178,10 @@ class TranscodeService:
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
                         self.task_service.set_task_error_message(transcode_task_id, str(e))
 
+        except Exception as err:
+            print_err(f"Error creating sample images: {err}")
+            self.job_service.set_error(transcode_job_id, str(err))
+
         finally:
             self.job_service.set_job_status(transcode_job_id)
 
@@ -193,7 +197,7 @@ class TranscodeService:
             if file_name in file_in_temp_dir:
                 os.remove(os.path.join(temp_sample_dir, file_name))
 
-        os.removedirs(temp_sample_dir)
+        os.rmdir(temp_sample_dir)
         return job_id
 
     def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int], observer_code):
@@ -213,9 +217,13 @@ class TranscodeService:
         catalog_folder_info = extract_catalog_folder_info(source_dir_name)
         optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
         original_dir_path = construct_catalog_folder_path(original_base_dir, *catalog_folder_info)
+        local_dir_path = ''
+        if local_export_path:
+            local_dir_path = construct_catalog_folder_path(local_export_path, *catalog_folder_info)
+            os.makedirs(local_dir_path, exist_ok=True)
 
         catalog_folder_id = None
-        if (media_type == MediaType.VIDEO):         
+        if (media_type == MediaType.VIDEO):
             # remove the cleaned observer code and replace it with the "real" observer code
             catalog_folder_info = catalog_folder_info[:-1] + (observer_code,)
             catalog_folder_id = self.folder_model.create_folder(*catalog_folder_info)
@@ -277,7 +285,7 @@ class TranscodeService:
                                 progress_4_transfer
                             )
                         else:
-                            self.transcode_image(optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir)
+                            self.transcode_image(optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, temp_dir)
 
                         self.task_service.set_task_progress(transcode_task_id, 100)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
@@ -525,7 +533,7 @@ class TranscodeService:
         return line_callback
 
 
-    def transcode_image(self, optimized_dir_path, original_dir_path, local_export_path, transcode_task_id, temp_dir):
+    def transcode_image(self, optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
         file_path, optimized_temp_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
@@ -538,8 +546,8 @@ class TranscodeService:
         print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
         shutil.copy(optimized_temp_path, optimized_dir_path)
         self.task_service.set_task_progress(transcode_task_id, 99)
-        print_out(f'Copying {optimized_temp_path} into {local_export_path}')
-        shutil.copy(optimized_temp_path, local_export_path)
+        print_out(f'Copying {optimized_temp_path} into {local_dir_path}')
+        shutil.copy(optimized_temp_path, local_dir_path)
 
 
     def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):

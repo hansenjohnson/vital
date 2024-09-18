@@ -108,7 +108,8 @@ def get_job(job_id):
 @bp.route('/job_status/<int:job_id>', methods=['GET'])
 @tryable_json_endpoint
 def job_status(job_id):
-    return job_service.check_job_status(job_id)
+    status = job_service.check_job_status(job_id)
+    return { "status": status[0], "error": status[1] }
 
 
 @bp.route('/job/<int:job_id>/tasks', methods=['GET'])

@@ -23,6 +23,10 @@ ERRORS.set('LENGTH_ERROR', {
   message: 'filename is too long',
   summary: 'Filename too long',
 })
+ERRORS.set('WHITESPACE_ERROR', {
+  message: 'filename starts or ends with a space',
+  summary: 'Starts/Ends with space',
+})
 ERRORS.set('FILE_NOT_FOUND', {
   summary:
     'Folder not accessible. Potential reasons: the sub folder necessary to receive files not found; permission restrictions on existing folders; or lack of Internet or VPN',

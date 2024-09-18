@@ -3,6 +3,8 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -111,6 +113,16 @@ const IngestParseSidebar = ({
             {actionName}
           </StyledButton>
         </>
+      )}
+
+      {/* This represents an error status, but we overload the value with the message */}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {status}
+          </Alert>
+        </Box>
       )}
     </Sidebar>
   )

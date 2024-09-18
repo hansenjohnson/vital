@@ -3,6 +3,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -232,6 +234,16 @@ const CompressionSidebar = ({
             {actionName}
           </StyledButton>
         </>
+      )}
+
+      {/* This represents an error status, but we overload the value with the message */}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error</AlertTitle>
+            {status}
+          </Alert>
+        </Box>
       )}
     </Sidebar>
   )
