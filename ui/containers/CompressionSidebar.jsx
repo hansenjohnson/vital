@@ -30,8 +30,6 @@ const CompressionSidebar = ({
   canTrigger,
   onTriggerAction,
 }) => {
-  // TODO: bring in job errrors from the dark sample job
-
   const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
@@ -81,7 +79,15 @@ const CompressionSidebar = ({
         </Box>
       )}
       {status === STATUSES.COMPLETED && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+            paddingBottom: 1,
+            overflowY: 'auto',
+          }}
+        >
           <Box>
             <Box sx={{ fontSize: '20px' }}>Small Images Bucket</Box>
             <Box
@@ -280,6 +286,14 @@ const CompressionSidebar = ({
           <Alert severity="error">
             <AlertTitle>Error Identifying Dark Images</AlertTitle>
             {darkNumStatus}
+          </Alert>
+        </Box>
+      )}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(darkSampleStatus) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error creating Dark Image Proofs</AlertTitle>
+            {darkSampleStatus}
           </Alert>
         </Box>
       )}
