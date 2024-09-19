@@ -56,6 +56,7 @@ const useJobStore = create((set, get) => ({
   reset: () => set({ ...initialState, observers: get().observers }),
 
   setPhase: async (nextPhase) => {
+    const { jobIdDarkSample } = get()
     set({ phase: nextPhase, jobId: null, jobIdDark: null, jobIdDarkSample: null })
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
@@ -63,7 +64,7 @@ const useJobStore = create((set, get) => ({
       get().triggerSampleImages()
       get().triggerDarkImagesIdentify()
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
-      get().triggerExecute()
+      get().triggerExecute(jobIdDarkSample)
     }
   },
 
@@ -98,9 +99,13 @@ const useJobStore = create((set, get) => ({
     set({ jobIdDarkSample: jobId })
   },
 
-  triggerExecute: async () => {
+  triggerExecute: async (jobIdDarkSample = null) => {
     const { jobMode, sourceFolder, settingsList, localOutputFolder, observerCode } = get()
     await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder, observerCode)
+
+    if (jobMode === JOB_MODES.BY_IMAGE) {
+      ingestAPI.deleteDarkSampleImages(jobIdDarkSample)
+    }
 
     // After submitting a new job to the queue, Navigate the user back home,
     // reload the queue data, and reset some of the stores like we do in the Navbar

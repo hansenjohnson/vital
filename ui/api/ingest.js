@@ -68,6 +68,7 @@ const identifyDarkImages = async (paths) => {
   return data?.job_id
 }
 const getDarkData = (jobId) => getJSON(`${ingestURL}/job/${jobId}/dark`)
+const deleteDarkSampleImages = (jobId) => deleteThis(`${ingestURL}/dark_sample/${jobId}`)
 
 const createDarkSampleImages = async (paths) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/dark_sample`, {
@@ -115,6 +116,7 @@ export default {
   identifyDarkImages,
   getDarkData,
   createDarkSampleImages,
+  deleteDarkSampleImages,
   transcode,
   pruneOldTasks,
 }
