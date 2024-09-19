@@ -26,6 +26,7 @@ class ColorCorrectService:
         self.job_service = JobService()
         self.task_service = TaskService()
         self.settings_service = SettingsService()
+        self.transcode_service = TranscodeService()
 
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.magick_path = os.path.join(base_dir, 'resources', 'magick.exe')
@@ -105,6 +106,7 @@ class ColorCorrectService:
     def run_color_corrected_tasks(self, job_id):
         tasks = self.task_service.get_tasks_by_job_id(job_id)
         temp_sample_dir = self.get_color_corrected_image_dir()
+        self.transcode_service.delete_sample_images(None, temp_sample_dir)
         os.makedirs(temp_sample_dir, exist_ok=True)
 
         for task in tasks:

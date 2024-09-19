@@ -24,15 +24,13 @@ const CompressionSidebar = ({
   darkNumProgress,
   darkSampleStatus,
   darkSampleProgress,
+  onDarkSampleOpen,
+  darkNumSelected,
   actionName,
   canTrigger,
   onTriggerAction,
 }) => {
-  // Move these into Props
-  const darkNumSelected = 4
-  const onDarkSampleOpen = () => {
-    console.log('hi')
-  }
+  // TODO: bring in job errrors from the dark sample job
 
   const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
@@ -250,14 +248,7 @@ const CompressionSidebar = ({
                         onClick={onDarkSampleOpen}
                         disabled={`${colorCorrectApplied}` !== 'true'}
                       >
-                        {`${colorCorrectApplied}` === 'true' ? (
-                          <>
-                            {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images
-                            selected
-                          </>
-                        ) : (
-                          <>Choose this option to manually select images</>
-                        )}
+                        {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images selected
                       </TinyTextButton>
                     </>
                   ) : (

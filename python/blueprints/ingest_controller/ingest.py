@@ -161,6 +161,13 @@ def get_sample_images(filename):
     return send_from_directory(sample_image_dir, filename_unquoted, as_attachment=False)
 
 
+@bp.route('/dark_sample/<string:filename>', methods=["GET"])
+def get_dark_sample_images(filename):
+    filename_unquoted = unquote(filename)
+    dark_sample_image_dir = color_correct_service.get_color_corrected_image_dir()
+    return send_from_directory(dark_sample_image_dir, filename_unquoted, as_attachment=False)
+
+
 @bp.route('/sample', methods=["POST"])
 @tryable_json_endpoint
 def create_sample_images():
@@ -176,7 +183,15 @@ def create_sample_images():
 @bp.route('/sample/<int:job_id>', methods=["DELETE"])
 @tryable_json_endpoint
 def delete_sample_images(job_id):
-    return transcode_service.delete_sample_images(job_id)
+    sample_image_dir = transcode_service.get_sample_image_dir()
+    return transcode_service.delete_sample_images(job_id, sample_image_dir)
+
+
+@bp.route('/dark_sample/<int:job_id>', methods=["DELETE"])
+@tryable_json_endpoint
+def delete_dark_sample_images(job_id):
+    dark_sample_image_dir = color_correct_service.get_color_corrected_image_dir()
+    return transcode_service.delete_sample_images(job_id, dark_sample_image_dir)
 
 
 @bp.route('/delete_old_tasks', methods=["DELETE"])

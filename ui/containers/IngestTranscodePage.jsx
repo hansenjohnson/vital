@@ -28,6 +28,7 @@ import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
 import CompressionSidebar from './CompressionSidebar'
 import CompressionBucketsList from '../components/CompressionBucketsList'
+import DarkSampleDialog from '../components/DarkSampleDialog'
 
 const LinkageAnnotationPage = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
@@ -193,14 +194,18 @@ const LinkageAnnotationPage = () => {
   const jobIdDarkSample = useJobStore((state) => state.jobIdDarkSample)
   const [darkSampleStatus, setDarkSampleStatus] = useState(STATUSES.LOADING)
   const [darkSampleProgress, setDarkSampleProgress] = useState(0)
-  const [darkSampleImages, setDarkSampleImages] = useState(null)
+  const [darkSampleImages, setDarkSampleImages] = useState([])
+  const [darkSampleDialog, setDarkSampleDialog] = useState(false)
+  const [darkSampleSelection, setDarkSampleSelection] = useState([])
+
   useEffect(() => {
     if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
     if (!jobIdDarkSample) return
 
     setDarkSampleStatus(STATUSES.LOADING)
     setDarkSampleProgress(0)
-    setDarkSampleImages(null)
+    setDarkSampleImages([])
+    setDarkSampleSelection({})
     let intervalId
 
     const checkForDarkSamples = async () => {
@@ -222,6 +227,7 @@ const LinkageAnnotationPage = () => {
 
       const darkImages = await ingestAPI.getJobSampleData(jobIdDarkSample)
       setDarkSampleImages(darkImages)
+      setDarkSampleSelection(Object.fromEntries(darkImages.map((image) => [image.file_name, true])))
       setDarkSampleStatus(STATUSES.COMPLETED)
     }
 
@@ -534,6 +540,8 @@ const LinkageAnnotationPage = () => {
           darkNum={darkImagePaths.length}
           darkSampleStatus={darkSampleStatus}
           darkSampleProgress={darkSampleProgress}
+          onDarkSampleOpen={() => setDarkSampleDialog(true)}
+          darkNumSelected={Object.keys(darkSampleSelection).length}
           actionName="Add Job to Queue"
           canTrigger={
             darkNumStatus === STATUSES.COMPLETED &&
@@ -560,6 +568,14 @@ const LinkageAnnotationPage = () => {
             />
           )}
         </Box>
+
+        <DarkSampleDialog
+          open={darkSampleDialog}
+          onClose={() => setDarkSampleDialog(false)}
+          images={darkSampleImages}
+          selectedImages={darkSampleSelection}
+          setSelectedImages={setDarkSampleSelection}
+        />
       </Box>
     )
   }

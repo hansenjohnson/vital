@@ -178,17 +178,19 @@ class TranscodeService:
         finally:
             self.job_service.set_job_status(transcode_job_id)
 
-    def delete_sample_images(self, job_id):
-        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
-        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
-        file_in_temp_dir = os.listdir(temp_sample_dir)
+    def delete_sample_images(self, job_id, temp_sample_dir):
+        files_in_temp_dir = os.listdir(temp_sample_dir)
 
-        tasks = self.task_service.get_tasks_by_job_id(job_id)
-        for task in tasks:
-            transcode_settings = self.task_service.get_transcode_settings(task.id)
-            file_name = os.path.basename(transcode_settings.new_name)
-            if file_name in file_in_temp_dir:
+        if job_id is None:
+            for file_name in files_in_temp_dir:
                 os.remove(os.path.join(temp_sample_dir, file_name))
+        else:
+            tasks = self.task_service.get_tasks_by_job_id(job_id)
+            for task in tasks:
+                transcode_settings = self.task_service.get_transcode_settings(task.id)
+                file_name = os.path.basename(transcode_settings.new_name)
+                if file_name in files_in_temp_dir:
+                    os.remove(os.path.join(temp_sample_dir, file_name))
 
         os.rmdir(temp_sample_dir)
         return job_id
