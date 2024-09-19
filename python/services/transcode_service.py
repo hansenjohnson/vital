@@ -176,6 +176,9 @@ class TranscodeService:
             self.job_service.set_job_status(transcode_job_id)
 
     def delete_sample_images(self, job_id, temp_sample_dir):
+        if not os.path.exists(temp_sample_dir):
+            return
+
         files_in_temp_dir = os.listdir(temp_sample_dir)
 
         if job_id is None:
