@@ -269,7 +269,7 @@ const LinkageAnnotationPage = () => {
             file_path: media.filePath,
             new_name: media.newName,
             jpeg_quality: compressionBuckets[bucket].selection,
-            is_dark: media.newName in darkImagesSelected,
+            is_dark: media.fileName in darkImagesSelected,
           }
         })
       )
