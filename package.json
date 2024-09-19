@@ -1,6 +1,6 @@
 {
   "name": "vital",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "Video and Image Tool for tracking Animal Lives",
   "author": "Ben Zenker and Matt Crawford",
   "main": "./out/main/main.js",

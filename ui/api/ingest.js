@@ -61,6 +61,22 @@ const createSampleImages = async (small, medium, large) => {
 const getJobSampleData = (jobId) => getJSON(`${ingestURL}/job/${jobId}/sample_file_data`)
 const deleteSampleImages = (jobId) => deleteThis(`${ingestURL}/sample/${jobId}`)
 
+const identifyDarkImages = async (paths) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/dark`, {
+    image_paths: paths,
+  })
+  return data?.job_id
+}
+const getDarkData = (jobId) => getJSON(`${ingestURL}/job/${jobId}/dark`)
+const deleteDarkSampleImages = (jobId) => deleteThis(`${ingestURL}/dark_sample/${jobId}`)
+
+const createDarkSampleImages = async (paths) => {
+  const { data } = await postJSONWithResponse(`${ingestURL}/dark_sample`, {
+    image_paths: paths,
+  })
+  return data?.job_id
+}
+
 // Job Execution Methods
 const transcode = async (
   sourceFolder,
@@ -97,6 +113,10 @@ export default {
   getJobSampleData,
   createSampleImages,
   deleteSampleImages,
+  identifyDarkImages,
+  getDarkData,
+  createDarkSampleImages,
+  deleteDarkSampleImages,
   transcode,
   pruneOldTasks,
 }

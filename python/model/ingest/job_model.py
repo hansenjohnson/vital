@@ -16,6 +16,7 @@ class JobType(Enum):
     METADATA = "METADATA"
     TRANSCODE = "TRANSCODE"
     SAMPLE = "SAMPLE"
+    COLOR_CORRECT = "COLOR_CORRECT"
 
 class JobErrors(Enum):
     NONE = None

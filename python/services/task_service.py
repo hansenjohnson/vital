@@ -48,6 +48,14 @@ class TaskService:
         ]
         return data_list
 
+    def get_tasks_dark_data_by_job_id(self, job_id: int):
+        tasks = self.get_tasks_by_job_id(job_id)
+        dark_files = []
+        for task in tasks:
+            if task.transcode_settings.get('is_dark'):
+                dark_files.append(task.transcode_settings.get('file_path'))
+        return dark_files
+
     def get_transcode_settings(self, task_id: int) -> TranscodeSettings:
         return self.task_model.get_transcode_settings(task_id)
 
@@ -59,6 +67,9 @@ class TaskService:
 
     def set_task_progress(self, task_id: int, progress: int, message: str = ''):
         self.task_model.update_task_progress(task_id, progress, message)
+
+    def set_task_settings(self, task_id: int, transcode_settings: TranscodeSettings):
+        self.task_model.update_task_settings(task_id, transcode_settings)
 
     def set_task_error_message(self, task_id: int, error_message: str):
         self.task_model.set_task_error_message(task_id, error_message)

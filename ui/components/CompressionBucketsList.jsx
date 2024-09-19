@@ -56,7 +56,9 @@ const CompressionBucketsList = ({
   /* Rendering Sections */
   const createListOfOptions = (images, selection, setter, size = 0) => (
     <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', padding: 1, paddingTop: 0 }}>
-      {images.length === 0 && <Box sx={{ fontStyle: 'italic' }}>No images in this bucket</Box>}
+      {images.length === 0 && (
+        <Box sx={{ fontStyle: 'italic', color: 'text.disabled' }}>No images in this bucket</Box>
+      )}
       {images.map((image) => (
         <CompressionOption
           key={image.file_name}

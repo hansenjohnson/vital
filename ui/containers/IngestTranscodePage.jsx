@@ -28,6 +28,7 @@ import MetadataSubfolder from '../components/MetadataSubfolder'
 import IngestParseSidebar from './IngestParseSidebar'
 import CompressionSidebar from './CompressionSidebar'
 import CompressionBucketsList from '../components/CompressionBucketsList'
+import DarkSampleDialog from '../components/DarkSampleDialog'
 
 const LinkageAnnotationPage = () => {
   const sourceFolder = useJobStore((state) => state.sourceFolder)
@@ -121,7 +122,7 @@ const LinkageAnnotationPage = () => {
     setSampleImages([])
     let intervalId
 
-    const checkForMetadata = async () => {
+    const checkForImages = async () => {
       const { status, error } = await ingestAPI.jobStatus(jobId)
       if (status === STATUSES.QUEUED) return
       if (status === STATUSES.INCOMPLETE) {
@@ -140,13 +141,99 @@ const LinkageAnnotationPage = () => {
       setSampleStatus(STATUSES.COMPLETED)
     }
 
-    intervalId = setInterval(checkForMetadata, 1000)
+    intervalId = setInterval(checkForImages, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobId])
 
   const whenAllImagesHaveLoaded = async () => {
     await ingestAPI.deleteSampleImages(jobId)
   }
+
+  /* Poll for Dark Image Numbers, handle statuses */
+  const jobIdDark = useJobStore((state) => state.jobIdDark)
+  const triggerDarkSampleImages = useJobStore((state) => state.triggerDarkSampleImages)
+  const [darkNumStatus, setDarkNumStatus] = useState(STATUSES.LOADING)
+  const [darkNumProgress, setDarkNumProgress] = useState(0)
+  const [darkImagePaths, setDarkImagePaths] = useState([])
+  useEffect(() => {
+    if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+
+    setDarkNumStatus(STATUSES.LOADING)
+    setDarkNumProgress(0)
+    setDarkImagePaths([])
+    let intervalId
+
+    const checkForDarkNums = async () => {
+      const { status, error } = await ingestAPI.jobStatus(jobIdDark)
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        const tasks = await ingestAPI.taskStatusesForJob(jobIdDark)
+        const numCompleted = tasks.filter((task) => task.status === STATUSES.COMPLETED).length
+        setDarkNumProgress(numCompleted)
+        if (error) {
+          setDarkNumStatus(error)
+          clearInterval(intervalId)
+        }
+        return
+      }
+
+      // Status must be Completed at this point
+      clearInterval(intervalId)
+
+      const darkImagePaths = await ingestAPI.getDarkData(jobIdDark)
+      setDarkImagePaths(darkImagePaths)
+      setDarkNumStatus(STATUSES.COMPLETED)
+      triggerDarkSampleImages(darkImagePaths)
+    }
+
+    intervalId = setInterval(checkForDarkNums, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobIdDark])
+
+  /* Poll for Dark Sample Image, handle statuses */
+  const jobIdDarkSample = useJobStore((state) => state.jobIdDarkSample)
+  const [darkSampleStatus, setDarkSampleStatus] = useState(STATUSES.LOADING)
+  const [darkSampleProgress, setDarkSampleProgress] = useState(0)
+  const [darkSampleImages, setDarkSampleImages] = useState([])
+  const [darkSampleDialog, setDarkSampleDialog] = useState(false)
+  const [darkSampleSelection, setDarkSampleSelection] = useState({})
+
+  useEffect(() => {
+    if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+    if (!jobIdDarkSample) return
+
+    setDarkSampleStatus(STATUSES.LOADING)
+    setDarkSampleProgress(0)
+    setDarkSampleImages([])
+    setDarkSampleSelection({})
+    let intervalId
+
+    const checkForDarkSamples = async () => {
+      const { status, error } = await ingestAPI.jobStatus(jobIdDarkSample)
+      if (status === STATUSES.QUEUED) return
+      if (status === STATUSES.INCOMPLETE) {
+        const tasks = await ingestAPI.taskStatusesForJob(jobIdDarkSample)
+        const numCompleted = tasks.filter((task) => task.status === STATUSES.COMPLETED).length
+        setDarkSampleProgress(numCompleted)
+        if (error) {
+          setDarkSampleStatus(error)
+          clearInterval(intervalId)
+        }
+        return
+      }
+
+      // Status must be Completed at this point
+      clearInterval(intervalId)
+
+      const darkImages = await ingestAPI.getJobSampleData(jobIdDarkSample)
+      setDarkSampleImages(darkImages)
+      setDarkSampleSelection(Object.fromEntries(darkImages.map((image) => [image.file_name, true])))
+      setDarkSampleStatus(STATUSES.COMPLETED)
+    }
+
+    intervalId = setInterval(checkForDarkSamples, 1000)
+    return () => clearInterval(intervalId)
+  }, [phase, jobIdDarkSample])
 
   /* Trigger Execute, which now means "Add job to queue" */
   const setSettingsList = useJobStore((state) => state.setSettingsList)
@@ -164,6 +251,12 @@ const LinkageAnnotationPage = () => {
       )
       setSettingsList(settingsList)
     } else {
+      const darkImagesSelected = Object.fromEntries(
+        Object.keys(darkSampleSelection).map((name) => [
+          name.replace('_color_corrected.jpg', ''),
+          true,
+        ])
+      )
       const settingsList = mediaGroups.flatMap((group) =>
         group.mediaList.map((media) => {
           let bucket = 'small'
@@ -176,6 +269,7 @@ const LinkageAnnotationPage = () => {
             file_path: media.filePath,
             new_name: media.newName,
             jpeg_quality: compressionBuckets[bucket].selection,
+            is_dark: media.fileName in darkImagesSelected,
           }
         })
       )
@@ -448,8 +542,18 @@ const LinkageAnnotationPage = () => {
       <Box sx={{ display: 'flex', height: '100%' }}>
         <CompressionSidebar
           status={sampleStatus}
+          darkNumStatus={darkNumStatus}
+          darkNumProgress={darkNumProgress}
+          darkNum={darkImagePaths.length}
+          darkSampleStatus={darkSampleStatus}
+          darkSampleProgress={darkSampleProgress}
+          onDarkSampleOpen={() => setDarkSampleDialog(true)}
+          darkNumSelected={Object.keys(darkSampleSelection).length}
           actionName="Add Job to Queue"
-          canTrigger={true} // There are no checks on this page
+          canTrigger={
+            darkNumStatus === STATUSES.COMPLETED &&
+            (darkImagePaths.length > 0 ? darkSampleStatus === STATUSES.COMPLETED : true)
+          }
           onTriggerAction={executeJob}
         />
         <Box
@@ -471,6 +575,14 @@ const LinkageAnnotationPage = () => {
             />
           )}
         </Box>
+
+        <DarkSampleDialog
+          open={darkSampleDialog}
+          onClose={() => setDarkSampleDialog(false)}
+          images={darkSampleImages}
+          selectedImages={darkSampleSelection}
+          setSelectedImages={setDarkSampleSelection}
+        />
       </Box>
     )
   }

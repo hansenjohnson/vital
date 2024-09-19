@@ -29,6 +29,8 @@ from utils.file_path import extract_catalog_folder_info, construct_catalog_folde
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
 from utils.death import add_terminator, remove_last_terminator
+from utils.constants import image_extensions
+from utils.transcode_snippets import auto_exposure_correct
 
 RETRY_DELAY_SEC = 1
 
@@ -83,12 +85,7 @@ class TranscodeService:
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
         self.mp4box_path = os.path.join(base_dir, 'resources', 'mp4box.exe')
-        self.dcraw_emu_path = os.path.join(base_dir, 'resources', 'dcraw_emu.exe')
-        self.cjpeg_static = os.path.join(base_dir, 'resources', 'cjpeg-static.exe')
         self.magick_path = os.path.join(base_dir, 'resources', 'magick.exe')
-
-        self.standard_image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff']
-        self.raw_image_extensions = ['.orf', '.cr2', '.dng', '.nef']
 
     def queue_transcode_job(
             self,
@@ -147,11 +144,8 @@ class TranscodeService:
             self.task_service.create_task(job_id, transcode_settings)
 
     def run_sample_tasks(self, transcode_job_id):
-        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
-
         tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
-
-        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
+        temp_sample_dir = self.get_sample_image_dir()
         os.makedirs(temp_sample_dir, exist_ok=True)
 
         try:
@@ -172,30 +166,31 @@ class TranscodeService:
                         self.task_service.set_task_progress(transcode_task_id, 100)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
-                    except Exception as e:
-                        print_err(str(e))
-                        self.task_service.set_task_progress(transcode_task_id, 0)
-                        self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
-                        self.task_service.set_task_error_message(transcode_task_id, str(e))
-
-        except Exception as err:
-            print_err(f"Error creating sample images: {err}")
-            self.job_service.set_error(transcode_job_id, str(err))
-
+                    except Exception as err:
+                        # Even a single task error renders the whole job corrupt, so we catch
+                        # this one error, push it to the job level, can cancel the job
+                        print_err(f"Error creating sample images: task {transcode_task_id} -- {err}")
+                        self.job_service.set_error(transcode_job_id, str(err))
+                        break
         finally:
             self.job_service.set_job_status(transcode_job_id)
 
-    def delete_sample_images(self, job_id):
-        thumbnail_dir = self.settings_service.get_setting(SettingsEnum.THUMBNAIL_DIR_PATH.value)
-        temp_sample_dir = os.path.join(thumbnail_dir, self.TEMP_SAMPLE_DIR)
-        file_in_temp_dir = os.listdir(temp_sample_dir)
+    def delete_sample_images(self, job_id, temp_sample_dir):
+        if not os.path.exists(temp_sample_dir):
+            return
 
-        tasks = self.task_service.get_tasks_by_job_id(job_id)
-        for task in tasks:
-            transcode_settings = self.task_service.get_transcode_settings(task.id)
-            file_name = os.path.basename(transcode_settings.new_name)
-            if file_name in file_in_temp_dir:
+        files_in_temp_dir = os.listdir(temp_sample_dir)
+
+        if job_id is None:
+            for file_name in files_in_temp_dir:
                 os.remove(os.path.join(temp_sample_dir, file_name))
+        else:
+            tasks = self.task_service.get_tasks_by_job_id(job_id)
+            for task in tasks:
+                transcode_settings = self.task_service.get_transcode_settings(task.id)
+                file_name = os.path.basename(transcode_settings.new_name)
+                if file_name in files_in_temp_dir:
+                    os.remove(os.path.join(temp_sample_dir, file_name))
 
         os.rmdir(temp_sample_dir)
         return job_id
@@ -553,59 +548,34 @@ class TranscodeService:
     def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):
         file_path = transcode_settings.file_path
         jpeg_quality = transcode_settings.jpeg_quality
+        is_dark = transcode_settings.is_dark
 
         # Prepare filepath variables
         file_name, file_extension = os.path.splitext(file_path)
         file_name = os.path.basename(file_name)
-        intermediate_temp_path = os.path.join(temp_dir, f'{file_name}.ppm')
         output_name = transcode_settings.new_name or file_name
         optimized_temp_path = os.path.join(temp_dir, f'{output_name}.jpg')
 
-        if file_extension.lower() in self.standard_image_extensions:
-            command = self.generate_convert_command(file_path, optimized_temp_path, jpeg_quality)
-            TranscodeService.run_command_with_terminator(command)
-
-        elif file_extension.lower() in self.raw_image_extensions:
-            decode_command = self.generate_decode_command_raw(file_path, intermediate_temp_path)
-            encode_command = self.generate_encode_command(intermediate_temp_path, optimized_temp_path, jpeg_quality)
-            TranscodeService.run_command_with_terminator(decode_command)
-            self.task_service.set_task_progress(transcode_task_id, 33)
-            TranscodeService.run_command_with_terminator(encode_command)
-
-        else:
+        if file_extension.lower() not in image_extensions:
             raise ValueError(f'Unsupported image file type: {file_extension}')
+
+        command = self.generate_convert_command(file_path, optimized_temp_path, jpeg_quality, is_dark)
+        TranscodeService.run_command_with_terminator(command)
 
         return file_path, optimized_temp_path
 
-    def generate_convert_command(self, input_path, output_path, jpeg_quality):
-        return [
+    def generate_convert_command(self, input_path, output_path, jpeg_quality, is_dark):
+        command = [
             self.magick_path,
             input_path,
+        ]
+        if is_dark:
+            command.extend(auto_exposure_correct)
+        command.extend([
             '-quality', f'{jpeg_quality}',
             output_path,
-        ]
-
-    def generate_decode_command_raw(self, input_path, temp_path):
-        # temp_path should end in .ppm
-        return [
-            self.dcraw_emu_path,
-            '-w',
-            '-o', '1',
-            '-q', '0',
-            '-H', '0',
-            '-Z', temp_path,
-            input_path,
-        ]
-
-    def generate_encode_command(self, input_path, output_path, jpeg_quality):
-        # output_path should end in .jpg
-        # jpeg_quality should be between 0-100
-        return [
-            self.cjpeg_static,
-            '-q', f'{jpeg_quality}',
-            '-outfile', output_path,
-            input_path,
-        ]
+        ])
+        return command
 
     def file_size_progress_reporter(self, transcode_task_id, file_path, expected_size, progress_bounds=(0, 100), is_folder=False):
         current_size = 0
@@ -631,13 +601,17 @@ class TranscodeService:
     @staticmethod
     def run_command_with_terminator(command, line_callback = print_out):
         print_out(' '.join(command))
+        all_stdout = []
         with subprocess.Popen(command, stdout=PIPE, stderr=PIPE) as proc:
             add_terminator(proc.terminate)
             for line in io.TextIOWrapper(proc.stderr, encoding="utf-8"):
                 line_callback(line)
+            for line in io.TextIOWrapper(proc.stdout, encoding="utf-8"):
+                all_stdout.append(line)
         remove_last_terminator()
         if (proc.returncode != 0):
             raise subprocess.CalledProcessError(proc.returncode, command, proc.stdout, proc.stderr)
+        return '\n'.join(all_stdout)
 
     @staticmethod
     def parse_ffmpeg_progress(line):

@@ -1,5 +1,8 @@
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 
@@ -12,8 +15,21 @@ import { IMAGE_QUALITIES, BUCKET_THRESHOLDS } from '../constants/fileTypes'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import StyledButton from '../components/StyledButton'
+import TinyTextButton from '../components/TinyTextButton'
 
-const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAction }) => {
+const CompressionSidebar = ({
+  status,
+  darkNumStatus,
+  darkNum,
+  darkNumProgress,
+  darkSampleStatus,
+  darkSampleProgress,
+  onDarkSampleOpen,
+  darkNumSelected,
+  actionName,
+  canTrigger,
+  onTriggerAction,
+}) => {
   const buckets = ['small', 'medium', 'large']
   const sourceFolder = useJobStore((state) => state.sourceFolder)
   const compressionBuckets = useJobStore((state) => state.compressionBuckets)
@@ -41,6 +57,14 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
     totalSavings += savingsForBucket || 0
   })
 
+  let totalImages = 0
+  totalImages += compressionBuckets.small?.images?.length || 0
+  totalImages += compressionBuckets.medium?.images?.length || 0
+  totalImages += compressionBuckets.large?.images?.length || 0
+
+  const colorCorrectApplied = useJobStore((state) => state.colorCorrectApplied)
+  const setColorCorrectApplied = useJobStore((state) => state.setColorCorrectApplied)
+
   return (
     <Sidebar spacing={1}>
       <SidebarHeader
@@ -55,7 +79,15 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
         </Box>
       )}
       {status === STATUSES.COMPLETED && (
-        <>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+            paddingBottom: 1,
+            overflowY: 'auto',
+          }}
+        >
           <Box>
             <Box sx={{ fontSize: '20px' }}>Small Images Bucket</Box>
             <Box
@@ -140,6 +172,134 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
             </Box>
           </Box>
 
+          <Box>
+            <Box sx={{ fontSize: '20px' }}>Dark Image Correction</Box>
+            <Box
+              sx={{
+                fontSize: '14px',
+                lineHeight: '14px',
+                fontWeight: 300,
+                color: 'text.secondary',
+              }}
+            >
+              {darkNumStatus === STATUSES.COMPLETED ? (
+                <>
+                  Found{' '}
+                  <Box component="span" sx={{ color: 'text.primary' }}>
+                    {darkNum} dark images
+                  </Box>
+                </>
+              ) : (
+                <Box component="span" sx={{ fontStyle: 'italic' }}>
+                  Identifying dark images...
+                </Box>
+              )}
+              {darkNumStatus !== STATUSES.COMPLETED && (
+                <Box sx={{ marginTop: '2px' }}>
+                  checked {darkNumProgress} of {totalImages} images
+                </Box>
+              )}
+            </Box>
+
+            {darkNum > 0 && (
+              <RadioGroup
+                value={`${colorCorrectApplied}`}
+                onChange={(event) => setColorCorrectApplied(event.target.value === 'true')}
+                sx={{ marginTop: 0.5, marginLeft: 0.5, marginBottom: 0.5 }}
+              >
+                <FormControlLabel
+                  label="No Correction"
+                  value="false"
+                  control={
+                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
+                  }
+                  sx={{
+                    color: `${colorCorrectApplied}` === 'false' ? 'text.primary' : 'text.secondary',
+                    '&:hover': {
+                      color: 'text.primary',
+                    },
+                  }}
+                />
+                <FormControlLabel
+                  label="Auto Exposure"
+                  value="true"
+                  control={
+                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
+                  }
+                  sx={{
+                    color: `${colorCorrectApplied}` === 'true' ? 'text.primary' : 'text.secondary',
+                    '&:hover': {
+                      color: 'text.primary',
+                    },
+                  }}
+                />
+
+                <Box
+                  sx={(theme) => ({
+                    marginLeft: `calc(${theme.spacing(2)} + 4px)`,
+                    fontSize: '14px',
+                    lineHeight: '14px',
+                    fontWeight: 300,
+                    color: 'text.secondary',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '2px',
+                  })}
+                >
+                  {darkSampleStatus === STATUSES.COMPLETED ? (
+                    <>
+                      <Box>Dark image proofs created</Box>
+                      <TinyTextButton
+                        onClick={onDarkSampleOpen}
+                        disabled={`${colorCorrectApplied}` !== 'true'}
+                      >
+                        {darkNumSelected === darkNum ? 'All' : ''} {darkNumSelected} images selected
+                      </TinyTextButton>
+                    </>
+                  ) : (
+                    <Box sx={{ fontStyle: 'italic' }}>Creating proofs of dark images...</Box>
+                  )}
+                  {darkSampleStatus !== STATUSES.COMPLETED && (
+                    <Box>
+                      created {darkSampleProgress} of {darkNum} images
+                    </Box>
+                  )}
+                </Box>
+              </RadioGroup>
+            )}
+          </Box>
+        </Box>
+      )}
+
+      {/* This represents an error status, but we overload the value with the message */}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error Creating Sample Images</AlertTitle>
+            {status}
+          </Alert>
+        </Box>
+      )}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(darkNumStatus) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error Identifying Dark Images</AlertTitle>
+            {darkNumStatus}
+          </Alert>
+        </Box>
+      )}
+      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(darkSampleStatus) && (
+        <Box>
+          <Alert severity="error">
+            <AlertTitle>Error creating Dark Image Proofs</AlertTitle>
+            {darkSampleStatus}
+          </Alert>
+        </Box>
+      )}
+
+      {status === STATUSES.COMPLETED && (
+        <>
           <Box sx={{ flexGrow: 1 }} />
           <StyledButton
             variant="outlined"
@@ -151,18 +311,8 @@ const CompressionOptionsSidebar = ({ status, actionName, canTrigger, onTriggerAc
           </StyledButton>
         </>
       )}
-
-      {/* This represents an error status, but we overload the value with the message */}
-      {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
-        <Box>
-          <Alert severity="error">
-            <AlertTitle>Error</AlertTitle>
-            {status}
-          </Alert>
-        </Box>
-      )}
     </Sidebar>
   )
 }
 
-export default CompressionOptionsSidebar
+export default CompressionSidebar

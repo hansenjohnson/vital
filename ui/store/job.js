@@ -36,6 +36,9 @@ const initialState = {
     large: { images: [], selection: 100, size: 0 },
   },
   jobId: null,
+  jobIdDark: null,
+  jobIdDarkSample: null,
+  colorCorrectApplied: false,
   settingsList: [],
   observers: [],
 }
@@ -53,13 +56,15 @@ const useJobStore = create((set, get) => ({
   reset: () => set({ ...initialState, observers: get().observers }),
 
   setPhase: async (nextPhase) => {
-    set({ phase: nextPhase, jobId: null })
+    const { jobIdDarkSample } = get()
+    set({ phase: nextPhase, jobId: null, jobIdDark: null, jobIdDarkSample: null })
     if (nextPhase === JOB_PHASES.PARSE) {
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       get().triggerSampleImages()
+      get().triggerDarkImagesIdentify()
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
-      get().triggerExecute()
+      get().triggerExecute(jobIdDarkSample)
     }
   },
 
@@ -79,9 +84,28 @@ const useJobStore = create((set, get) => ({
     set({ jobId })
   },
 
-  triggerExecute: async () => {
+  triggerDarkImagesIdentify: async () => {
+    const { compressionBuckets } = get()
+    const jobId = await ingestAPI.identifyDarkImages([
+      ...(compressionBuckets.small?.images || []),
+      ...(compressionBuckets.medium?.images || []),
+      ...(compressionBuckets.large?.images || []),
+    ])
+    set({ jobIdDark: jobId })
+  },
+
+  triggerDarkSampleImages: async (filePaths) => {
+    const jobId = await ingestAPI.createDarkSampleImages(filePaths)
+    set({ jobIdDarkSample: jobId })
+  },
+
+  triggerExecute: async (jobIdDarkSample = null) => {
     const { jobMode, sourceFolder, settingsList, localOutputFolder, observerCode } = get()
     await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder, observerCode)
+
+    if (jobMode === JOB_MODES.BY_IMAGE) {
+      ingestAPI.deleteDarkSampleImages(jobIdDarkSample)
+    }
 
     // After submitting a new job to the queue, Navigate the user back home,
     // reload the queue data, and reset some of the stores like we do in the Navbar
@@ -194,6 +218,8 @@ const useJobStore = create((set, get) => ({
     const observers = await observersAPI.getList()
     set({ observers })
   },
+
+  setColorCorrectApplied: valueSetter(set, 'colorCorrectApplied'),
 }))
 
 const canParse = (state) => {

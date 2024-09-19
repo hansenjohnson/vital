@@ -101,6 +101,12 @@ class TaskModel:
         params += (task_id,)
         self.with_cursor(query, params)
 
+    def update_task_settings(self, task_id: int, transcode_settings: TranscodeSettings):
+        transcode_settings_json = self.serialize_dataclass(transcode_settings)
+        query = "UPDATE task SET transcode_settings = ? WHERE id = ?"
+        params = (transcode_settings_json, task_id)
+        self.with_cursor(query, params)
+
     def set_task_error_message(self, task_id: int, error_message: str):
         self.with_cursor("UPDATE task SET error_message = ? WHERE id = ?", (error_message, task_id))
 
