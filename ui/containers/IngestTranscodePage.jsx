@@ -196,7 +196,7 @@ const LinkageAnnotationPage = () => {
   const [darkSampleProgress, setDarkSampleProgress] = useState(0)
   const [darkSampleImages, setDarkSampleImages] = useState([])
   const [darkSampleDialog, setDarkSampleDialog] = useState(false)
-  const [darkSampleSelection, setDarkSampleSelection] = useState([])
+  const [darkSampleSelection, setDarkSampleSelection] = useState({})
 
   useEffect(() => {
     if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
@@ -251,6 +251,12 @@ const LinkageAnnotationPage = () => {
       )
       setSettingsList(settingsList)
     } else {
+      const darkImagesSelected = Object.fromEntries(
+        Object.keys(darkSampleSelection).map((name) => [
+          name.replace('_color_corrected.jpg', ''),
+          true,
+        ])
+      )
       const settingsList = mediaGroups.flatMap((group) =>
         group.mediaList.map((media) => {
           let bucket = 'small'
@@ -263,6 +269,7 @@ const LinkageAnnotationPage = () => {
             file_path: media.filePath,
             new_name: media.newName,
             jpeg_quality: compressionBuckets[bucket].selection,
+            is_dark: media.newName in darkImagesSelected,
           }
         })
       )

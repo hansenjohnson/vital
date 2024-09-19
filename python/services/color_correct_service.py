@@ -15,6 +15,7 @@ from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
 from utils.prints import print_out, print_err
+from utils.transcode_snippets import auto_exposure_correct
 
 
 class ColorCorrectService:
@@ -134,8 +135,7 @@ class ColorCorrectService:
             self.magick_path,
             input_path,
             '-resize', '300',
-            '-auto-gamma',
-            '-contrast-stretch', '0.05%x0.01%',
+            *auto_exposure_correct,
             '-quality', '50',
             output_path,
         ]
