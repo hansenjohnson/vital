@@ -19,7 +19,7 @@ from utils.transcode_snippets import auto_exposure_correct
 
 class ColorCorrectService:
 
-    DARK_IMAGE_THRESHOLD = 0.3
+    DARK_IMAGE_THRESHOLD = 0.15
     TEMP_DIRNAME = 'temp-dark'
 
     def __init__(self):
