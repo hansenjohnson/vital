@@ -210,26 +210,32 @@ const CompressionSidebar = ({
                 <FormControlLabel
                   label="No Correction"
                   value="false"
-                  control={
-                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
-                  }
+                  control={<Radio size="small" sx={{ position: 'absolute', padding: '4px' }} />}
                   sx={{
                     color: `${colorCorrectApplied}` === 'false' ? 'text.primary' : 'text.secondary',
                     '&:hover': {
                       color: 'text.primary',
                     },
                   }}
+                  slotProps={{
+                    typography: {
+                      sx: (theme) => ({ marginLeft: `calc(${theme.spacing(2)} + 4px)` }),
+                    },
+                  }}
                 />
                 <FormControlLabel
                   label="Auto Exposure"
                   value="true"
-                  control={
-                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
-                  }
+                  control={<Radio size="small" sx={{ position: 'absolute', padding: '4px' }} />}
                   sx={{
                     color: `${colorCorrectApplied}` === 'true' ? 'text.primary' : 'text.secondary',
                     '&:hover': {
                       color: 'text.primary',
+                    },
+                  }}
+                  slotProps={{
+                    typography: {
+                      sx: (theme) => ({ marginLeft: `calc(${theme.spacing(2)} + 4px)` }),
                     },
                   }}
                 />
