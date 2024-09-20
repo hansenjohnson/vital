@@ -8,7 +8,7 @@ import AlertTitle from '@mui/material/AlertTitle'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
-import { bytesToSize } from '../utilities/strings'
+import { bytesToSize, titleCase } from '../utilities/strings'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
@@ -119,7 +119,7 @@ const IngestParseSidebar = ({
       {![STATUSES.LOADING, STATUSES.COMPLETED].includes(status) && (
         <Box>
           <Alert severity="error">
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Error Parsing {titleCase(jobMode)} Metadata</AlertTitle>
             {status}
           </Alert>
         </Box>

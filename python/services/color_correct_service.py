@@ -1,6 +1,5 @@
 import os
 import sys
-import tempfile
 import threading
 from typing import List
 
@@ -14,7 +13,7 @@ from model.ingest.job_model import JobType, JobStatus
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
-from utils.prints import print_out, print_err
+from utils.prints import print_err
 from utils.transcode_snippets import auto_exposure_correct
 
 
@@ -59,9 +58,9 @@ class ColorCorrectService:
             except Exception as err:
                 # Even a single task error renders the whole job corrupt, so we catch
                 # this one error, push it to the job level, can cancel the job
-                print_err(f"Error identifying dark images: task {task.id} -- {err}")
-                self.job_service.set_error(job_id, str(err))
-                break
+                print_err(f"Error identifying dark images")
+                self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+                raise err
         self.job_service.set_job_status(job_id)
 
     def dark_identify_image(self, task_id):
@@ -118,9 +117,9 @@ class ColorCorrectService:
             except Exception as err:
                 # Even a single task error renders the whole job corrupt, so we catch
                 # this one error, push it to the job level, can cancel the job
-                print_err(f"Error creating dark image sample: task {task.id} -- {err}")
-                self.job_service.set_error(job_id, str(err))
-                break
+                print_err(f"Error creating dark image sample")
+                self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+                raise err
         self.job_service.set_job_status(job_id)
 
     def run_one_color_correction(self, task_id, temp_dir):

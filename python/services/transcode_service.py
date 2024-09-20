@@ -143,37 +143,35 @@ class TranscodeService:
             transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg, jpeg_quality=jpeg_quality)
             self.task_service.create_task(job_id, transcode_settings)
 
-    def run_sample_tasks(self, transcode_job_id):
-        tasks = self.task_service.get_tasks_by_job_id(transcode_job_id)
+    def run_sample_tasks(self, job_id):
+        tasks = self.task_service.get_tasks_by_job_id(job_id)
         temp_sample_dir = self.get_sample_image_dir()
         os.makedirs(temp_sample_dir, exist_ok=True)
 
-        try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                for task in tasks:
-                    transcode_task_id = task.id
-                    try:
-                        transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
-                        new_name = transcode_settings.new_name
+        for task in tasks:
+            transcode_task_id = task.id
+            try:
+                transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
+                new_name = transcode_settings.new_name
 
-                        _, output_file_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
-                        final_output_path = os.path.join(temp_sample_dir, new_name)
+                _, output_file_path = self.run_transcode_commands(temp_sample_dir, transcode_settings)
+                final_output_path = os.path.join(temp_sample_dir, new_name)
 
-                        if os.path.exists(final_output_path):
-                            os.remove(final_output_path)
-                        os.rename(output_file_path, final_output_path)
+                if os.path.exists(final_output_path):
+                    os.remove(final_output_path)
+                os.rename(output_file_path, final_output_path)
 
-                        self.task_service.set_task_progress(transcode_task_id, 100)
-                        self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
+                self.task_service.set_task_progress(transcode_task_id, 100)
+                self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
 
-                    except Exception as err:
-                        # Even a single task error renders the whole job corrupt, so we catch
-                        # this one error, push it to the job level, can cancel the job
-                        print_err(f"Error creating sample images: task {transcode_task_id} -- {err}")
-                        self.job_service.set_error(transcode_job_id, str(err))
-                        break
-        finally:
-            self.job_service.set_job_status(transcode_job_id)
+            except Exception as err:
+                # Even a single task error renders the whole job corrupt, so we catch
+                # this one error, push it to the job level, can cancel the job
+                print_err(f"Error creating sample images")
+                self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+                raise err
+
+        self.job_service.set_job_status(job_id)
 
     def delete_sample_images(self, job_id, temp_sample_dir):
         if not os.path.exists(temp_sample_dir):
@@ -531,7 +529,7 @@ class TranscodeService:
     def transcode_image(self, optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
 
-        file_path, optimized_temp_path = self.run_transcode_commands(transcode_task_id, temp_dir, transcode_settings)
+        file_path, optimized_temp_path = self.run_transcode_commands(temp_dir, transcode_settings)
         self.task_service.set_task_progress(transcode_task_id, 66)
 
         # Official Outputs
@@ -545,7 +543,7 @@ class TranscodeService:
         shutil.copy(optimized_temp_path, local_dir_path)
 
 
-    def run_transcode_commands(self, transcode_task_id, temp_dir, transcode_settings):
+    def run_transcode_commands(self, temp_dir, transcode_settings):
         file_path = transcode_settings.file_path
         jpeg_quality = transcode_settings.jpeg_quality
         is_dark = transcode_settings.is_dark

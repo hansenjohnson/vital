@@ -64,7 +64,11 @@ class IngestService:
             else:
                 for file_path in files:
                     media_metadata = self.video_metadata_service.parse_metadata(file_path)
+                    if not media_metadata:
+                        continue
                     metadata_arr.append(media_metadata)
+                if len(metadata_arr) != len(files):
+                    raise ValueError(f'Could not parse all metadata. Found {len(files)} files but could only parse {len(metadata_arr)}.')
 
             validated_metadata = []
             for metadata in metadata_arr:
@@ -74,8 +78,9 @@ class IngestService:
 
             self.job_service.store_job_data(job_id, validated_metadata)
         except Exception as err:
-            print_err(f"Error parsing media: {err}")
-            self.job_service.set_error(job_id, str(err))
+            print_err(f"Error parsing media")
+            self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+            raise err
 
 
     def get_files(self, source_dir, extensions):
