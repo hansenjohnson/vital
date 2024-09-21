@@ -1,97 +1,101 @@
+import React from 'react'
 import Box from '@mui/material/Box'
-import TableRow from '@mui/material/TableRow'
-import TableCell from '@mui/material/TableCell'
 
 import StatusIcon from './StatusIcon'
 import StyledTooltip from './StyledTooltip'
+import { ERRORS, WARNINGS } from '../constants/statuses'
+import {
+  TABLE_ROW_HEIGHT,
+  TABLE_ROW_INNER_HEIGHT,
+  TABLE_ROW_VERT_PAD,
+  TABLE_ROW_BOT_BORDER,
+  STATUS_COLUMN_WIDTH,
+} from '../constants/dimensions'
 
-const cellStyle = (theme) => ({
-  fontFamily: theme.typography.monoFamily,
-  fontSize: '12px',
-  whiteSpace: 'nowrap',
-  paddingLeft: 1,
-  paddingTop: '2px',
-  paddingBottom: '2px',
-})
+const DefaultCell = React.forwardRef(({ children, align, width, sx, ...rest }, ref) => (
+  <Box
+    role="cell"
+    ref={ref}
+    sx={(theme) => ({
+      // consistent styles
+      fontFamily: theme.typography.monoFamily,
+      fontSize: '12px',
+      minHeight: `${TABLE_ROW_HEIGHT}px`,
+      lineHeight: `${TABLE_ROW_INNER_HEIGHT}px`,
+      whiteSpace: 'nowrap',
+      paddingTop: `${TABLE_ROW_VERT_PAD}px`,
+      paddingBottom: `${TABLE_ROW_VERT_PAD}px`,
+      borderBottom: `${TABLE_ROW_BOT_BORDER}px solid ${theme.palette.divider}`,
+      flexGrow: 0,
+      flexShrink: 0,
 
-const DefaultCell = ({ value, align, firstColumn }) => (
-  <TableCell
-    padding="none"
-    sx={(theme) => ({ ...cellStyle(theme), ...(firstColumn ? { paddingLeft: 0.5 } : {}) })}
-    align={align}
+      // variable styles per-cell/per-column
+      width,
+      textAlign: align ?? 'left',
+      ...(sx ?? {}),
+    })}
+    {...rest}
   >
-    {value}
-  </TableCell>
-)
+    {children}
+  </Box>
+))
+DefaultCell.displayName = 'DefaultCell'
 
-const CellWithTooltip = ({ value, maxWidth, firstColumn }) => {
-  const widthTruncStyle = maxWidth
-    ? { maxWidth: `${maxWidth}px`, overflow: 'hidden', textOverflow: 'ellipsis' }
-    : {}
-  const firstColumnStyle = firstColumn ? { paddingLeft: 0.5 } : {}
+const CellWithTooltip = ({ children, ...rest }) => {
   return (
-    <StyledTooltip title={value} darker onOpen={() => maxWidth > 0} enterDelay={750}>
-      <TableCell
-        padding="none"
-        sx={(theme) => ({
-          ...cellStyle(theme),
-          ...widthTruncStyle,
-          ...firstColumnStyle,
-        })}
-      >
-        {value}
-      </TableCell>
+    <StyledTooltip title={`${children}`} darker enterDelay={750} placement="right-start">
+      <DefaultCell sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }} {...rest}>
+        {children}
+      </DefaultCell>
     </StyledTooltip>
   )
 }
 
-const MetadataDisplayRow = ({ values, aligns, maxWidths, warnings, errors, status }) => {
+const MetadataDisplayRow = ({ data, index, style }) => {
+  const { items, columns } = data
+  const row = items[index]
+
+  const aligns = columns.map((column) => column.align)
+  const widths = columns.map((column) => column.width)
+  const truncateTooltips = columns.map((column) => column.truncateTooltip)
+  const values = columns.map((column) => {
+    let value = row[column.key]
+    if (column.overwriteKey) {
+      value = row[column.overwriteKey] ?? value
+    }
+    if ('transformer' in column) {
+      return column.transformer(value)
+    }
+    return value
+  })
+
+  const warnings = row.warnings.map((warning) => WARNINGS.get(warning).message)
+  const errors = row.errors.map((error) => ERRORS.get(error).message)
+  const status = row.status
+
   return (
-    <TableRow>
-      <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), paddingLeft: 0 })}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <StatusIcon status={status} />
-        </Box>
-      </TableCell>
+    <Box role="row" style={style} sx={{ display: 'flex' }}>
+      <DefaultCell width={STATUS_COLUMN_WIDTH} sx={{ paddingLeft: '2px' }}>
+        <StatusIcon status={status} />
+      </DefaultCell>
 
       {values.map((value, index) => {
         const align = aligns[index]
-        const maxWidth = maxWidths[index]
-        const cell =
-          maxWidth > 0 ? (
-            <CellWithTooltip
-              key={`${index}-${value}`}
-              value={value}
-              align={align}
-              maxWidth={maxWidth}
-              firstColumn={index === 0}
-            />
-          ) : (
-            <DefaultCell
-              key={`${index}-${value}`}
-              value={value}
-              align={align}
-              firstColumn={index === 0}
-            />
-          )
-        return cell
+        const width = widths[index]
+        const truncateTooltip = truncateTooltips[index]
+        const CellClass = truncateTooltip ? CellWithTooltip : DefaultCell
+        return (
+          <CellClass key={`${index}-${value}`} align={align} width={width}>
+            {value}
+          </CellClass>
+        )
       })}
 
-      <TableCell padding="none" sx={(theme) => ({ ...cellStyle(theme), whiteSpace: 'pre' })}>
-        <Box component="span" sx={{ color: 'warning.main' }}>
-          {warnings.join('\n')}
-        </Box>
-        {warnings.length > 0 && <br />}
-        <Box component="span" sx={{ color: 'error.main' }}>
-          {errors.join('\n')}
-        </Box>
-      </TableCell>
-    </TableRow>
+      <DefaultCell sx={{ flexGrow: 1, paddingLeft: 1 }}>
+        <Box sx={{ whiteSpace: 'pre', color: 'warning.main' }}>{warnings.join('\n')}</Box>
+        <Box sx={{ whiteSpace: 'pre', color: 'error.main' }}>{errors.join('\n')}</Box>
+      </DefaultCell>
+    </Box>
   )
 }
 

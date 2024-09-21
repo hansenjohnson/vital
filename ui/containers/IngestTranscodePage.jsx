@@ -442,17 +442,25 @@ const LinkageAnnotationPage = () => {
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
-      { key: 'fileName', overwriteKey: 'newName', label: 'File Name', maxWidth: 200 },
+      {
+        key: 'fileName',
+        overwriteKey: 'newName',
+        label: 'File Name',
+        width: 150,
+        truncateTooltip: true,
+      },
       {
         key: 'extension',
         label: 'Type',
         align: 'right',
+        width: 60,
         transformer: (value) => value.toUpperCase(),
       },
       {
         key: 'resolution',
         label: 'Resolution',
         align: 'right',
+        width: 100,
         comparatorTransformer: resolutionToTotalPixels,
       },
     ]
@@ -463,12 +471,14 @@ const LinkageAnnotationPage = () => {
             key: 'frameRate',
             label: 'FPS',
             align: 'right',
+            width: 70,
             transformer: twoPrecisionStrNum,
           },
           {
             key: 'duration',
             label: 'Duration',
             align: 'right',
+            width: 90,
             transformer: secondsToDuration,
             comparatorTransformer: parseFloat,
           },
@@ -481,6 +491,7 @@ const LinkageAnnotationPage = () => {
           key: 'fileSize',
           label: 'File Size',
           align: 'right',
+          width: 80,
           transformer: bytesToSize,
         },
       ]
