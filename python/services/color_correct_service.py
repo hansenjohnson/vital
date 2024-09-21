@@ -19,7 +19,9 @@ from utils.transcode_snippets import auto_exposure_correct
 
 class ColorCorrectService:
 
-    DARK_IMAGE_THRESHOLD = 0.15
+    # Median grayscale value of an image to determine if it is dark
+    DARK_IMAGE_THRESHOLD = 0.10
+
     TEMP_DIRNAME = 'temp-dark'
 
     def __init__(self):
