@@ -39,19 +39,6 @@ const LinkageSidebar = () => {
   const folderYears = [...new Set(folders.map((folder) => `${folder.year}`))]
   const [viewYear, _setViewYear] = useState(`${selectedFolder.year}`)
 
-  const hideVideo = async (video) => {
-    const payload = { ...video, hidden: true }
-    setConfirmationDialogProps({
-      title: 'Hide Video',
-      body: 'Are you sure you want to hide this video?',
-      onConfirm: async () => {
-        await updateVideo(video.id, payload)
-        await loadVideos()
-      },
-    })
-    setConfirmationDialogOpen(true)
-  }
-
   const setViewYear = (year) => {
     const nextSelectedFolder = folders.filter((folder) => `${folder.year}` === year)[0]
     _setViewYear(year)
@@ -120,6 +107,25 @@ const LinkageSidebar = () => {
       })
       setConfirmationDialogOpen(true)
     }
+  }
+
+  const makeAlert = useStore((state) => state.makeAlert)
+  const hideVideo = async (video) => {
+    if (video.fileName in linkageGroups) {
+      makeAlert('A video that has linkages cannot be hidden.', 'error')
+      return
+    }
+
+    const payload = { ...video, hidden: true }
+    setConfirmationDialogProps({
+      title: 'Hide Video',
+      body: 'Are you sure you want to hide this video?',
+      onConfirm: async () => {
+        await updateVideo(video.id, payload)
+        await loadVideos()
+      },
+    })
+    setConfirmationDialogOpen(true)
   }
 
   const getThumbnailFullURL = (partialPath) => {
