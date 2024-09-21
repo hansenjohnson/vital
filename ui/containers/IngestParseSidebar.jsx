@@ -10,6 +10,7 @@ import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
 import { bytesToSize, titleCase } from '../utilities/strings'
 import STATUSES, { ERRORS, WARNINGS } from '../constants/statuses'
+import { JOB_MODES } from '../constants/routes'
 import Sidebar from '../components/Sidebar'
 import SidebarHeader from '../components/SidebarHeader'
 import IssueSummaryControls from '../components/IssueSummaryControls'
@@ -59,6 +60,7 @@ const IngestParseSidebar = ({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ fontSize: '20px' }}>
               Ingesting {bytesToSize(totalSize, 2)} of {jobMode}
+              {jobMode === JOB_MODES.BY_IMAGE ? 's' : ''}
             </Box>
             <Box>
               <Button

@@ -42,6 +42,7 @@
     "react-dom": "^18.3.1",
     "react-image-crop": "^11.0.5",
     "react-transition-group": "^4.4.5",
+    "react-window": "^1.8.10",
     "react-zoom-pan-pinch": "^3.6.1",
     "vite": "^5.3.2",
     "zustand": "^4.5.4"
