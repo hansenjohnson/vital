@@ -567,8 +567,9 @@ const LinkageAnnotationPage = () => {
           darkNumSelected={Object.keys(darkSampleSelection).length}
           actionName="Add Job to Queue"
           canTrigger={
-            darkNumStatus === STATUSES.COMPLETED &&
-            (darkImagePaths.length > 0 ? darkSampleStatus === STATUSES.COMPLETED : true)
+            jobIdDark === null ||
+            (darkNumStatus === STATUSES.COMPLETED &&
+              (darkImagePaths.length > 0 ? darkSampleStatus === STATUSES.COMPLETED : true))
           }
           onTriggerAction={executeJob}
         />
