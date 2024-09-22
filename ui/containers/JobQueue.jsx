@@ -104,6 +104,7 @@ const JobQueue = () => {
     const foundJob = completeJobs.find((job) => job.id === jobReportId)
     if (!foundJob) return null
     return {
+      id: foundJob.id,
       name: jobNameFromData(foundJob.data, foundJob.tasks.length),
       data: JSON.parse(foundJob?.report_data || '{}'),
       completedAt: foundJob?.completed_date,
@@ -121,6 +122,7 @@ const JobQueue = () => {
     const result = await ingestAPI.exportBatchRenameCSV(jobReportId, filePath)
     return result
   }
+  const reloadOneCompletedJob = useQueueStore((state) => state.reloadOneCompletedJob)
 
   /* General effect, keep last */
   useEffect(() => {
@@ -257,7 +259,9 @@ const JobQueue = () => {
 
         <TransitionGroup>
           {completeJobs.map((job, index) => {
-            const { id, status, completed_date, data } = job
+            const { id, status, completed_date, data, report_data } = job
+            const report = JSON.parse(report_data || '{}')
+            const exportedOnce = Boolean(report?.output_file)
             return (
               <Collapse key={id}>
                 <JobQueueItem
@@ -266,6 +270,7 @@ const JobQueue = () => {
                   name={jobNameFromData(data, job.tasks.length)}
                   info={{
                     completedDate: completed_date,
+                    exportedOnce,
                   }}
                   actions={{
                     toggleJobReport,
@@ -296,10 +301,12 @@ const JobQueue = () => {
           open={jobReportOpen}
           onClose={() => setJobReportId(null)}
           parent={queueDialogRef.current}
+          jobId={jobReport?.id || null}
           jobName={jobReport?.name || ''}
           completedAt={jobReport?.completedAt || null}
           data={jobReport?.data || {}}
           onExport={triggerReportExport}
+          reloadJob={reloadOneCompletedJob}
         />
       </DialogContent>
     </Dialog>

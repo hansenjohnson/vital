@@ -168,7 +168,12 @@ class IngestService:
             incrementor += 1
             output_file = os.path.join(output_folder, f'{basename}_Ingest_Report_{incrementor}.csv')
         csv_df.to_csv(output_file, index=False)
-        return os.path.exists(output_file)
+
+        file_created_successfully = os.path.exists(output_file)
+        if file_created_successfully:
+            report_data.output_file = output_file
+            self.job_service.update_report_data(job_id, report_data)
+        return file_created_successfully
 
     @staticmethod
     def size_string(bytes):

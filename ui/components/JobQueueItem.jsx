@@ -6,6 +6,7 @@ import LinearProgress from '@mui/material/LinearProgress'
 import ToolTip from '@mui/material/ToolTip'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import TocIcon from '@mui/icons-material/Toc'
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone'
 
 import STATUSES, { ERRORS } from '../constants/statuses'
 import { completionTimeString } from '../utilities/strings'
@@ -22,7 +23,7 @@ const JobQueueItem = ({
   errorMessage = null,
 }) => {
   const theme = useTheme()
-  const { completedDate, progress } = info
+  const { completedDate, exportedOnce, progress } = info
   const { deleteJob, toggleTaskDetails, toggleJobReport } = actions
 
   const hasVisibleJobError = queueRunning && firstItem && ERRORS.has(errorMessage)
@@ -91,6 +92,7 @@ const JobQueueItem = ({
   if (status === STATUSES.COMPLETED) {
     actionNodes = (
       <>
+        {exportedOnce && <FileDownloadDoneIcon sx={{ color: 'tertiary.main' }} />}
         <Button onClick={() => toggleJobReport(id)}>View Report</Button>
       </>
     )

@@ -36,6 +36,17 @@ const useQueueStore = create((set, get) => ({
     set({ completeJobs: [...completeJobs, ...moreJobs], nextPage: nextNextPage })
   },
 
+  reloadOneCompletedJob: async (jobId) => {
+    const { completeJobs } = get()
+
+    const updatedJob = await ingestAPI.getJob(jobId)
+    const updatedJobsWithTasks = await collateJobsWithTasks(Promise.resolve([updatedJob]))
+    const updatedJobWithTasks = updatedJobsWithTasks[0]
+    const updatedJobs = completeJobs.map((job) => (job.id === jobId ? updatedJobWithTasks : job))
+
+    set({ completeJobs: updatedJobs })
+  },
+
   updateActiveJob: async () => {
     const { incompleteJobs } = get()
     if (incompleteJobs.length === 0) return
