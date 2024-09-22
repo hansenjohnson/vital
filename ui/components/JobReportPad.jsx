@@ -55,7 +55,8 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
   } else if (exporting) {
     exportText = 'Exporting...'
   } else if (exportSucccess) {
-    exportText = 'Exported Successfully!'
+    // We will give the user unlimited attempts to download the CSV, even if it was successful
+    // TODO: Reload the report data to show the successful export file path
   }
 
   return (
@@ -140,7 +141,7 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
           color="primary"
           onClick={triggerExport}
           sx={{ textTransform: 'none' }}
-          disabled={exporting || exportSucccess || olderThan10Days}
+          disabled={exporting || olderThan10Days}
         >
           {exportText}
         </Button>
