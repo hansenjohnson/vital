@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
@@ -21,6 +21,7 @@ import {
   dumbClone,
 } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
+import useWindowSize from '../hooks/useWindowSize'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -447,6 +448,23 @@ const LinkageAnnotationPage = () => {
     }
   }
 
+  /* Rendering Setup */
+  const metadataTablesContainerRef = useRef(null)
+  const { windowWidth, windowHeight } = useWindowSize()
+  const [hasMainHorizontalScroll, setHasMainHorizontalScroll] = useState(false)
+  const hasDataToDisplay = mediaGroupsFilteredAndIgnored.length > 0
+  useEffect(() => {
+    if (phase !== JOB_PHASES.PARSE) return
+    if (!hasDataToDisplay) return
+    const container = metadataTablesContainerRef?.current
+    if (!container) return
+    if (container.scrollWidth > container.clientWidth) {
+      setHasMainHorizontalScroll(true)
+    } else {
+      setHasMainHorizontalScroll(false)
+    }
+  }, [phase, hasDataToDisplay, windowWidth, windowHeight])
+
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
@@ -529,6 +547,7 @@ const LinkageAnnotationPage = () => {
           onTriggerAction={triggerActionAfterParse}
         />
         <Box
+          ref={metadataTablesContainerRef}
           sx={{
             flexGrow: 1,
             height: '100%',
@@ -552,6 +571,7 @@ const LinkageAnnotationPage = () => {
                 columns={columns}
                 data={group.mediaList}
                 isSubfolder={group.subfolder !== ROOT_FOLDER}
+                hasMainHorizontalScroll={hasMainHorizontalScroll}
               />
             </Box>
           ))}

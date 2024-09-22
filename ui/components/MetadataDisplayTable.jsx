@@ -37,7 +37,7 @@ const statusTransformer = (status) => {
   return 3
 }
 
-const MetadataDisplayTable = ({ columns, data, isSubfolder }) => {
+const MetadataDisplayTable = ({ columns, data, isSubfolder, hasMainHorizontalScroll }) => {
   // Sort by File Name as Default (aka index 0)
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState(columns[0].key)
@@ -68,11 +68,17 @@ const MetadataDisplayTable = ({ columns, data, isSubfolder }) => {
     STATUS_COLUMN_WIDTH +
     ERRORS_COLUMN_WIDTH +
     20
-  // ^ this 20 accounts for the scrollbar in the other dimension, there are like 2 or 3 hard to work with scrollbar interactions
-  //   because of the virtual list, static sizing (but dynamic content), etc, and I've spent too much time on it already
+  // ^ this 20 in virtualListWidth accounts for the scrollbar in the other dimension, there are like 2 or 3 hard to work with scrollbar
+  //   interactions because of the virtual list, static sizing (but dynamic content), etc, and I've spent too much time on it already
+
   const availableViewportHeight =
-    document.body.clientHeight - TITLEBAR_HEIGHT - TABLE_HEADER_HEIGHT - (isSubfolder ? 30 : 0)
-  // This is too expensive to calculate so we just use an intermediate value
+    document.body.clientHeight -
+    TITLEBAR_HEIGHT -
+    TABLE_HEADER_HEIGHT -
+    (isSubfolder ? 30 : 0) -
+    (hasMainHorizontalScroll ? 20 : 0)
+  // expectedTableContentHeight is so that we can render smaller tables when it's a small list. We could calculate a size based on number of rows
+  // but it's too expensive, since each row could have dynamic height. So instead we just use use a half-height when num rows is small
   const expectedTableContentHeight =
     sortedData.length < 10 ? availableViewportHeight / 2 : Number.MAX_SAFE_INTEGER
   const virtualListHeight = Math.min(availableViewportHeight, expectedTableContentHeight)
