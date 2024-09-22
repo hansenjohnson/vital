@@ -5,6 +5,7 @@ import {
   TABLE_HEADER_HEIGHT,
   TABLE_HEADER_BOT_BORDER,
   STATUS_COLUMN_WIDTH,
+  ERRORS_COLUMN_WIDTH,
 } from '../constants/dimensions'
 
 const HeaderCell = ({ children, align, width, sx }) => (
@@ -16,9 +17,12 @@ const HeaderCell = ({ children, align, width, sx }) => (
       fontSize: '12px',
       whiteSpace: 'nowrap',
       height: `${TABLE_HEADER_HEIGHT}px`,
+      backgroundColor: 'black',
       borderBottom: `${TABLE_HEADER_BOT_BORDER}px solid ${theme.palette.action.disabled}`,
       display: 'flex',
       alignItems: 'center',
+      flexGrow: 0,
+      flexShrink: 0,
 
       // variable styles per-cell/per-column
       width,
@@ -31,7 +35,7 @@ const HeaderCell = ({ children, align, width, sx }) => (
 )
 
 const MetadataDisplayHeader = ({ columns, order, orderBy, createSortHandler }) => (
-  <Box role="row" sx={{ display: 'flex' }}>
+  <Box role="row" sx={{ display: 'flex', width: '100%' }}>
     <HeaderCell width={STATUS_COLUMN_WIDTH}>
       <TableSortLabel
         active={orderBy === 'status'}
@@ -60,7 +64,9 @@ const MetadataDisplayHeader = ({ columns, order, orderBy, createSortHandler }) =
       </HeaderCell>
     ))}
 
-    <HeaderCell sx={{ flexGrow: 1, paddingLeft: 1 }}>Warnings/Errors</HeaderCell>
+    <HeaderCell width={ERRORS_COLUMN_WIDTH} sx={{ paddingLeft: 1 }}>
+      Warnings/Errors
+    </HeaderCell>
   </Box>
 )
 

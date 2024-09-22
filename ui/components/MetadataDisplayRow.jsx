@@ -10,6 +10,7 @@ import {
   TABLE_ROW_VERT_PAD,
   TABLE_ROW_BOT_BORDER,
   STATUS_COLUMN_WIDTH,
+  ERRORS_COLUMN_WIDTH,
 } from '../constants/dimensions'
 
 const DefaultCell = React.forwardRef(({ children, align, width, sx, ...rest }, ref) => (
@@ -91,7 +92,7 @@ const MetadataDisplayRow = ({ data, index, style }) => {
         )
       })}
 
-      <DefaultCell sx={{ flexGrow: 1, paddingLeft: 1 }}>
+      <DefaultCell width={ERRORS_COLUMN_WIDTH} sx={{ paddingLeft: 1 }}>
         <Box sx={{ whiteSpace: 'pre', color: 'warning.main' }}>{warnings.join('\n')}</Box>
         <Box sx={{ whiteSpace: 'pre', color: 'error.main' }}>{errors.join('\n')}</Box>
       </DefaultCell>

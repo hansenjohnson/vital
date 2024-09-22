@@ -540,7 +540,11 @@ const LinkageAnnotationPage = () => {
                   {group.subfolder}
                 </MetadataSubfolder>
               )}
-              <MetadataDisplayTable columns={columns} data={group.mediaList} />
+              <MetadataDisplayTable
+                columns={columns}
+                data={group.mediaList}
+                isSubfolder={group.subfolder !== ROOT_FOLDER}
+              />
             </Box>
           ))}
         </Box>

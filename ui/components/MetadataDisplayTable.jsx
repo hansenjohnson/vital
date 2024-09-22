@@ -6,10 +6,11 @@ import MetadataDisplayRow from './MetadataDisplayRow'
 import STATUSES from '../constants/statuses'
 import {
   TITLEBAR_HEIGHT,
-  SIDEBAR_WIDTH,
   TABLE_HEADER_HEIGHT,
   TABLE_ROW_HEIGHT,
   TABLE_ROW_INNER_HEIGHT,
+  STATUS_COLUMN_WIDTH,
+  ERRORS_COLUMN_WIDTH,
 } from '../constants/dimensions'
 import MetadataDisplayHeader from './MetadataDisplayHeader'
 
@@ -36,7 +37,7 @@ const statusTransformer = (status) => {
   return 3
 }
 
-const MetadataDisplayTable = ({ columns, data }) => {
+const MetadataDisplayTable = ({ columns, data, isSubfolder }) => {
   // Sort by File Name as Default (aka index 0)
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState(columns[0].key)
@@ -62,19 +63,30 @@ const MetadataDisplayTable = ({ columns, data }) => {
   useEffect(() => {
     virtualListRef.current?.resetAfterIndex(0)
   }, [JSON.stringify(sortedData)])
+  const virtualListWidth =
+    columns.reduce((acc, column) => acc + column.width, 0) +
+    STATUS_COLUMN_WIDTH +
+    ERRORS_COLUMN_WIDTH +
+    20
+  // ^ this 20 accounts for the scrollbar in the other dimension, there are like 2 or 3 hard to work with scrollbar interactions
+  //   because of the virtual list, static sizing (but dynamic content), etc, and I've spent too much time on it already
+  const availableViewportHeight =
+    document.body.clientHeight - TITLEBAR_HEIGHT - TABLE_HEADER_HEIGHT - (isSubfolder ? 30 : 0)
+  // This is too expensive to calculate so we just use an intermediate value
+  const expectedTableContentHeight =
+    sortedData.length < 10 ? availableViewportHeight / 2 : Number.MAX_SAFE_INTEGER
+  const virtualListHeight = Math.min(availableViewportHeight, expectedTableContentHeight)
 
   return (
-    <Box role="table">
-      <Box role="rowgroup" sx={{ backgroundColor: 'black' }}>
-        <MetadataDisplayHeader
-          columns={columns}
-          order={order}
-          orderBy={orderBy}
-          createSortHandler={createSortHandler}
-        />
-      </Box>
+    <Box role="table" sx={{ width: '100%' }}>
+      <MetadataDisplayHeader
+        columns={columns}
+        order={order}
+        orderBy={orderBy}
+        createSortHandler={createSortHandler}
+      />
 
-      <Box role="rowgroup">
+      <Box role="rowgroup" sx={{ width: '100%' }}>
         <VirtualList
           ref={virtualListRef}
           itemData={{
@@ -83,8 +95,8 @@ const MetadataDisplayTable = ({ columns, data }) => {
           }}
           itemCount={sortedData.length}
           overscanCount={10}
-          width={document.body.clientWidth - SIDEBAR_WIDTH}
-          height={document.body.clientHeight - TITLEBAR_HEIGHT - TABLE_HEADER_HEIGHT}
+          width={virtualListWidth}
+          height={virtualListHeight}
           itemSize={(index) => {
             const row = sortedData[index]
             const numWarnings = row.warnings.length
