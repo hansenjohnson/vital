@@ -131,9 +131,10 @@ def queue_transcode():
     media_type = payload['media_type']
     source_dir = payload['source_dir']
     local_export_path = payload['local_export_path']
+    report_dir = payload['report_dir']
     transcode_list = payload['transcode_list']
     observer_code = payload['observer_code']
-    job_id = transcode_service.queue_transcode_job(source_dir, local_export_path, media_type, transcode_list, observer_code)
+    job_id = transcode_service.queue_transcode_job(source_dir, local_export_path, report_dir, media_type, transcode_list, observer_code)
     return {"job_id": job_id}
 
 
@@ -208,13 +209,13 @@ def delete_old_tasks():
     return {"deleted_ids": deleted_ids}
 
 
-@bp.route('/batch_rename_export', methods=["GET"])
+@bp.route('/export_report', methods=["GET"])
 @tryable_json_endpoint
-def batch_rename_export():
+def export_report():
     job_id = request.args.get('job_id')
     output_folder = unquote(request.args.get('output_folder'))
 
-    return ingest_service.generate_batch_rename_report(job_id, output_folder)
+    return ingest_service.export_report(job_id, output_folder)
 
 
 @bp.route('/dark', methods=['POST'])

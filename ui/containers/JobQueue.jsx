@@ -138,7 +138,7 @@ const JobQueue = () => {
   const triggerReportExport = async () => {
     const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
     if (!filePath) return
-    const result = await ingestAPI.exportBatchRenameCSV(jobReportId, filePath)
+    const result = await ingestAPI.exportReportCSV(jobReportId, filePath)
     return result
   }
   const reloadOneCompletedJob = useQueueStore((state) => state.reloadOneCompletedJob)

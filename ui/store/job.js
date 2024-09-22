@@ -17,6 +17,7 @@ const initialState = {
   observerCode: null,
   jobMode: JOB_MODES.UNSET,
   localOutputFolder: '',
+  reportDir: '',
   metadataFilter: null,
   issueIgnoreList: [],
   batchRenameRules: {
@@ -99,8 +100,16 @@ const useJobStore = create((set, get) => ({
   },
 
   triggerExecute: async (jobIdDarkSample = null) => {
-    const { jobMode, sourceFolder, settingsList, localOutputFolder, observerCode } = get()
-    await ingestAPI.transcode(sourceFolder, settingsList, jobMode, localOutputFolder, observerCode)
+    const { jobMode, sourceFolder, settingsList, localOutputFolder, reportDir, observerCode } =
+      get()
+    await ingestAPI.transcode(
+      sourceFolder,
+      settingsList,
+      jobMode,
+      localOutputFolder,
+      reportDir,
+      observerCode
+    )
 
     if (jobMode === JOB_MODES.BY_IMAGE) {
       ingestAPI.deleteDarkSampleImages(jobIdDarkSample)
@@ -145,6 +154,7 @@ const useJobStore = create((set, get) => ({
   setJobMode: valueSetter(set, 'jobMode'),
 
   setLocalOutputFolder: valueSetter(set, 'localOutputFolder'),
+  setReportDir: valueSetter(set, 'reportDir'),
 
   setMetadataFilter: valueSetter(set, 'metadataFilter'),
   addToIgnoreList: (newIssue) => {
@@ -228,6 +238,7 @@ const canParse = (state) => {
   if (!observerCode) return false
   if (jobMode === JOB_MODES.UNSET) return false
   if (jobMode === JOB_MODES.BY_IMAGE && !localOutputFolder) return false
+  // reportDir is optional, so we don't check that
   return true
 }
 

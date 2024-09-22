@@ -42,7 +42,6 @@ class ColorCorrectService:
         job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
             "source_dir": '',
             "media_type": MediaType.IMAGE.value,
-            "local_export_path": ''
         })
         for file_path in image_paths:
             self.task_service.create_task(job_id, TranscodeSettings(file_path=file_path))
@@ -91,7 +90,6 @@ class ColorCorrectService:
         job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
                 "source_dir": '',
                 "media_type": MediaType.IMAGE.value,
-                "local_export_path": ''
             })
         for file_path in file_paths:
             self.create_color_corrected_task(job_id, file_path)

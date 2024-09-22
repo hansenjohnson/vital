@@ -16,9 +16,9 @@ const taskStatusesForJob = async (jobId) => {
 // Job Information - Many
 const getIncompleteJobs = () => getJSON(`${ingestURL}/job?completed=false`)
 const getCompleteJobs = (page) => getJSON(`${ingestURL}/job?page=${page}&page_size=10`)
-const exportBatchRenameCSV = (jobId, folderPath) =>
+const exportReportCSV = (jobId, folderPath) =>
   getJSON(
-    `${ingestURL}/batch_rename_export?job_id=${jobId}&output_folder=${encodeURIComponent(folderPath)}`
+    `${ingestURL}/export_report?job_id=${jobId}&output_folder=${encodeURIComponent(folderPath)}`
   )
 const cleanUpJobs = () => postJSON(`${ingestURL}/clean_up_jobs`)
 
@@ -84,12 +84,14 @@ const transcode = async (
   settingsList,
   mediaType,
   localOutputFolder,
+  reportDir,
   observerCode
 ) => {
   const { data } = await postJSONWithResponse(`${ingestURL}/transcode`, {
     media_type: mediaType,
     source_dir: sourceFolder,
     local_export_path: localOutputFolder,
+    report_dir: reportDir || '',
     transcode_list: settingsList,
     observer_code: observerCode,
   })
@@ -105,7 +107,7 @@ export default {
   deleteJob,
   getIncompleteJobs,
   getCompleteJobs,
-  exportBatchRenameCSV,
+  exportReportCSV,
   cleanUpJobs,
   countFiles,
   parse,

@@ -17,6 +17,7 @@ from services.job_service import JobService
 from services.task_service import TaskService
 from services.metadata_service import MediaType
 from services.report_service import ReportService
+from services.ingest_service import IngestService
 from model.ingest.job_model import JobType, JobStatus, JobErrors
 
 from settings.settings_service import SettingsService, SettingsEnum
@@ -81,6 +82,7 @@ class TranscodeService:
         self.folder_model = FolderModel()
         self.video_model = VideoModel()
         self.report_service = ReportService()
+        self.ingest_service = IngestService()
 
         base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.ffmpeg_path = os.path.join(base_dir, 'resources', 'ffmpeg.exe')
@@ -91,6 +93,7 @@ class TranscodeService:
             self,
             source_dir: str,
             local_export_path: str,
+            report_dir: str,
             media_type: str,
             transcode_settings_list: List[TranscodeSettings],
             observer_code: str
@@ -102,6 +105,7 @@ class TranscodeService:
                 "source_dir": source_dir,
                 "media_type": media_type,
                 "local_export_path": local_export_path,
+                "report_dir": report_dir,
                 "observer_code": observer_code
             }
         )
@@ -121,7 +125,6 @@ class TranscodeService:
         job_id = self.job_service.create_job(JobType.SAMPLE, JobStatus.INCOMPLETE, {
                 "source_dir": '',
                 "media_type": MediaType.IMAGE.value,
-                "local_export_path": ''
             })
 
         if small_image_file_path:
@@ -193,7 +196,7 @@ class TranscodeService:
         os.rmdir(temp_sample_dir)
         return job_id
 
-    def transcode_media(self, transcode_job_id, source_dir, local_export_path, media_type, transcode_task_ids: List[int], observer_code):
+    def transcode_media(self, transcode_job_id, source_dir, local_export_path, report_dir, media_type, transcode_task_ids: List[int], observer_code):
         self.job_service.set_error(transcode_job_id, JobErrors.NONE)
 
         optimized_base_dir = None
@@ -311,6 +314,8 @@ class TranscodeService:
                         will_complete = self.job_service.will_job_complete(transcode_job_id)
                         if will_complete:
                             self.report_service.create_final_report(transcode_job_id, media_type, source_dir, original_dir_path, optimized_dir_path)
+                            if report_dir:
+                                self.ingest_service.export_report(transcode_job_id, report_dir)
 
                         self.job_service.set_job_status(transcode_job_id)
 

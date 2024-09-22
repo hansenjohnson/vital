@@ -125,7 +125,7 @@ class IngestService:
             'error': error,
         }
 
-    def generate_batch_rename_report(self, job_id, output_folder):
+    def export_report(self, job_id, output_folder):
         job_data = self.job_service.get_job_data(job_id)
         tasks = self.task_service.get_tasks_by_job_id(job_id)
         report_data = self.job_service.get_report_data(job_id)
