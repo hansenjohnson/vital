@@ -154,6 +154,12 @@ def get_jobs():
     return jobs
 
 
+@bp.route('/clean_up_jobs', methods=["POST"])
+@tryable_json_endpoint
+def clean_up_jobs():
+    job_service.clean_up_jobs()
+
+
 @bp.route('/sample/<string:filename>', methods=["GET"])
 def get_sample_images(filename):
     filename_unquoted = unquote(filename)

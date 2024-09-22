@@ -5,6 +5,7 @@ import contextlib
 from model.config import DB_PATH
 from data.transcode_settings import TranscodeSettings
 from data.task import Task, TaskStatus
+from model.ingest.job_model import JobStatus
 
 class TaskModel:
     def __init__(self, db_name=DB_PATH):
@@ -119,8 +120,15 @@ class TaskModel:
         self.with_cursor("DELETE FROM task WHERE id = ?", (task_id, ))
 
     def delete_old_tasks(self):
-        ids_to_delete = self.with_cursor("SELECT * from task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,), action='fetchall')
-        self.with_cursor("DELETE FROM task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status = ?)", (TaskStatus.COMPLETED.value,))
+        ids_to_delete = self.with_cursor(
+            "SELECT * from task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status IN (?, ?))",
+            (JobStatus.COMPLETED.value, JobStatus.ARCHIVED.value),
+            action='fetchall',
+        )
+        self.with_cursor(
+            "DELETE FROM task WHERE job_id IN (SELECT j.id FROM job j WHERE j.completed_date < DATE('now', '-10 days') AND j.status IN (?, ?))",
+            (JobStatus.COMPLETED.value, JobStatus.ARCHIVED.value)
+        )
         if ids_to_delete:
             return [row[0] for row in ids_to_delete]
         return []

@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ScheduleIcon from '@mui/icons-material/Schedule'
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep'
 
 import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
@@ -80,6 +81,24 @@ const JobQueue = () => {
 
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
+
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+  const cleanUpJobs = () => {
+    setConfirmationDialogProps({
+      title: 'Clean Up Jobs',
+      body: `This action will:
+      Archive all jobs for which a Report CSV has been exported.
+      Archive all jobs older than 10 days.
+
+      Are you sure you want to do this?`,
+      onConfirm: async () => {
+        await ingestAPI.cleanUpJobs()
+        await fetchJobsData()
+      },
+    })
+    setConfirmationDialogOpen(true)
+  }
 
   /* Task Details Data Logic */
   const [taskDetailsJobId, setTaskDetailsJobId] = useState(null)
@@ -252,8 +271,17 @@ const JobQueue = () => {
           )
         })}
 
-        <Typography variant="h6" mt={2}>
+        <Typography variant="h6" mt={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
           Complete Jobs
+          <Button
+            color="warning"
+            sx={{ textTransform: 'none' }}
+            endIcon={<DeleteSweepIcon />}
+            onClick={cleanUpJobs}
+            disabled={completeJobs.length === 0}
+          >
+            Clean Up Jobs
+          </Button>
         </Typography>
         {completeJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
 

@@ -1,5 +1,5 @@
 import { baseURL } from './config'
-import { getJSON, postJSONWithResponse, deleteThis } from './fetchers'
+import { getJSON, postJSON, postJSONWithResponse, deleteThis } from './fetchers'
 
 const ingestURL = `${baseURL}/ingest`
 
@@ -20,6 +20,7 @@ const exportBatchRenameCSV = (jobId, folderPath) =>
   getJSON(
     `${ingestURL}/batch_rename_export?job_id=${jobId}&output_folder=${encodeURIComponent(folderPath)}`
   )
+const cleanUpJobs = () => postJSON(`${ingestURL}/clean_up_jobs`)
 
 // Metadata Methods
 const countFiles = (sourceFolder) =>
@@ -105,6 +106,7 @@ export default {
   getIncompleteJobs,
   getCompleteJobs,
   exportBatchRenameCSV,
+  cleanUpJobs,
   countFiles,
   parse,
   getJobResultData,
