@@ -6,6 +6,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import Button from '@mui/material/Button'
+import AutorenewIcon from '@mui/icons-material/Autorenew'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -27,6 +28,8 @@ const CompressionSidebar = ({
   darkSampleProgress,
   onDarkSampleOpen,
   darkNumSelected,
+  canRecreateBuckets,
+  recreateBuckets,
   actionName,
   canTrigger,
   onTriggerAction,
@@ -289,6 +292,18 @@ const CompressionSidebar = ({
               </RadioGroup>
             )}
           </Box>
+
+          {canRecreateBuckets && (
+            <Button
+              color="secondary"
+              sx={{ textTransform: 'none', boxShadow: 'none', alignSelf: 'flex-start' }}
+              startIcon={<AutorenewIcon />}
+              onClick={recreateBuckets}
+              disabled={!canRecreateBuckets}
+            >
+              Recreate Bucket Examples with Bright Images
+            </Button>
+          )}
         </Box>
       )}
 

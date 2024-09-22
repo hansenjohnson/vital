@@ -74,12 +74,44 @@ const useJobStore = create((set, get) => ({
     set({ jobId })
   },
 
-  triggerSampleImages: async () => {
+  triggerSampleImages: async (imagesToExclude = []) => {
     const { compressionBuckets } = get()
+    let possibleSmallImage = compressionBuckets.small?.images?.[0]
+    let possibleMediumImage = compressionBuckets.medium?.images?.[0]
+    let possibleLargeImage = compressionBuckets.large?.images?.[0]
+
+    if (possibleSmallImage && imagesToExclude.includes(possibleSmallImage)) {
+      compressionBuckets.small?.images?.find((image) => {
+        if (!imagesToExclude.includes(image)) {
+          possibleSmallImage = image
+          return true
+        }
+        return false
+      })
+    }
+    if (possibleMediumImage && imagesToExclude.includes(possibleMediumImage)) {
+      compressionBuckets.medium?.images?.find((image) => {
+        if (!imagesToExclude.includes(image)) {
+          possibleMediumImage = image
+          return true
+        }
+        return false
+      })
+    }
+    if (possibleLargeImage && imagesToExclude.includes(possibleLargeImage)) {
+      compressionBuckets.large?.images?.find((image) => {
+        if (!imagesToExclude.includes(image)) {
+          possibleLargeImage = image
+          return true
+        }
+        return false
+      })
+    }
+
     const jobId = await ingestAPI.createSampleImages(
-      compressionBuckets.small?.images?.[0],
-      compressionBuckets.medium?.images?.[0],
-      compressionBuckets.large?.images?.[0]
+      possibleSmallImage,
+      possibleMediumImage,
+      possibleLargeImage
     )
     set({ jobId })
   },

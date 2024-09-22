@@ -191,6 +191,13 @@ const LinkageAnnotationPage = () => {
     return () => clearInterval(intervalId)
   }, [phase, jobIdDark])
 
+  const triggerSampleImages = useJobStore((state) => state.triggerSampleImages)
+  const canRecreateBuckets =
+    jobIdDark != null && darkNumStatus === STATUSES.COMPLETED && darkImagePaths.length > 0
+  const recreateBuckets = () => {
+    triggerSampleImages(darkImagePaths)
+  }
+
   /* Poll for Dark Sample Image, handle statuses */
   const jobIdDarkSample = useJobStore((state) => state.jobIdDarkSample)
   const [darkSampleStatus, setDarkSampleStatus] = useState(STATUSES.LOADING)
@@ -565,6 +572,8 @@ const LinkageAnnotationPage = () => {
           darkSampleProgress={darkSampleProgress}
           onDarkSampleOpen={() => setDarkSampleDialog(true)}
           darkNumSelected={Object.keys(darkSampleSelection).length}
+          canRecreateBuckets={canRecreateBuckets}
+          recreateBuckets={recreateBuckets}
           actionName="Add Job to Queue"
           canTrigger={
             jobIdDark === null ||

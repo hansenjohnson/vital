@@ -128,22 +128,22 @@ class TranscodeService:
             })
 
         if small_image_file_path:
-            self.create_sample_tasks(job_id, small_image_file_path)
+            self.create_sample_tasks(job_id, small_image_file_path, 'small')
 
         if medium_image_file_path:
-            self.create_sample_tasks(job_id, medium_image_file_path)
+            self.create_sample_tasks(job_id, medium_image_file_path, 'medium')
 
         if large_image_file_path:
-            self.create_sample_tasks(job_id, large_image_file_path)
+            self.create_sample_tasks(job_id, large_image_file_path, 'large')
 
         threading.Thread(target=self.run_sample_tasks, args=(job_id,)).start()
         return job_id
 
-    def create_sample_tasks(self, job_id, file_path):
+    def create_sample_tasks(self, job_id, file_path, bucket_name):
         file_name, file_extension = os.path.splitext(file_path)
         for jpeg_quality in self.JPEG_QUALITIES:
             file_path_jpeg = f'{os.path.basename(file_name)}_{str(jpeg_quality)}.jpg'
-            transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg, jpeg_quality=jpeg_quality)
+            transcode_settings = TranscodeSettings(file_path=file_path, new_name=file_path_jpeg, jpeg_quality=jpeg_quality, input_height=bucket_name)
             self.task_service.create_task(job_id, transcode_settings)
 
     def run_sample_tasks(self, job_id):

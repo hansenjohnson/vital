@@ -43,6 +43,7 @@ class TaskService:
                 "id": task.id,
                 "file_name": task.transcode_settings.get('new_name'),
                 "jpeg_quality": task.transcode_settings.get('jpeg_quality'),
+                "bucket_name": task.transcode_settings.get('input_height'),
             }
             for task in tasks
         ]
