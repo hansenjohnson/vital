@@ -4,6 +4,7 @@ import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone'
 
 import { bytesToSize, completionTimeString } from '../utilities/strings'
 
@@ -14,7 +15,17 @@ const monoStyle = (theme) => ({
   fontSize: '14px',
 })
 
-const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExport }) => {
+const JobReportPad = ({
+  open,
+  onClose,
+  parent,
+  jobId,
+  jobName,
+  completedAt,
+  data,
+  onExport,
+  reloadJob,
+}) => {
   const [top, setTop] = useState(0)
   const [maxHeight, setMaxHeight] = useState(0)
   const [delayedSlide, setDelayedSlide] = useState(false)
@@ -44,6 +55,11 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
     const result = await onExport()
     setExporting(false)
     setExportSuccess(result)
+
+    if (result) {
+      // Reload the report data to show the successful export file path
+      reloadJob(jobId)
+    }
   }
   useEffect(() => {
     setExportSuccess(false)
@@ -55,7 +71,7 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
   } else if (exporting) {
     exportText = 'Exporting...'
   } else if (exportSucccess) {
-    exportText = 'Exported Successfully!'
+    // We will give the user unlimited attempts to download the CSV, even if it was successful
   }
 
   return (
@@ -134,13 +150,25 @@ const JobReportPad = ({ open, onClose, parent, jobName, completedAt, data, onExp
         <Box sx={monoStyle}>{data.optimized_folder_media_count} files</Box>
       </Box>
 
+      {data.output_file && (
+        <Box>
+          <Box sx={{ display: 'flex', color: 'tertiary.main', gap: 0.5 }}>
+            Most recently exported to
+            <FileDownloadDoneIcon sx={{ marginLeft: '-4px' }} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={monoStyle}>{data.output_file}</Box>
+          </Box>
+        </Box>
+      )}
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Button
           variant="outlined"
           color="primary"
           onClick={triggerExport}
           sx={{ textTransform: 'none' }}
-          disabled={exporting || exportSucccess || olderThan10Days}
+          disabled={exporting || olderThan10Days}
         >
           {exportText}
         </Button>

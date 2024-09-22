@@ -1,8 +1,9 @@
 import json
 
-from model.ingest.job_model import JobModel, JobType, JobStatus, JobErrors
+from model.ingest.job_model import JobModel, JobType, JobStatus
 from services.task_service import TaskService
 from model.ingest.task_model import TaskStatus
+from data.report import Report
 
 from utils.death import terminate_all
 
@@ -61,9 +62,22 @@ class JobService:
         self.job_model.delete(job_id)
 
         return orphaned_tasks
-    
+
     def update_report_data(self, job_id, report_data):
         self.job_model.update_report_data(job_id, report_data)
-    
+
     def get_report_data(self, job_id):
         return self.job_model.get_report_data(job_id)
+
+    def clean_up_jobs(self):
+        all_completed_jobs = self.job_model.get_jobs(JobType.TRANSCODE, True)
+        all_old_jobs = self.job_model.get_old_jobs()
+
+        for job in all_completed_jobs:
+            report_data = job.get('report_data', '{}')
+            report = self.job_model.deserialize_dataclass(report_data, Report)
+            if report.output_file:
+                self.job_model.archive(job['id'])
+
+        for job in all_old_jobs:
+            self.job_model.archive(job['id'])

@@ -1,20 +1,18 @@
-import { useMemo, useState } from 'react'
-import TableContainer from '@mui/material/TableContainer'
-import Table from '@mui/material/Table'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import TableCell from '@mui/material/TableCell'
-import TableBody from '@mui/material/TableBody'
-import TableSortLabel from '@mui/material/TableSortLabel'
+import { useEffect, useMemo, useState, useRef } from 'react'
+import { VariableSizeList as VirtualList } from 'react-window'
+import Box from '@mui/material/Box'
 
 import MetadataDisplayRow from './MetadataDisplayRow'
-import STATUSES, { WARNINGS, ERRORS } from '../constants/statuses'
-
-const tableHeaderCellStyle = {
-  fontWeight: 400,
-  fontSize: '12px',
-  whiteSpace: 'nowrap',
-}
+import STATUSES from '../constants/statuses'
+import {
+  TITLEBAR_HEIGHT,
+  TABLE_HEADER_HEIGHT,
+  TABLE_ROW_HEIGHT,
+  TABLE_ROW_INNER_HEIGHT,
+  STATUS_COLUMN_WIDTH,
+  ERRORS_COLUMN_WIDTH,
+} from '../constants/dimensions'
+import MetadataDisplayHeader from './MetadataDisplayHeader'
 
 const standardComparator = (a, b, orderBy, orderByAlt, transformer) => {
   const currentA = orderByAlt ? a[orderByAlt] : a[orderBy]
@@ -39,7 +37,7 @@ const statusTransformer = (status) => {
   return 3
 }
 
-const MetadataDisplayTable = ({ columns, data }) => {
+const MetadataDisplayTable = ({ columns, data, isSubfolder, hasMainHorizontalScroll }) => {
   // Sort by File Name as Default (aka index 0)
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState(columns[0].key)
@@ -61,82 +59,64 @@ const MetadataDisplayTable = ({ columns, data }) => {
     return data.slice().sort(directionalSorter)
   }, [JSON.stringify(columns), JSON.stringify(data), order, orderBy])
 
+  const virtualListRef = useRef(null)
+  useEffect(() => {
+    virtualListRef.current?.resetAfterIndex(0)
+  }, [JSON.stringify(sortedData)])
+  const virtualListWidth =
+    columns.reduce((acc, column) => acc + column.width, 0) +
+    STATUS_COLUMN_WIDTH +
+    ERRORS_COLUMN_WIDTH +
+    20
+  // ^ this 20 in virtualListWidth accounts for the scrollbar in the other dimension, there are like 2 or 3 hard to work with scrollbar
+  //   interactions because of the virtual list, static sizing (but dynamic content), etc, and I've spent too much time on it already
+
+  const availableViewportHeight =
+    document.body.clientHeight -
+    TITLEBAR_HEIGHT -
+    TABLE_HEADER_HEIGHT -
+    (isSubfolder ? 30 : 0) -
+    (hasMainHorizontalScroll ? 20 : 0)
+  // expectedTableContentHeight is so that we can render smaller tables when it's a small list. We could calculate a size based on number of rows
+  // but it's too expensive, since each row could have dynamic height. So instead we just use use a half-height when num rows is small
+  const expectedTableContentHeight =
+    sortedData.length < 10 ? availableViewportHeight / 2 : Number.MAX_SAFE_INTEGER
+  const virtualListHeight = Math.min(availableViewportHeight, expectedTableContentHeight)
+
   return (
-    <TableContainer>
-      <Table size="small">
-        <TableHead sx={{ backgroundColor: 'black' }}>
-          <TableRow>
-            <TableCell
-              padding="none"
-              sx={{
-                ...tableHeaderCellStyle,
-                paddingLeft: 0,
-                paddingTop: 0.5,
-                paddingBottom: 0.5,
-              }}
-              sortDirection={orderBy === 'status' ? order : false}
-            >
-              <TableSortLabel
-                active={orderBy === 'status'}
-                direction={orderBy === 'status' ? order : 'asc'}
-                onClick={createSortHandler('status')}
-              />
-            </TableCell>
+    <Box role="table" sx={{ width: '100%' }}>
+      <MetadataDisplayHeader
+        columns={columns}
+        order={order}
+        orderBy={orderBy}
+        createSortHandler={createSortHandler}
+      />
 
-            {columns.map((column, index) => (
-              <TableCell
-                key={`${index}-${column.key}`}
-                padding="none"
-                sx={{
-                  ...tableHeaderCellStyle,
-                  ...(index === 0 ? { paddingLeft: 0.5 } : {}),
-                }}
-                align={column.align === 'center' ? 'right' : column.align}
-                sortDirection={orderBy === column.key ? order : false}
-              >
-                <TableSortLabel
-                  active={orderBy === column.key}
-                  direction={orderBy === column.key ? order : 'asc'}
-                  onClick={createSortHandler(column.key, column.overwriteKey)}
-                >
-                  {column.label}
-                </TableSortLabel>
-              </TableCell>
-            ))}
-
-            <TableCell
-              padding="none"
-              sx={{ ...tableHeaderCellStyle, paddingLeft: 1, minWidth: '200px' }}
-            >
-              Warnings/Errors
-            </TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {sortedData.map((row) => (
-            <MetadataDisplayRow
-              key={JSON.stringify(row)}
-              values={columns.map((column) => {
-                let value = row[column.key]
-                if (column.overwriteKey) {
-                  value = row[column.overwriteKey] ?? value
-                }
-                if ('transformer' in column) {
-                  return column.transformer(value)
-                }
-                return value
-              })}
-              aligns={columns.map((column) => column.align)}
-              maxWidths={columns.map((column) => column.maxWidth)}
-              warnings={row.warnings.map((warning) => WARNINGS.get(warning).message)}
-              errors={row.errors.map((error) => ERRORS.get(error).message)}
-              status={row.status}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+      <Box role="rowgroup" sx={{ width: '100%' }}>
+        <VirtualList
+          ref={virtualListRef}
+          itemData={{
+            items: sortedData,
+            columns,
+          }}
+          itemCount={sortedData.length}
+          overscanCount={10}
+          width={virtualListWidth}
+          height={virtualListHeight}
+          itemSize={(index) => {
+            const row = sortedData[index]
+            const numWarnings = row.warnings.length
+            const numErrors = row.errors.length
+            return Math.max(
+              (numWarnings + numErrors - 1) * TABLE_ROW_INNER_HEIGHT + TABLE_ROW_HEIGHT,
+              TABLE_ROW_HEIGHT
+            )
+          }}
+        >
+          {MetadataDisplayRow}
+        </VirtualList>
+      </Box>
+    </Box>
   )
 }
 

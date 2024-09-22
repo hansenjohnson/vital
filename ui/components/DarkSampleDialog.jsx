@@ -38,9 +38,14 @@ const DarkSampleDialog = ({ open, onClose, images, selectedImages, setSelectedIm
       }}
     >
       <DialogTitle>
-        Select Dark Images to Auto-Correct
-        <Box component="span" sx={{ marginLeft: 2, color: 'text.secondary', fontSize: '16px' }}>
-          {Object.keys(selectedImages).length} images selected
+        <Box>
+          Select Images to Auto-Correct
+          <Box component="span" sx={{ marginLeft: 2, color: 'secondary.main', fontSize: '16px' }}>
+            {Object.keys(selectedImages).length} images selected
+          </Box>
+        </Box>
+        <Box sx={{ fontSize: '12px', fontWeight: 300 }}>
+          Below are the proofs of the dark images with auto-correct already applied
         </Box>
       </DialogTitle>
 

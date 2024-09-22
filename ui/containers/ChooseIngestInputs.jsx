@@ -15,6 +15,7 @@ import { JOB_MODES } from '../constants/routes'
 import useJobStore from '../store/job'
 import useSettingsStore from '../store/settings'
 import useWindowSize from '../hooks/useWindowSize'
+import useLocalStorage from '../hooks/useLocalStorage'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import StyledButton from '../components/StyledButton'
 import IngestInputsLineDrawing, {
@@ -71,8 +72,17 @@ const ChooseIngestInputs = () => {
 
   const settings = useSettingsStore((state) => state.settings)
 
-  const localOutputFolder = useJobStore((state) => state.localOutputFolder)
-  const setLocalOutputFolder = useJobStore((state) => state.setLocalOutputFolder)
+  const setLocalOutputFolderInStore = useJobStore((state) => state.setLocalOutputFolder)
+  const [localOutputFolder, setLocalOutputFolder] = useLocalStorage('localOutputFolder', '')
+  useEffect(() => {
+    setLocalOutputFolderInStore(localOutputFolder)
+  }, [localOutputFolder])
+
+  const setReportDirInStore = useJobStore((state) => state.setReportDir)
+  const [reportDir, setReportDir] = useLocalStorage('reportDir', '')
+  useEffect(() => {
+    setReportDirInStore(reportDir)
+  }, [reportDir])
 
   const containerRef = useRef(null)
   const windowSize = useWindowSize()
@@ -202,7 +212,7 @@ const ChooseIngestInputs = () => {
             </Box>
           </BubbleListItem>
 
-          <BubbleListItem lastItem={jobMode === JOB_MODES.BY_VIDEO}>
+          <BubbleListItem>
             Optimized {jobMode}s exported to
             <Box sx={(theme) => ({ fontFamily: theme.typography.monoFamily, fontWeight: 400 })}>
               {jobMode === JOB_MODES.BY_IMAGE
@@ -212,19 +222,38 @@ const ChooseIngestInputs = () => {
           </BubbleListItem>
 
           {jobMode === JOB_MODES.BY_IMAGE && (
-            <BubbleListItem lastItem>
+            <BubbleListItem>
               Optimized {jobMode}s&nbsp;<em>locally</em>&nbsp;exported to
               <FilePathSettingInput
                 value={localOutputFolder}
                 onChange={(event) => setLocalOutputFolder(event.target.value)}
                 onFolderClick={async () => {
-                  const filePath = await window.api.selectFile(FILE_TYPES.FOLDER, sourceFolder)
+                  const filePath = await window.api.selectFile(
+                    FILE_TYPES.FOLDER,
+                    localOutputFolder || sourceFolder
+                  )
                   if (!filePath) return
                   setLocalOutputFolder(filePath)
                 }}
               />
             </BubbleListItem>
           )}
+
+          <BubbleListItem lastItem>
+            Report CSV&nbsp;<em>optionally</em>&nbsp;auto-exported to
+            <FilePathSettingInput
+              value={reportDir}
+              onChange={(event) => setReportDir(event.target.value)}
+              onFolderClick={async () => {
+                const filePath = await window.api.selectFile(
+                  FILE_TYPES.FOLDER,
+                  reportDir || sourceFolder
+                )
+                if (!filePath) return
+                setReportDir(filePath)
+              }}
+            />
+          </BubbleListItem>
         </Box>
       )}
 

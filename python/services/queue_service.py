@@ -45,6 +45,7 @@ def execute_jobs():
                 source_dir = job_data["source_dir"]
                 media_type = job_data["media_type"].upper()
                 local_export_path = job_data["local_export_path"]
+                report_dir = job_data["report_dir"]
                 observer_code = job_data["observer_code"]
 
                 tasks = task_service.get_tasks_by_job_id(job["id"])
@@ -58,6 +59,7 @@ def execute_jobs():
                     job["id"],
                     source_dir,
                     local_export_path,
+                    report_dir,
                     MediaType[media_type],
                     non_complete_task_ids,
                     observer_code

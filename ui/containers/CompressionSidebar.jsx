@@ -5,6 +5,8 @@ import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+import Button from '@mui/material/Button'
+import AutorenewIcon from '@mui/icons-material/Autorenew'
 
 import useJobStore from '../store/job'
 import { leafPath } from '../utilities/paths'
@@ -26,6 +28,8 @@ const CompressionSidebar = ({
   darkSampleProgress,
   onDarkSampleOpen,
   darkNumSelected,
+  canRecreateBuckets,
+  recreateBuckets,
   actionName,
   canTrigger,
   onTriggerAction,
@@ -62,6 +66,8 @@ const CompressionSidebar = ({
   totalImages += compressionBuckets.medium?.images?.length || 0
   totalImages += compressionBuckets.large?.images?.length || 0
 
+  const jobIdDark = useJobStore((state) => state.jobIdDark)
+  const triggerDarkImagesIdentify = useJobStore((state) => state.triggerDarkImagesIdentify)
   const colorCorrectApplied = useJobStore((state) => state.colorCorrectApplied)
   const setColorCorrectApplied = useJobStore((state) => state.setColorCorrectApplied)
 
@@ -174,32 +180,43 @@ const CompressionSidebar = ({
 
           <Box>
             <Box sx={{ fontSize: '20px' }}>Dark Image Correction</Box>
-            <Box
-              sx={{
-                fontSize: '14px',
-                lineHeight: '14px',
-                fontWeight: 300,
-                color: 'text.secondary',
-              }}
-            >
-              {darkNumStatus === STATUSES.COMPLETED ? (
-                <>
-                  Found{' '}
-                  <Box component="span" sx={{ color: 'text.primary' }}>
-                    {darkNum} dark images
+            {jobIdDark == null ? (
+              <Button
+                color="secondary"
+                variant="outlined"
+                sx={{ textTransform: 'none', boxShadow: 'none' }}
+                onClick={triggerDarkImagesIdentify}
+              >
+                Check for Dark Images
+              </Button>
+            ) : (
+              <Box
+                sx={{
+                  fontSize: '14px',
+                  lineHeight: '14px',
+                  fontWeight: 300,
+                  color: 'text.secondary',
+                }}
+              >
+                {darkNumStatus === STATUSES.COMPLETED ? (
+                  <>
+                    Found{' '}
+                    <Box component="span" sx={{ color: 'text.primary' }}>
+                      {darkNum} dark images
+                    </Box>
+                  </>
+                ) : (
+                  <Box component="span" sx={{ fontStyle: 'italic' }}>
+                    Identifying dark images...
                   </Box>
-                </>
-              ) : (
-                <Box component="span" sx={{ fontStyle: 'italic' }}>
-                  Identifying dark images...
-                </Box>
-              )}
-              {darkNumStatus !== STATUSES.COMPLETED && (
-                <Box sx={{ marginTop: '2px' }}>
-                  checked {darkNumProgress} of {totalImages} images
-                </Box>
-              )}
-            </Box>
+                )}
+                {darkNumStatus !== STATUSES.COMPLETED && (
+                  <Box sx={{ marginTop: '2px' }}>
+                    checked {darkNumProgress} of {totalImages} images
+                  </Box>
+                )}
+              </Box>
+            )}
 
             {darkNum > 0 && (
               <RadioGroup
@@ -210,26 +227,32 @@ const CompressionSidebar = ({
                 <FormControlLabel
                   label="No Correction"
                   value="false"
-                  control={
-                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
-                  }
+                  control={<Radio size="small" sx={{ position: 'absolute', padding: '4px' }} />}
                   sx={{
                     color: `${colorCorrectApplied}` === 'false' ? 'text.primary' : 'text.secondary',
                     '&:hover': {
                       color: 'text.primary',
                     },
                   }}
+                  slotProps={{
+                    typography: {
+                      sx: (theme) => ({ marginLeft: `calc(${theme.spacing(2)} + 4px)` }),
+                    },
+                  }}
                 />
                 <FormControlLabel
                   label="Auto Exposure"
                   value="true"
-                  control={
-                    <Radio size="small" sx={{ marginTop: -1, marginBottom: -1, padding: '4px' }} />
-                  }
+                  control={<Radio size="small" sx={{ position: 'absolute', padding: '4px' }} />}
                   sx={{
                     color: `${colorCorrectApplied}` === 'true' ? 'text.primary' : 'text.secondary',
                     '&:hover': {
                       color: 'text.primary',
+                    },
+                  }}
+                  slotProps={{
+                    typography: {
+                      sx: (theme) => ({ marginLeft: `calc(${theme.spacing(2)} + 4px)` }),
                     },
                   }}
                 />
@@ -269,6 +292,18 @@ const CompressionSidebar = ({
               </RadioGroup>
             )}
           </Box>
+
+          {canRecreateBuckets && (
+            <Button
+              color="secondary"
+              sx={{ textTransform: 'none', boxShadow: 'none', alignSelf: 'flex-start' }}
+              startIcon={<AutorenewIcon />}
+              onClick={recreateBuckets}
+              disabled={!canRecreateBuckets}
+            >
+              Recreate Bucket Examples with Bright Images
+            </Button>
+          )}
         </Box>
       )}
 

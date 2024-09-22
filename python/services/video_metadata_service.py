@@ -41,13 +41,13 @@ class VideoMetadataService(MetadataService):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         metadata_json, error = process.communicate()
         if error:
-            print_err.error("ffprobe error: %s", error)
+            print_err(f"ffprobe stderr: {error}")
 
         metadata_obj = json.loads(metadata_json)
         try:
             metadata = metadata_obj["streams"][0]
         except KeyError:
-            print_err("No FFprobe metadata was found at path %s", video_path)
+            print_err(f"No FFprobe metadata was found at path {video_path}")
             return None
 
         frame_rate = self.parse_frame_rate_str(metadata.get("r_frame_rate"))

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { VariableSizeList as VirtualList } from 'react-window'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import IconButton from '@mui/material/IconButton'
@@ -41,6 +42,41 @@ const textColorForProgressMessage = (tier, currentMessage) => {
   return 'text.primary'
 }
 
+const RowItem = ({ data, index, style }) => {
+  const { items } = data
+  const task = items[index]
+
+  return (
+    <Box
+      style={style}
+      sx={(theme) => ({
+        fontSize: '12px',
+        fontFamily: theme.typography.monoFamily,
+        paddingRight: 1,
+      })}
+    >
+      <Box sx={{ display: 'flex' }}>
+        <Box sx={{ width: '80px' }}>Task #{index + 1}</Box>
+        <Box sx={{ color: textColorForStatus(task.status) }}>{titleCase(task.status)}</Box>
+        <Box sx={{ flexGrow: 1 }} />
+        <Box>{task.progress}%</Box>
+      </Box>
+      {[STATUSES.INCOMPLETE, STATUSES.ERROR].includes(task.status) && (
+        <Box sx={{ marginLeft: 1 }}>
+          <Box sx={{ color: textColorForProgressMessage(0, task.progress_message) }}>
+            Transcoding
+          </Box>
+          <Box sx={{ color: textColorForProgressMessage(1, task.progress_message) }}>Copying</Box>
+          <Box sx={{ color: textColorForProgressMessage(2, task.progress_message) }}>
+            Data Entry
+          </Box>
+        </Box>
+      )}
+      <Box sx={{ color: 'error.main' }}>{task.error_message}</Box>
+    </Box>
+  )
+}
+
 const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
   const [top, setTop] = useState(0)
   const [maxHeight, setMaxHeight] = useState(0)
@@ -61,6 +97,12 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
     setDelayedSlide(false)
     setTimeout(onClose, 0)
   }
+
+  const virtualListRef = useRef(null)
+  const taskStatuses = tasks.map((task) => task.status)
+  useEffect(() => {
+    virtualListRef.current?.resetAfterIndex(0)
+  }, [JSON.stringify(taskStatuses)])
 
   return (
     <Dialog
@@ -107,33 +149,25 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
         {jobName.split(' — ')[1]}
       </Box>
 
-      {tasks.map((task, index) => (
-        <Box
-          key={task.id}
-          sx={(theme) => ({ fontSize: '12px', fontFamily: theme.typography.monoFamily })}
-        >
-          <Box sx={{ display: 'flex' }}>
-            <Box sx={{ width: '80px' }}>Task #{index + 1}</Box>
-            <Box sx={{ color: textColorForStatus(task.status) }}>{titleCase(task.status)}</Box>
-            <Box sx={{ flexGrow: 1 }} />
-            <Box>{task.progress}%</Box>
-          </Box>
-          {[STATUSES.INCOMPLETE, STATUSES.ERROR].includes(task.status) && (
-            <Box sx={{ marginLeft: 1 }}>
-              <Box sx={{ color: textColorForProgressMessage(0, task.progress_message) }}>
-                Transcoding
-              </Box>
-              <Box sx={{ color: textColorForProgressMessage(1, task.progress_message) }}>
-                Copying
-              </Box>
-              <Box sx={{ color: textColorForProgressMessage(2, task.progress_message) }}>
-                Data Entry
-              </Box>
-            </Box>
-          )}
-          <Box sx={{ color: 'error.main' }}>{task.error_message}</Box>
-        </Box>
-      ))}
+      <VirtualList
+        ref={virtualListRef}
+        itemData={{
+          items: tasks,
+        }}
+        itemCount={tasks.length}
+        overscanCount={10}
+        width="100%"
+        height={maxHeight}
+        itemSize={(index) => {
+          const task = tasks[index]
+          if ([STATUSES.INCOMPLETE, STATUSES.ERROR].includes(task.status)) {
+            return 20 * 4
+          }
+          return 20 * 1
+        }}
+      >
+        {RowItem}
+      </VirtualList>
     </Dialog>
   )
 }

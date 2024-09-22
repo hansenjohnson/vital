@@ -2,23 +2,8 @@ import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 
 import { baseURL } from '../api/config'
-import { nameNoExt, leafPath } from '../utilities/paths'
 import { IMAGE_QUALITIES } from '../constants/fileTypes'
 import CompressionOption from './CompressionOption'
-
-const samplesThatMatchBucket = (sampleImages, bucketFilename) => {
-  if (!bucketFilename) return []
-  return sampleImages.filter((sample) => {
-    const expectedSuffix = `_${sample.jpeg_quality}`
-    const sampleBaseNameWithQuality = nameNoExt(sample.file_name)
-    const sampleBaseName = sampleBaseNameWithQuality
-      .split(expectedSuffix)
-      .slice(0, -1)
-      .join(expectedSuffix)
-    const bucketBaseName = nameNoExt(leafPath(bucketFilename))
-    return sampleBaseName === bucketBaseName
-  })
-}
 
 const CompressionBucketsList = ({
   compressionBuckets,
@@ -27,9 +12,9 @@ const CompressionBucketsList = ({
   onImagesLoaded,
 }) => {
   const { small, medium, large } = compressionBuckets
-  const smallImages = samplesThatMatchBucket(sampleImages, small?.images?.[0])
-  const mediumImages = samplesThatMatchBucket(sampleImages, medium?.images?.[0])
-  const largeImages = samplesThatMatchBucket(sampleImages, large?.images?.[0])
+  const smallImages = sampleImages.filter((sample) => sample.bucket_name === 'small')
+  const mediumImages = sampleImages.filter((sample) => sample.bucket_name === 'medium')
+  const largeImages = sampleImages.filter((sample) => sample.bucket_name === 'large')
 
   const [imagesToLoad, setImagesToLoad] = useState({})
   useEffect(() => {

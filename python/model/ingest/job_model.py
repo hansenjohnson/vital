@@ -11,6 +11,7 @@ class JobStatus(Enum):
     COMPLETED = "COMPLETED"
     QUEUED = "QUEUED"
     INCOMPLETE = "INCOMPLETE"
+    ARCHIVED = "ARCHIVED"
 
 class JobType(Enum):
     METADATA = "METADATA"
@@ -50,7 +51,6 @@ class JobModel:
                         return cursor.__getattribute__(action)()
                     if attr:
                         return cursor.__getattribute__(attr)
-                    
 
     def serialize_dataclass(self, instance):
         return json.dumps(instance.__dict__)
@@ -96,8 +96,8 @@ class JobModel:
             base_query += " AND status = ?"
             params.append(JobStatus.COMPLETED.value)
         else:
-            base_query += " AND status != ?"
-            params.append(JobStatus.COMPLETED.value)
+            base_query += " AND status IN (?, ?)"
+            params.extend([JobStatus.QUEUED.value, JobStatus.INCOMPLETE.value])
 
         if current_execution_id:
             # uses IS NOT instead of != because NULL values are possible
@@ -156,22 +156,39 @@ class JobModel:
     def delete(self, job_id):
         self.with_cursor("DELETE FROM job WHERE id = ?", (job_id,))
         return job_id
-    
+
+    def archive(self, job_id):
+        self.with_cursor("UPDATE job SET status = ? WHERE id = ?", (JobStatus.ARCHIVED.value, job_id))
+
+    def get_old_jobs(self):
+        rows = self.with_cursor(
+            "SELECT * FROM job WHERE completed_date < DATE('now', '-10 days') AND status = ?",
+            (JobStatus.COMPLETED.value,),
+            action='fetchall',
+        )
+
+        jobs = []
+        for row in rows:
+            job = JobModel.transform_job_row(row)
+            jobs.append(job)
+
+        return jobs
+
     def update_report_data(self, job_id, incoming_report_data):
         stored_report_data = self.get_report_data(job_id)
         report_data = Report.merge_dataclasses(stored_report_data, incoming_report_data)
-    
+
         report_data_json = self.serialize_dataclass(report_data)
 
         self.with_cursor("UPDATE job set report_data = ? where id = ?", (report_data_json, job_id,))
-    
+
     def get_report_data(self, job_id):
          row = self.with_cursor(
             "SELECT report_data FROM job WHERE id = ?",
             (job_id,),
             action='fetchone')
          report_data_json = row[0]
-         
+
          report_data = self.deserialize_dataclass(report_data_json, Report)
          return report_data
 

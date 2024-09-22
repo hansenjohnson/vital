@@ -1,6 +1,5 @@
 import os
 import sys
-import tempfile
 import threading
 from typing import List
 
@@ -14,13 +13,15 @@ from model.ingest.job_model import JobType, JobStatus
 from settings.settings_service import SettingsService, SettingsEnum
 from data.task import TaskStatus
 
-from utils.prints import print_out, print_err
+from utils.prints import print_err
 from utils.transcode_snippets import auto_exposure_correct
 
 
 class ColorCorrectService:
 
-    DARK_IMAGE_THRESHOLD = 0.3
+    # Median grayscale value of an image to determine if it is dark
+    DARK_IMAGE_THRESHOLD = 0.10
+
     TEMP_DIRNAME = 'temp-dark'
 
     def __init__(self):
@@ -41,7 +42,6 @@ class ColorCorrectService:
         job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
             "source_dir": '',
             "media_type": MediaType.IMAGE.value,
-            "local_export_path": ''
         })
         for file_path in image_paths:
             self.task_service.create_task(job_id, TranscodeSettings(file_path=file_path))
@@ -59,9 +59,9 @@ class ColorCorrectService:
             except Exception as err:
                 # Even a single task error renders the whole job corrupt, so we catch
                 # this one error, push it to the job level, can cancel the job
-                print_err(f"Error identifying dark images: task {task.id} -- {err}")
-                self.job_service.set_error(job_id, str(err))
-                break
+                print_err(f"Error identifying dark images")
+                self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+                raise err
         self.job_service.set_job_status(job_id)
 
     def dark_identify_image(self, task_id):
@@ -90,7 +90,6 @@ class ColorCorrectService:
         job_id = self.job_service.create_job(JobType.COLOR_CORRECT, JobStatus.INCOMPLETE, {
                 "source_dir": '',
                 "media_type": MediaType.IMAGE.value,
-                "local_export_path": ''
             })
         for file_path in file_paths:
             self.create_color_corrected_task(job_id, file_path)
@@ -118,9 +117,9 @@ class ColorCorrectService:
             except Exception as err:
                 # Even a single task error renders the whole job corrupt, so we catch
                 # this one error, push it to the job level, can cancel the job
-                print_err(f"Error creating dark image sample: task {task.id} -- {err}")
-                self.job_service.set_error(job_id, str(err))
-                break
+                print_err(f"Error creating dark image sample")
+                self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+                raise err
         self.job_service.set_job_status(job_id)
 
     def run_one_color_correction(self, task_id, temp_dir):

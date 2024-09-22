@@ -64,7 +64,11 @@ class IngestService:
             else:
                 for file_path in files:
                     media_metadata = self.video_metadata_service.parse_metadata(file_path)
+                    if not media_metadata:
+                        continue
                     metadata_arr.append(media_metadata)
+                if len(metadata_arr) != len(files):
+                    raise ValueError(f'Could not parse all metadata. Found {len(files)} files but could only parse {len(metadata_arr)}.')
 
             validated_metadata = []
             for metadata in metadata_arr:
@@ -74,8 +78,9 @@ class IngestService:
 
             self.job_service.store_job_data(job_id, validated_metadata)
         except Exception as err:
-            print_err(f"Error parsing media: {err}")
-            self.job_service.set_error(job_id, str(err))
+            print_err(f"Error parsing media")
+            self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
+            raise err
 
 
     def get_files(self, source_dir, extensions):
@@ -120,7 +125,7 @@ class IngestService:
             'error': error,
         }
 
-    def generate_batch_rename_report(self, job_id, output_folder):
+    def export_report(self, job_id, output_folder):
         job_data = self.job_service.get_job_data(job_id)
         tasks = self.task_service.get_tasks_by_job_id(job_id)
         report_data = self.job_service.get_report_data(job_id)
@@ -163,7 +168,12 @@ class IngestService:
             incrementor += 1
             output_file = os.path.join(output_folder, f'{basename}_Ingest_Report_{incrementor}.csv')
         csv_df.to_csv(output_file, index=False)
-        return os.path.exists(output_file)
+
+        file_created_successfully = os.path.exists(output_file)
+        if file_created_successfully:
+            report_data.output_file = output_file
+            self.job_service.update_report_data(job_id, report_data)
+        return file_created_successfully
 
     @staticmethod
     def size_string(bytes):

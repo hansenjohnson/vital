@@ -7,7 +7,7 @@ import useJobStore from '../store/job'
 import useQueueStore from '../store/queue'
 import { isSaveable } from '../store/linkages'
 import ROUTES from '../constants/routes'
-import { TITLEBAR_HEIGHT } from '../constants/dimensions'
+import { TITLEBAR_HEIGHT, SIDEBAR_WIDTH } from '../constants/dimensions'
 import { TITLES } from '../constants/routes'
 import NavbarButton from '../components/NavbarButton'
 
@@ -117,7 +117,7 @@ const Navbar = ({ width }) => {
       <Box
         sx={{
           position: 'fixed',
-          width: `400px`,
+          width: `${SIDEBAR_WIDTH}px`,
           height: `${TITLEBAR_HEIGHT}px`,
           right: 0,
           backgroundColor: 'primary.dark',

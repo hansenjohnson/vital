@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Box from '@mui/material/Box'
 
 import useStore from '../store'
@@ -21,6 +21,7 @@ import {
   dumbClone,
 } from '../utilities/transformers'
 import { resolutionToTotalPixels } from '../utilities/numbers'
+import useWindowSize from '../hooks/useWindowSize'
 
 import BlankSlate from '../components/BlankSlate'
 import MetadataDisplayTable from '../components/MetadataDisplayTable'
@@ -157,6 +158,7 @@ const LinkageAnnotationPage = () => {
   const [darkImagePaths, setDarkImagePaths] = useState([])
   useEffect(() => {
     if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+    if (!jobIdDark) return
 
     setDarkNumStatus(STATUSES.LOADING)
     setDarkNumProgress(0)
@@ -189,6 +191,13 @@ const LinkageAnnotationPage = () => {
     intervalId = setInterval(checkForDarkNums, 1000)
     return () => clearInterval(intervalId)
   }, [phase, jobIdDark])
+
+  const triggerSampleImages = useJobStore((state) => state.triggerSampleImages)
+  const canRecreateBuckets =
+    jobIdDark != null && darkNumStatus === STATUSES.COMPLETED && darkImagePaths.length > 0
+  const recreateBuckets = () => {
+    triggerSampleImages(darkImagePaths)
+  }
 
   /* Poll for Dark Sample Image, handle statuses */
   const jobIdDarkSample = useJobStore((state) => state.jobIdDarkSample)
@@ -439,20 +448,45 @@ const LinkageAnnotationPage = () => {
     }
   }
 
+  /* Rendering Setup */
+  const metadataTablesContainerRef = useRef(null)
+  const { windowWidth, windowHeight } = useWindowSize()
+  const [hasMainHorizontalScroll, setHasMainHorizontalScroll] = useState(false)
+  const hasDataToDisplay = mediaGroupsFilteredAndIgnored.length > 0
+  useEffect(() => {
+    if (phase !== JOB_PHASES.PARSE) return
+    if (!hasDataToDisplay) return
+    const container = metadataTablesContainerRef?.current
+    if (!container) return
+    if (container.scrollWidth > container.clientWidth) {
+      setHasMainHorizontalScroll(true)
+    } else {
+      setHasMainHorizontalScroll(false)
+    }
+  }, [phase, hasDataToDisplay, windowWidth, windowHeight])
+
   /* Phase Handling Returns */
   if (phase === JOB_PHASES.PARSE) {
     let columns = [
-      { key: 'fileName', overwriteKey: 'newName', label: 'File Name', maxWidth: 200 },
+      {
+        key: 'fileName',
+        overwriteKey: 'newName',
+        label: 'File Name',
+        width: 150,
+        truncateTooltip: true,
+      },
       {
         key: 'extension',
         label: 'Type',
         align: 'right',
+        width: 60,
         transformer: (value) => value.toUpperCase(),
       },
       {
         key: 'resolution',
         label: 'Resolution',
         align: 'right',
+        width: 100,
         comparatorTransformer: resolutionToTotalPixels,
       },
     ]
@@ -463,12 +497,14 @@ const LinkageAnnotationPage = () => {
             key: 'frameRate',
             label: 'FPS',
             align: 'right',
+            width: 70,
             transformer: twoPrecisionStrNum,
           },
           {
             key: 'duration',
             label: 'Duration',
             align: 'right',
+            width: 90,
             transformer: secondsToDuration,
             comparatorTransformer: parseFloat,
           },
@@ -481,6 +517,7 @@ const LinkageAnnotationPage = () => {
           key: 'fileSize',
           label: 'File Size',
           align: 'right',
+          width: 80,
           transformer: bytesToSize,
         },
       ]
@@ -510,6 +547,7 @@ const LinkageAnnotationPage = () => {
           onTriggerAction={triggerActionAfterParse}
         />
         <Box
+          ref={metadataTablesContainerRef}
           sx={{
             flexGrow: 1,
             height: '100%',
@@ -529,7 +567,12 @@ const LinkageAnnotationPage = () => {
                   {group.subfolder}
                 </MetadataSubfolder>
               )}
-              <MetadataDisplayTable columns={columns} data={group.mediaList} />
+              <MetadataDisplayTable
+                columns={columns}
+                data={group.mediaList}
+                isSubfolder={group.subfolder !== ROOT_FOLDER}
+                hasMainHorizontalScroll={hasMainHorizontalScroll}
+              />
             </Box>
           ))}
         </Box>
@@ -549,10 +592,13 @@ const LinkageAnnotationPage = () => {
           darkSampleProgress={darkSampleProgress}
           onDarkSampleOpen={() => setDarkSampleDialog(true)}
           darkNumSelected={Object.keys(darkSampleSelection).length}
+          canRecreateBuckets={canRecreateBuckets}
+          recreateBuckets={recreateBuckets}
           actionName="Add Job to Queue"
           canTrigger={
-            darkNumStatus === STATUSES.COMPLETED &&
-            (darkImagePaths.length > 0 ? darkSampleStatus === STATUSES.COMPLETED : true)
+            jobIdDark === null ||
+            (darkNumStatus === STATUSES.COMPLETED &&
+              (darkImagePaths.length > 0 ? darkSampleStatus === STATUSES.COMPLETED : true))
           }
           onTriggerAction={executeJob}
         />

@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import ScheduleIcon from '@mui/icons-material/Schedule'
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep'
 
 import useStore from '../store'
 import useQueueStore, { canStart } from '../store/queue'
@@ -81,6 +82,24 @@ const JobQueue = () => {
   const canQueueStart = useQueueStore(canStart)
   const canLoadMore = completeJobs.length !== 0 && completeJobs.length % 10 === 0
 
+  const setConfirmationDialogOpen = useStore((state) => state.setConfirmationDialogOpen)
+  const setConfirmationDialogProps = useStore((state) => state.setConfirmationDialogProps)
+  const cleanUpJobs = () => {
+    setConfirmationDialogProps({
+      title: 'Clean Up Jobs',
+      body: `This action will:
+      Archive all jobs for which a Report CSV has been exported.
+      Archive all jobs older than 10 days.
+
+      Are you sure you want to do this?`,
+      onConfirm: async () => {
+        await ingestAPI.cleanUpJobs()
+        await fetchJobsData()
+      },
+    })
+    setConfirmationDialogOpen(true)
+  }
+
   /* Task Details Data Logic */
   const [taskDetailsJobId, setTaskDetailsJobId] = useState(null)
   const taskDetails = useMemo(() => {
@@ -104,6 +123,7 @@ const JobQueue = () => {
     const foundJob = completeJobs.find((job) => job.id === jobReportId)
     if (!foundJob) return null
     return {
+      id: foundJob.id,
       name: jobNameFromData(foundJob.data, foundJob.tasks.length),
       data: JSON.parse(foundJob?.report_data || '{}'),
       completedAt: foundJob?.completed_date,
@@ -118,9 +138,10 @@ const JobQueue = () => {
   const triggerReportExport = async () => {
     const filePath = await window.api.selectFile(FILE_TYPES.FOLDER)
     if (!filePath) return
-    const result = await ingestAPI.exportBatchRenameCSV(jobReportId, filePath)
+    const result = await ingestAPI.exportReportCSV(jobReportId, filePath)
     return result
   }
+  const reloadOneCompletedJob = useQueueStore((state) => state.reloadOneCompletedJob)
 
   /* General effect, keep last */
   useEffect(() => {
@@ -196,6 +217,7 @@ const JobQueue = () => {
       PaperProps={{
         ref: queueDialogRef,
         sx: {
+          minHeight: '60vh',
           right: slideQueueOver ? '250px' : '0px',
           transition: 'right 0.3s ease',
           position: 'relative',
@@ -250,14 +272,25 @@ const JobQueue = () => {
           )
         })}
 
-        <Typography variant="h6" mt={2}>
+        <Typography variant="h6" mt={2} sx={{ display: 'flex', justifyContent: 'space-between' }}>
           Complete Jobs
+          <Button
+            color="warning"
+            sx={{ textTransform: 'none' }}
+            endIcon={<DeleteSweepIcon />}
+            onClick={cleanUpJobs}
+            disabled={completeJobs.length === 0}
+          >
+            Clean Up Jobs
+          </Button>
         </Typography>
         {completeJobs.length === 0 && <Box sx={{ fontStyle: 'italic' }}>None</Box>}
 
         <TransitionGroup>
           {completeJobs.map((job, index) => {
-            const { id, status, completed_date, data } = job
+            const { id, status, completed_date, data, report_data } = job
+            const report = JSON.parse(report_data || '{}')
+            const exportedOnce = Boolean(report?.output_file)
             return (
               <Collapse key={id}>
                 <JobQueueItem
@@ -266,6 +299,7 @@ const JobQueue = () => {
                   name={jobNameFromData(data, job.tasks.length)}
                   info={{
                     completedDate: completed_date,
+                    exportedOnce,
                   }}
                   actions={{
                     toggleJobReport,
@@ -296,10 +330,12 @@ const JobQueue = () => {
           open={jobReportOpen}
           onClose={() => setJobReportId(null)}
           parent={queueDialogRef.current}
+          jobId={jobReport?.id || null}
           jobName={jobReport?.name || ''}
           completedAt={jobReport?.completedAt || null}
           data={jobReport?.data || {}}
           onExport={triggerReportExport}
+          reloadJob={reloadOneCompletedJob}
         />
       </DialogContent>
     </Dialog>
