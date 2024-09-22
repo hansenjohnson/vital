@@ -157,6 +157,7 @@ const LinkageAnnotationPage = () => {
   const [darkImagePaths, setDarkImagePaths] = useState([])
   useEffect(() => {
     if (phase !== JOB_PHASES.CHOOSE_OPTIONS) return
+    if (!jobIdDark) return
 
     setDarkNumStatus(STATUSES.LOADING)
     setDarkNumProgress(0)

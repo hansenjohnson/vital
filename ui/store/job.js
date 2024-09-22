@@ -62,7 +62,6 @@ const useJobStore = create((set, get) => ({
       get().triggerParse()
     } else if (nextPhase === JOB_PHASES.CHOOSE_OPTIONS) {
       get().triggerSampleImages()
-      get().triggerDarkImagesIdentify()
     } else if (nextPhase === JOB_PHASES.EXECUTE) {
       get().triggerExecute(jobIdDarkSample)
     }
