@@ -217,6 +217,7 @@ const JobQueue = () => {
       PaperProps={{
         ref: queueDialogRef,
         sx: {
+          minHeight: '60vh',
           right: slideQueueOver ? '250px' : '0px',
           transition: 'right 0.3s ease',
           position: 'relative',
