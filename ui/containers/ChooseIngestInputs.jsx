@@ -15,6 +15,7 @@ import { JOB_MODES } from '../constants/routes'
 import useJobStore from '../store/job'
 import useSettingsStore from '../store/settings'
 import useWindowSize from '../hooks/useWindowSize'
+import useLocalStorage from '../hooks/useLocalStorage'
 import FilePathSettingInput from '../components/FilePathSettingInput'
 import StyledButton from '../components/StyledButton'
 import IngestInputsLineDrawing, {
@@ -71,8 +72,11 @@ const ChooseIngestInputs = () => {
 
   const settings = useSettingsStore((state) => state.settings)
 
-  const localOutputFolder = useJobStore((state) => state.localOutputFolder)
-  const setLocalOutputFolder = useJobStore((state) => state.setLocalOutputFolder)
+  const setLocalOutputFolderInStore = useJobStore((state) => state.setLocalOutputFolder)
+  const [localOutputFolder, setLocalOutputFolder] = useLocalStorage('localOutputFolder', '')
+  useEffect(() => {
+    setLocalOutputFolderInStore(localOutputFolder)
+  }, [localOutputFolder])
 
   const containerRef = useRef(null)
   const windowSize = useWindowSize()
