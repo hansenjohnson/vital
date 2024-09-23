@@ -26,14 +26,20 @@ from data.task import TaskStatus
 from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel
 
-from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path, make_one_dir_ok_exists, get_size_of_folder_contents_recursively
+from utils.file_path import (
+    extract_catalog_folder_info,
+    construct_catalog_folder_path,
+    make_one_dir_ok_exists,
+    get_size_of_folder_contents_recursively,
+    copy_file_with_attempts,
+    RETRY_DELAY_SEC
+)
 from utils.prints import print_out, print_err
 from utils.numbers import find_closest
 from utils.death import add_terminator, remove_last_terminator
 from utils.constants import image_extensions
 from utils.transcode_snippets import auto_exposure_correct
 
-RETRY_DELAY_SEC = 1
 
 class TranscodeService:
 
@@ -538,14 +544,11 @@ class TranscodeService:
         self.task_service.set_task_progress(transcode_task_id, 66)
 
         # Official Outputs
-        print_out(f'Copying {file_path} into {original_dir_path}')
-        shutil.copy(file_path, original_dir_path)
+        copy_file_with_attempts(file_path, original_dir_path)
         self.task_service.set_task_progress(transcode_task_id, 85)
-        print_out(f'Copying {optimized_temp_path} into {optimized_dir_path}')
-        shutil.copy(optimized_temp_path, optimized_dir_path)
+        copy_file_with_attempts(optimized_temp_path, optimized_dir_path)
         self.task_service.set_task_progress(transcode_task_id, 99)
-        print_out(f'Copying {optimized_temp_path} into {local_dir_path}')
-        shutil.copy(optimized_temp_path, local_dir_path)
+        copy_file_with_attempts(optimized_temp_path, local_dir_path)
 
 
     def run_transcode_commands(self, temp_dir, transcode_settings):

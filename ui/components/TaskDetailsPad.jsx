@@ -160,8 +160,11 @@ const TaskDetailsPad = ({ open, onClose, parent, jobName, tasks }) => {
         height={maxHeight}
         itemSize={(index) => {
           const task = tasks[index]
-          if ([STATUSES.INCOMPLETE, STATUSES.ERROR].includes(task.status)) {
-            return 20 * 4
+          if (task.status === STATUSES.INCOMPLETE) {
+            return 20 * 1 + 20 * 3
+          }
+          if (task.error_message?.length > 0) {
+            return 20 * 1 + 20 * 3 + 20 * 8
           }
           return 20 * 1
         }}

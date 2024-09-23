@@ -1,9 +1,12 @@
 import math
 import os
+import shutil
 import re
+import time
 from datetime import datetime
 
 from settings.settings_service import SettingsService
+from utils.prints import print_out, print_err
 
 from model.association.folder_model import FolderModel
 from model.association.video_model import VideoModel
@@ -11,6 +14,8 @@ from model.association.video_model import VideoModel
 settings_service = SettingsService()
 folder_model = FolderModel()
 video_model = VideoModel()
+
+RETRY_DELAY_SEC = 1
 
 
 def catalog_folder_subdir(year, month, day, observer_code):
@@ -78,3 +83,18 @@ def get_size_of_folder_contents_recursively(folder_path):
     except Exception:
         return 1 # prevent division by zero
     return total_size
+
+def copy_file_with_attempts(source_file, dest_folder, num_attempts=3):
+    print_out(f'Copying {source_file} into {dest_folder}')
+    for i in range(num_attempts):
+        try:
+            if (i + 1) == num_attempts:
+                # On final attempt, try just `copy` in case `copy2` is causing the issue
+                shutil.copy(source_file, dest_folder)
+            else:
+                shutil.copy2(source_file, dest_folder)
+            return
+        except Exception as e:
+            print_err(f"Attempt {i + 1} failed: {e}")
+            time.sleep(RETRY_DELAY_SEC)
+    raise Exception(f"Failed to copy file from {source_file} to {dest_folder} after {num_attempts} attempts")
