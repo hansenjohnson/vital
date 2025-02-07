@@ -174,6 +174,7 @@ image_extensions = [
     '.svg',    # Scalable Vector Graphics (RSVG 2.40.20)
     '.svgz',   # Compressed Scalable Vector Graphics (RSVG 2.40.20)
     '.tga',    # Truevision Targa image
+    '.tif',    # Tagged Image File Format (LIBTIFF, Version 4.6.0)
     '.tiff',   # Tagged Image File Format (LIBTIFF, Version 4.6.0)
     '.tiff64', # Tagged Image File Format (64-bit) (LIBTIFF, Version 4.6.0)
     '.tim',    # PSX TIM
