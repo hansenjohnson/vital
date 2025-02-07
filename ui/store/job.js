@@ -308,7 +308,6 @@ const useJobStore = create((set, get) => ({
 
 const canParse = (state) => {
   const { sourceFolder, sourceFolderValid, observerCode, jobMode, localOutputFolder } = state
-  console.log(sourceFolder, sourceFolderValid, observerCode, jobMode, localOutputFolder)
   if (!sourceFolder) return false
   if (!sourceFolderValid) return false
   if (!observerCode) return false
