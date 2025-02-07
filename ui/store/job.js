@@ -96,7 +96,14 @@ const initialState = {
 
 const useJobStore = create((set, get) => ({
   ...initialState,
-  reset: () => set({ ...initialState, observers: get().observers }),
+  reset: () =>
+    set({
+      ...initialState,
+      observers: get().observers, // no need to reload these
+      // these are tracked in HTML Local Storage so reseting it would confuse application logic
+      localOutputFolder: get().localOutputFolder,
+      reportDir: get().reportDir,
+    }),
 
   setPhase: async (nextPhase) => {
     const { jobIdDarkSample } = get()

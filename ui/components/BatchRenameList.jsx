@@ -94,7 +94,6 @@ const BatchRenameList = ({
                 gap: 0.5,
               })}
             >
-              {ruleset.id.slice(ruleset.id.length - 6)}
               <InfoOutlinedIcon sx={{ fontSize: '16px' }} />
             </Box>
           </StyledTooltip>
