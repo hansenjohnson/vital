@@ -339,7 +339,15 @@ class TranscodeService:
                                 progress_4_transfer
                             )
                         else:
-                            self.transcode_image(optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, transcode_job_id, temp_dir)
+                            self.transcode_image(
+                                source_dir,
+                                optimized_dir_path,
+                                original_dir_path,
+                                local_dir_path,
+                                transcode_task_id,
+                                transcode_job_id,
+                                temp_dir
+                            )
 
                         self.task_service.set_task_progress(transcode_task_id, 100)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.COMPLETED)
@@ -597,7 +605,7 @@ class TranscodeService:
         return line_callback
 
 
-    def transcode_image(self, optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, transcode_job_id, temp_dir):
+    def transcode_image(self, source_dir, optimized_dir_path, original_dir_path, local_dir_path, transcode_task_id, transcode_job_id, temp_dir):
         transcode_settings = self.task_service.get_transcode_settings(transcode_task_id)
         job_data = self.job_service.get_job_data(transcode_job_id)
 
@@ -611,15 +619,30 @@ class TranscodeService:
             transcode_settings.needs_metadata = False
             self.task_service.set_task_settings(transcode_task_id, transcode_settings)
 
+        # Prepare filepath variables
+        original_subdirs = transcode_settings.file_path.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+        full_optimized_dir = os.path.join(optimized_dir_path, *original_subdirs)
+        full_original_dir = os.path.join(original_dir_path, *original_subdirs)
+        full_local_dir = os.path.join(local_dir_path, *original_subdirs)
+
+        for jindex, _ in enumerate(original_subdirs):
+            # make each leaf dir up to the final leaf. This prevents accidentally making the base dirs if they don't exist
+            # already for access or non-existence reasons
+            subdirs_to_this_point = original_subdirs[:jindex + 1]
+            make_one_dir_ok_exists(os.path.join(optimized_dir_path, *subdirs_to_this_point))
+            make_one_dir_ok_exists(os.path.join(original_dir_path, *subdirs_to_this_point))
+            make_one_dir_ok_exists(os.path.join(local_dir_path, *subdirs_to_this_point))
+
+        # Perform Image Transcode
         file_path, optimized_temp_path = self.run_transcode_commands(temp_dir, transcode_settings)
         self.task_service.set_task_progress(transcode_task_id, 66)
 
         # Official Outputs
-        copy_file_with_attempts(file_path, original_dir_path)
+        copy_file_with_attempts(file_path, full_original_dir)
         self.task_service.set_task_progress(transcode_task_id, 85)
-        copy_file_with_attempts(optimized_temp_path, optimized_dir_path)
+        copy_file_with_attempts(optimized_temp_path, full_optimized_dir)
         self.task_service.set_task_progress(transcode_task_id, 99)
-        copy_file_with_attempts(optimized_temp_path, local_dir_path)
+        copy_file_with_attempts(optimized_temp_path, full_local_dir)
 
 
     def run_transcode_commands(self, temp_dir, transcode_settings):
@@ -632,6 +655,9 @@ class TranscodeService:
         file_name = os.path.basename(file_name)
         output_name = transcode_settings.new_name or file_name
         optimized_temp_path = os.path.join(temp_dir, f'{output_name}.jpg')
+
+        if os.path.exists(optimized_temp_path):
+            os.remove(optimized_temp_path)
 
         if file_extension.lower() not in image_extensions:
             raise ValueError(f'Unsupported image file type: {file_extension}')

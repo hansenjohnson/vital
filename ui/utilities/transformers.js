@@ -183,7 +183,6 @@ export const groupMediaMetadataBySubfolder = (sourceFolder, metadata) => {
 
   const statefulGrouping = [...grouped.entries()]
     .map(([subfolder, mediaList]) => {
-      // TODO: make these image/video agnostic
       const hasPathError = mediaList.some((m) => m.errors.includes('MEDIA_PATH_ERROR'))
       const hasPathWarning = mediaList.some((m) => m.warnings.includes('MEDIA_PATH_WARNING'))
 
