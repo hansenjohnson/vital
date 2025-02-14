@@ -36,7 +36,7 @@ class ValidatorService:
         if not self.validate_media_date(source_dir, media_metadata):
             validation_status.warnings.append(self.INCORRECT_CREATED_TIME)
 
-        validate_path = self.validate_path(source_dir, media_metadata.file_path, media_type)
+        validate_path = self.validate_path(source_dir, media_metadata.file_path)
 
         if validate_path == self.MEDIA_PATH_WARNING:
             validation_status.warnings.append(self.MEDIA_PATH_WARNING)
@@ -81,13 +81,12 @@ class ValidatorService:
         )
 
 
-    def validate_path(self, source_dir, media_path, media_type):
+    def validate_path(self, source_dir, media_path):
         if self.is_direct_parent(source_dir, media_path):
             return self.VALID
 
         if self.is_second_descendant(source_dir, media_path):
-            if media_type == MediaType.VIDEO:
-                return self.MEDIA_PATH_WARNING
+            return self.MEDIA_PATH_WARNING
 
         return self.MEDIA_PATH_ERROR
 
@@ -112,17 +111,19 @@ class ValidatorService:
         original_file_name = os.path.splitext(os.path.basename(original_file_path))[0]
         output_file_name = new_name or original_file_name
 
+        settings_base_folder = SettingsEnum.BASE_FOLDER_OF_VIDEOS.value \
+            if media_type == MediaType.VIDEO \
+            else SettingsEnum.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value
+        optimized_base_dir = self.settings_service.get_setting(settings_base_folder)
+        optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
+        original_subdirs = original_file_path.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
+
         if media_type == MediaType.VIDEO:
-            optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_VIDEOS.value)
-            optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
-            original_subdirs = original_file_path.replace(source_dir, '').lstrip(os.path.sep).split(os.path.sep)[:-1]
             expected_final_dir = os.path.join(optimized_dir_path, *original_subdirs, output_file_name)
             return expected_final_dir
 
-        # MediaType.IMAGE
-        optimized_base_dir = self.settings_service.get_setting(SettingsEnum.BASE_FOLDER_OF_OPTIMIZED_IMAGES.value)
-        optimized_dir_path = construct_catalog_folder_path(optimized_base_dir, *catalog_folder_info)
-        expected_final_file_path = os.path.join(optimized_dir_path, f'{output_file_name}.jpg')
+        # otherwise we have MediaType.IMAGE
+        expected_final_file_path = os.path.join(optimized_dir_path, *original_subdirs, f'{output_file_name}.jpg')
         return expected_final_file_path
 
     def validate_path_lengths(self, source_dir, observer_code, original_file_path, media_type, new_name=None):
