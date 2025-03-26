@@ -66,11 +66,11 @@ class IngestService:
             else:
                 for file_path in files:
                     media_metadata = self.video_metadata_service.parse_metadata(file_path)
-                    if not media_metadata:
-                        continue
                     metadata_arr.append(media_metadata)
-                if len(metadata_arr) != len(files):
-                    raise ValueError(f'Could not parse all metadata. Found {len(files)} files but could only parse {len(metadata_arr)}.')
+
+            # Theoretically this case should never happen since we try to fill the array with default-metadata for problematic files
+            if len(metadata_arr) != len(files):
+                raise ValueError(f'Could not parse all metadata. Found {len(files)} files but could only parse {len(metadata_arr)}.')
 
             validated_metadata = []
             for metadata in metadata_arr:

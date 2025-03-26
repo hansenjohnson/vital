@@ -8,6 +8,8 @@ from settings.settings_service import SettingsService, SettingsEnum
 from utils.file_path import extract_catalog_folder_info, construct_catalog_folder_path
 
 class ValidatorService:
+    FLAWED_FILE = 'FLAWED_FILE'
+
     LENGTH_ERROR = 'LENGTH_ERROR'
     WHITESPACE_ERROR = 'WHITESPACE_ERROR'
     MEDIA_PATH_WARNING = 'MEDIA_PATH_WARNING'
@@ -26,6 +28,10 @@ class ValidatorService:
 
     def validate_media(self, source_dir, observer_code, media_metadata, media_type):
         validation_status = ValidationStatus()
+
+        if media_metadata.flawed:
+            validation_status.errors.append(self.FLAWED_FILE)
+            return validation_status
 
         if not self.validate_length(media_metadata.file_path):
             validation_status.errors.append(self.LENGTH_ERROR)
