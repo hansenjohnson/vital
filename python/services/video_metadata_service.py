@@ -43,32 +43,43 @@ class VideoMetadataService(MetadataService):
         if error:
             print_err(f"ffprobe stderr: {error}")
 
-        metadata_obj = json.loads(metadata_json)
+        metadata_obj = MediaMetadata(
+            file_name=os.path.basename(video_path),
+            file_path=video_path,
+            size=os.path.getsize(video_path),
+            created_date=os.path.getctime(video_path),
+            modified_date=os.path.getmtime(video_path),
+            flawed=True
+        )
+
+        metadata_all = json.loads(metadata_json)
         try:
-            metadata = metadata_obj["streams"][0]
+            metadata = metadata_all["streams"][0]
         except KeyError:
             print_err(f"No FFprobe metadata was found at path {video_path}")
-            return None
+            return metadata_obj
+
+        sanity_check = [metadata.get('width', None), metadata.get('height', None), metadata.get('duration', None)]
+        if all(sanity_check) == False:
+            print_err(f"No FFprobe metadata was found at path {video_path}")
+            return metadata_obj
 
         frame_rate = self.parse_frame_rate_str(metadata.get("r_frame_rate"))
         num_frames = self.calculate_num_frames(metadata, frame_rate)
         internal_date = metadata.get('tags', {}).get('creation_time')
         if internal_date:
             internal_date = datetime.fromisoformat(internal_date).timestamp()
-        return MediaMetadata(
-            file_name=os.path.basename(video_path),
-            file_path=video_path,
-            width=metadata['width'],
-            height=metadata['height'],
-            duration=metadata['duration'],
-            num_frames=num_frames,
-            frame_rate=frame_rate,
-            size=os.path.getsize(video_path),
-            created_date=os.path.getctime(video_path),
-            modified_date=os.path.getmtime(video_path),
-            original_date=internal_date,
-            validation_status=None
-        )
+
+        metadata_obj.flawed = False
+        metadata_obj.width = metadata['width']
+        metadata_obj.height = metadata['height']
+        metadata_obj.duration = metadata['duration']
+        metadata_obj.num_frames = num_frames
+        metadata_obj.frame_rate = frame_rate
+        metadata_obj.original_date = internal_date
+        metadata_obj.validation_status = None
+
+        return metadata_obj
 
     def parse_frame_rate_str(self, frame_rate_str):
         if frame_rate_str:

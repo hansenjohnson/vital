@@ -2,11 +2,13 @@ import sys
 
 
 def print_out(*args, **kwargs):
-    print(*args, flush=True, **kwargs)
+    safe_str = ' '.join([str(arg) for arg in args]).encode("utf-8")
+    print(safe_str, flush=True, **kwargs)
 
 
 def print_err(*args, **kwargs):
-    print(*args, file=sys.stderr, flush=True, **kwargs)
+    safe_str = ' '.join([str(arg) for arg in args]).encode("utf-8")
+    print(safe_str, file=sys.stderr, flush=True, **kwargs)
 
 class retry_logger:
     @staticmethod

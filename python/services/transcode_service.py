@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import time
 import threading
+import traceback
 from subprocess import PIPE
 from typing import List
 
@@ -51,11 +52,13 @@ class TranscodeService:
             2160: [20_000,  6_000, 2_000, 400],
             1080: [        10_000, 2_000, 400],
             540:  [                3_000, 400],
+            270:  [                2_000, 400],
         },
         60: {
             2160: [40_000, 12_000, 4_000, 800],
             1080: [        20_000, 4_000, 800],
             540:  [                6_000, 800],
+            270:  [                4_000, 800],
         },
     }
     PROGRESS_RATIOS = [12, 4, 2, 1]
@@ -360,11 +363,13 @@ class TranscodeService:
                         self.job_service.set_error(transcode_job_id, JobErrors.FILE_NOT_FOUND)
                         time.sleep(RETRY_DELAY_SEC)
 
-                    except Exception as e:
-                        print_err(str(e))
+                    except Exception as err:
+                        print_err(f'Transcode Failure: {err.__class__.__name__} {err}')
+                        traceback.print_tb(err.__traceback__)
+                        print_err('') # to flush the buffer
                         self.task_service.set_task_progress(transcode_task_id, 0)
                         self.task_service.set_task_status(transcode_task_id, TaskStatus.ERROR)
-                        self.task_service.set_task_error_message(transcode_task_id, str(e))
+                        self.task_service.set_task_error_message(transcode_task_id, f'{err.__class__.__name__}: {err}')
 
                     finally:
                         # If the Job no longer exists, the user must have deleted it while we were working on this task

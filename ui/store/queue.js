@@ -82,6 +82,7 @@ const useQueueStore = create((set, get) => ({
 
   startRunningChecker: (trigerredBySchedule = false) => {
     const LOOP_PERIOD_MS = 1000
+    let loopNum = 0
     const checkerLoop = async () => {
       const { isRunning: prevIsRunning } = get()
       const newIsRunning = await queueAPI.isRunning()
@@ -113,6 +114,17 @@ const useQueueStore = create((set, get) => ({
         const latestSchedule = await queueAPI.getSchedule()
         if ((get().schedule == null || latestSchedule == null) && newIsRunning === false) {
           set({ schedule: latestSchedule })
+          return
+        }
+      }
+
+      // Break the loop if after a few iterations it is still not running, and never appeared
+      // to the UI as running, since likely that means it started and failed immediatley before
+      // the first loop check could complete. (and update state for that broken job)
+      if (prevIsRunning === false && newIsRunning === false) {
+        loopNum += 1
+        if (loopNum >= 3) {
+          await get().updateActiveJob()
           return
         }
       }

@@ -39,13 +39,13 @@ export const dateObserverFolderData = (folderName) => {
 // Ensure this method matches the method on the backend (safe_observer_code)
 export const safeObserverCode = (observerCode) => {
   return observerCode
-    .replace('/', '-')
-    .replace('\\', '-')
-    .replace(':', '-')
-    .replace('*', '')
-    .replace('?', '')
-    .replace('"', '-')
-    .replace('>', '-')
-    .replace('<', '-')
-    .replace('|', '-')
+    .replaceAll('/', '-')
+    .replaceAll('\\', '-')
+    .replaceAll(':', '-')
+    .replaceAll('*', '')
+    .replaceAll('?', '')
+    .replaceAll('"', '-')
+    .replaceAll('>', '-')
+    .replaceAll('<', '-')
+    .replaceAll('|', '-')
 }

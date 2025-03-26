@@ -14,6 +14,10 @@ WARNINGS.set('FILE_EXISTS_WARNING', {
 })
 
 const ERRORS = new Map()
+ERRORS.set('FLAWED_FILE', {
+  message: 'file cannot be read/parsed',
+  summary: 'Flawed file',
+})
 ERRORS.set('MEDIA_PATH_ERROR', {
   message: 'subfolder is too deeply nested',
   summary: 'Subfolder too deep',
