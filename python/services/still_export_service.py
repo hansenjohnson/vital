@@ -88,6 +88,6 @@ class StillExportService:
             if os.path.exists(output_file_path):
                 os.remove(output_file_path)
             raise e
-        except Exception as e:
-            print_err(f"An error occurred: {e}")
-            raise e
+        except Exception as err:
+            print_err(f"Error creating still frame: {err.__class__.__name__}: {err}")
+            raise err

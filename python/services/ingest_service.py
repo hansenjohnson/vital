@@ -80,7 +80,7 @@ class IngestService:
 
             self.job_service.store_job_data(job_id, validated_metadata)
         except Exception as err:
-            print_err(f"Error parsing media")
+            print_err(f"Error parsing media: {err.__class__.__name__}: {err}")
             self.job_service.set_error(job_id, f'{err.__class__.__name__}: {err}')
             raise err
 
