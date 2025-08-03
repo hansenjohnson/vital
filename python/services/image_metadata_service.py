@@ -18,7 +18,7 @@ class ImageMetadataService(MetadataService):
             print_err(f"exiftool.exe does not exist at {self.exiftool_path}")
             raise FileNotFoundError(f"exiftool.exe does not exist at {self.exiftool_path}")
 
-    def parse_metadata(self, files):
+    def parse_metadata(self, files) -> list:
         command = [self.exiftool_path, "-j"] + files
         print_out(" ".join(command))
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -56,4 +56,4 @@ class ImageMetadataService(MetadataService):
             metadata_obj.height = metadata['ImageHeight']
             metadata_obj.original_date = internal_date
 
-        return metadata_dict.values()
+        return list(metadata_dict.values())

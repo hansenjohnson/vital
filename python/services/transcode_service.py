@@ -127,6 +127,7 @@ class TranscodeService:
                 "local_export_path": local_export_path,
                 "report_dir": report_dir,
                 "observer_code": observer_code,
+                # single-folder (aka single-day) jobs are not expected to pass the compression_buckets parameter
                 "compression_buckets": compression_buckets,
                 "multi_day_job": len(compression_buckets.keys()) > 0
             }
